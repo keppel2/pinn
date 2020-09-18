@@ -12,6 +12,7 @@ func omOk(s string) bool {
 	return ok
 }
 
+// True are keywords that can be fast-forwarded to in case of error.
 var tokenMap = map[string]bool{
 	"EOF":         false,
 	"name":        false,
