@@ -1,4 +1,4 @@
-# Pinn to llvm/ARM64 project.
+# Pinn to llvm/ARM64 project. PinnProject.
 
 Implement Pinn entirely in golang (remove ANTLR), outputting LLVM initially, and ARM64 later.
 
