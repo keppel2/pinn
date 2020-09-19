@@ -18,3 +18,6 @@ Implement Pinn entirely in golang (remove ANTLR), outputting LLVM initially, and
 * Lexer. `text/scanner` looks like a good library.
 * Parser. Follow example in `src/cmd/compile/internal/syntax`--used for self-hosted Go compilation and self-contained.
 * Generate LLVM IR. https://github.com/llir/llvm is a Go library that can be used to generate the IR.
+* Self-host at this stage, like Rust?
+* Generate ARM64 assembly natively. Golang has tens of optimization passes which are tied to the language.
+* Self-host at this stage, like Go.
