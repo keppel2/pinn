@@ -1,0 +1,195 @@
+
+// Rod cutting
+p := [0, 1, 5, 8, 9, 10, 17, 17, 20, 24, 30];//, 33, 37, 41];
+println("p len", len(p));
+func max (a, b int) int { return a > b ? a : b ;}
+
+func cutRod (n int) int {
+  if n == 0 {
+    return 0;
+  }
+  var q int;
+  q = -1;
+  var i int;
+  for i = range 1@n {
+    q = max(q, p[i] + cutRod(n - i));
+  }
+  return q;
+}
+println("go");
+var x5 int;
+for x5 = range 1:len(p) {
+  println(cutRod(x5));
+}
+//exit();
+
+
+var r[len(p)]int;
+var x int;
+for x = range 0:len(r) {
+  r[x] = -1;
+}
+func cutRodMemo(n int) int {
+  if r[n] >= 0 {
+    return r[n];
+  }
+  if n == 0 {
+    q := 0;
+  } else {
+    q := -1;
+    var i int;
+    for i = range 1@n {
+      q = max(q, p[i] + cutRodMemo(n - i));
+    }
+  }
+  r[n] = q;
+  return q;
+}
+println("Top memo", cutRodMemo(10));
+for x5 = range 1:len(p) {
+  println(cutRodMemo(x5));
+}
+
+var r2 [len(p)]int;
+var s [len(p)]int;
+r[0] = 0;
+var j, i, q int;
+for j = range 1:len(p) {
+  q = -1;
+  for i = range 1@j {
+    if q < p[i] + r2[j - i] {
+      q = p[i] + r2[j - i];
+      s[j] = i;
+    }
+//    q = max(q, p[i - 1] + r[j - i]);
+  }
+  r2[j] = q;
+}
+println("Piecces");
+var sol, pn int;
+for sol = range 1:len(p) {
+  println("Sol", sol);
+  pn = sol;
+  while pn > 0 {
+    println(s[pn]);
+    pn = pn - s[pn];
+  }
+}
+
+
+
+
+
+SIZE := 20;
+TURN := 5;
+TURNS := 20;
+var gar [SIZE][SIZE]bool;
+var ag [](int, int);
+func birth() {
+    var i, j, x int;
+    if len(ag) >= SIZE * SIZE {
+    println("Full");
+    exit();
+}
+
+    repeat {
+    i, j = rand(SIZE), rand(SIZE);
+    } while gar[i][j] == true;
+      ag[len(ag)] = (i, j);
+    gar[i][j] = true;
+
+}
+func process(i int) {
+    var dx, dy int;
+    repeat {
+    dx = rand(3) - 1;
+    dy = rand(3) - 1;
+    if ag[i][0] + dx < 0 || ag[i][0] + dx >= SIZE {
+        dx = 0;
+    }
+    if ag[i][1] + dy < 0 || ag[i][1] + dy >= SIZE {
+        dy = 0;
+    }
+    } while gar[ag[i][0] + dx][ag[i][1] + dy] == true;
+    ag[i][0] += dx;
+    ag[i][1] += dy;
+}
+func main() {
+    var i, j, k int;
+    for i = range 1@TURNS {
+        for j = range 1@TURN {
+            birth();
+            for k = range 0:len(ag) {
+                process(k);
+            }
+        }
+        println("Turn ", i);
+        printg();
+    }
+}
+
+func printg() {
+  var x, y int;
+  for x = range 0:SIZE {
+    for y = range 0:SIZE {
+      print(gar[x][y] ? "X" : "O");
+    }
+    println("");
+  }
+  
+}
+println("min");
+main();
+
+
+//Recursive assumptions
+//rec := *(*(*(), 12), 23);
+//rec is *(self, int);
+//rec is *(*(*(bool), int), int);
+
+
+
+
+
+
+
+
+
+
+AGENTS := 2000 * 10;//100;
+func genHS(x, y, z int) string {
+    return stringValue(x) + "," + stringValue(y) + "," + stringValue(z);
+}
+
+func main() {
+    println("x,y,z");
+    println("5,5,5");
+    println("5,5,5");
+    var hm [map]bool;
+    var i, x, y, z int;
+    var coin, c2 int;
+    for i = range 1@AGENTS {
+    repeat {
+        x = rand(300);
+        y = rand(300);
+        coin = rand(4) + 1;
+        if coin == 1 {
+          z = 1;
+        } else if coin == 2 {
+          z = rand(16);
+        } else if coin == 3 {
+          c2 = rand(5);
+          if c2 == 0 {
+            z = rand(1250);
+          } else {
+            z= rand(400);
+          }
+        } else if coin == 4 {
+          z= rand(256);
+        }
+        } while hm[genHS(x, y, z)] == true;
+        hm[genHS(x, y, z)] = true;
+        println(genHS(x, y, z));
+    }
+}
+main();

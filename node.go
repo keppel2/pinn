@@ -21,6 +21,7 @@ type Stmt interface {
 }
 
 type stmt struct{ node }
+
 func (stmt) aStmt() {}
 
 type File struct {
@@ -49,6 +50,7 @@ type Decl interface {
 }
 
 type decl struct{ node }
+
 func (decl) aDecl() {}
 
 type Expr interface {
@@ -57,9 +59,11 @@ type Expr interface {
 }
 
 type expr struct{ node }
+
 func (expr) aExpr() {}
 
 type lit struct{ node }
+
 func (lit) aLit() {}
 
 type Lit interface {
@@ -83,6 +87,7 @@ type Kind interface {
 }
 
 type kind struct{ node }
+
 func (kind) aKind() {}
 
 type SKind struct {

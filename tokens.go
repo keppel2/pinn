@@ -55,7 +55,7 @@ var tokenMap = map[string]bool{
 type LitKind uint8
 
 const (
-	IntLit LitKind = iota
+	IntLit LitKind = iota + 1
 	FloatLit
 	StringLit
 )

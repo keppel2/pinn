@@ -1,0 +1,352 @@
+
+E := 0;
+B := 1;
+W := 2;
+INV := 3;
+SIZER := 2;
+SIZEC := 2;
+type bt [SIZER][SIZEC]int;
+
+//var bh []bt;
+//var bz bt;
+//bh[0] = bz;
+//var bz2 bt;
+//bz2 = bh[0];
+//bz2[1][1] = 7;
+
+
+func printBoard (board bt) {
+  var y int;
+  var x int;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+        print (board[x][y]);
+    }
+        println("");
+  }
+  println ("---", score(board));
+}
+
+
+//printBoard(bh[0]);
+//printBoard(bz2);
+//exit();
+
+func ih(board bt, bhist []bt) bool {
+  
+  var b2 bt;
+  for b2 = range bhist {
+    if board == b2 {
+      return false;
+    }
+  }
+    return true;
+
+}
+
+func ie(board bt, bhist []bt) {
+  if !ih(board, bhist) {
+    println("dup");
+    exit();
+  }
+    bhist[len(bhist)] = board;
+}
+var boardA bt;
+//boardA = [[B, 0, B, W, 0],
+//             [0, B, B, W, W],
+//             [B, B, W, 0, W],
+//             [B, B, W, W, W],
+//             [0, B, W, W, 0]];
+//boardA = [[0, B, B],
+//          [B, B, B],
+//          [W, W, W]];
+
+
+
+
+
+func printHist (bh []bt) {
+  var x int;
+  var b bt;
+  for x, b = range bh {
+    println("b", x);
+    printBoard(b);
+  }
+}
+func cap (board bt, current int) bt {
+      var x int;
+    var y int;
+    w := 0;
+    var b2 bt;
+  var be bt;
+  var b bool;
+                    var c int;
+                  var cs int;
+    for x = range 0:SIZER {
+        for y = range 0:SIZEC {
+          if board[x][y] != current {
+            continue;
+          }
+          b2 = be;
+          current = board[x][y];
+          (b2, b) = hasLib(board, b2, current, x, y, false);
+          if !b {
+            board = clear(board, b2, current);
+          }
+        }
+    }
+      return board;
+  
+  
+  
+  
+}
+func yes(board bt, player int, x int, y int) bool {
+  var t bt;
+  var b bool;
+  (t, b) = hasLib(board, t, player, x, y, false);
+  return b;
+}
+func hasLib (board bt, b bt, current int, x int, y int, lib bool) (bt, bool) {
+
+  guard x >= 0 && x < SIZER && y >= 0 && y < SIZEC && b[x][y] != INV else {
+        return (b, lib);
+    }
+    if board[x][y] == opposite(current) {
+      return (b, lib);
+    }
+        if board[x][y] == E {
+          return (b, true);
+      }
+        b[x][y] = INV;
+        (b, lib) = hasLib(board, b, current, x + 1, y, lib);
+        (b, lib) = hasLib(board, b, current, x - 1, y, lib);
+        (b, lib) = hasLib(board, b, current, x, y + 1, lib);
+        (b, lib) = hasLib(board, b, current, x, y - 1, lib);
+        return (b, lib);
+}
+func clear (board bt, b bt, current int) bt {
+  var x int;
+  var y int;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      if b[x][y] == INV {
+        board[x][y] = E;
+      }
+    }
+  }
+    return board;
+}
+
+func color (board bt, b bt, current int, currentScore int, x int, y int) (bt, int, int) {
+    var tup (bt, int, int);
+    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || b[x][y] == INV {
+        return (b, current, currentScore);
+    }
+
+      if current == INV {
+        return (b, current, 0);
+      }
+    if board[x][y] == E {
+          b[x][y] = INV;
+        currentScore++;
+      (b, current, currentScore) = color(board, b, current, currentScore, x + 1, y);
+        (b, current, currentScore) = color(board, b, current, currentScore, x - 1, y);
+      (b, current, currentScore) = color(board, b, current, currentScore, x, y + 1);
+      (b, current, currentScore) = color(board, b, current, currentScore, x, y - 1);
+
+    } else {
+      if current == E {
+        current = board[x][y];
+      } else if board[x][y] != current {
+        current = INV;
+        currentScore = 0;
+      }
+    }
+        return (b, current , currentScore);
+      
+        
+    
+}
+//func cap (board bt) (
+func pscore (board bt, player int) int {
+  result := score(board);
+  return player == B ? result[0] - result[1] : result[1] - result[0];
+}
+
+func sscore(board bt) int {
+  return pscore (board, B);
+}
+
+func full (bs []bt, player int) bool {
+  var x int;
+  var y int;
+  var b bt;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      b = play(last(bs), player, x, y);
+
+      if ih(b, bs) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
+func score (board bt) (int, int) {
+    var x int;
+    var y int;
+    b := 0;
+    w := 0;
+    var b2 bt;
+                    var c int;
+                  var cs int;
+    for x = range 0:SIZER {
+        for y = range 0:SIZEC {
+            if board[x][y] == B {b++;} else
+                if board[x][y] == W {w++;} else {
+
+                  
+                  (b2, c, cs) = color(board, b2, E, 0, x, y);
+                     // (b2, c, cs) = color()
+//                  println(tup);
+                  if c == B b += cs;
+                  if c == W w += cs;
+                }
+            
+        }
+    }
+        return (b, w);
+}
+
+
+
+func play (board bt, player int, x int, y int) bt {
+  if board[x][y] != E {
+    return board;
+  }
+//    if !yes(board, player, x, y) {
+//      return board;
+//    }
+
+  board[x][y] = player;
+  
+    
+    
+    
+  board = cap(board, opposite(player));
+  board = cap(board, player);
+  return board;
+}
+
+func last (bh []bt) bt {
+  return bh[len(bh) - 1];
+}
+func add (bh []bt, b bt) {
+  bh[len(bh)] = b;
+}
+
+func playb (bh []bt, player int, x int, y int) bool {
+  board := play(last(bh), player, x, y);
+  if ih(board, bh) {
+    ie(board, bh);
+    return true;
+  }
+  return false;
+}
+
+
+func opposite (x int) int { return x == B ? W : B; }
+RC := 0;
+func minimax (player int, bh []bt, passed bool) (int, []bt)
+{
+  RC++;
+  if RC % 100 == 0 {
+    printHist(bh);
+  }
+//  println("player", player, passed);
+//  printHist(bh);
+//  printBoard(last(bh));
+  var pb bt;
+  var best int;
+  var s int;
+  var b bool;
+  var bh2 []bt;
+  var x int;
+  var y int;
+  if passed {
+    best = pscore(last(bh), player);
+  } else {
+    (best, bh) = minimax(opposite(player), bh, true);
+    best = best * -1;
+  }
+  if full(bh, player) {
+    return (best, bh);
+  }
+    if best == SIZER * SIZEC {
+      return (best, bh);
+    }
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      b = playb(bh, player, x, y);
+
+      if !b { continue; }
+//      println(player, "played", x, y);
+      (s, bh) = minimax(opposite(player), bh, false);
+      s = s * -1;
+      if s > best {
+        best = s;
+      }
+      bh = bh[0:len(bh) - 1];
+    }
+  }
+    return (best, bh);
+}
+
+
+
+
+
+
+func main() {
+  var ok bool;
+  println("Initial board");
+  var b2 bt;
+  var mm int;
+  var bh []bt;
+  add(bh, b2);
+  player := B;
+  passed := false;
+  
+//  loop {
+//    println(player);
+//    printBoard(last(bh));
+//    if full(bh, player) {
+//
+//
+//      if passed {
+//        println("Double pass, game over");
+//        exit();
+//      }
+//      println("pass");
+//      passed = true;
+//      player = opposite(player);
+//      continue;
+//    } else {
+//      passed = false;
+//    }
+//    repeat {
+//
+//
+//    ok = playb(bh, player, rand(SIZER), rand(SIZEC));
+//    } while !ok;
+//    player = opposite(player);
+//  }
+   
+  (mm, bh) = minimax(player, bh, false);
+  println(mm);
+}
+main();
+

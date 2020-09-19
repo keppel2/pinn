@@ -1,0 +1,231 @@
+//basic block
+
+ng("block");
+{x;}
+
+ng("block 2");
+{
+    var x int;
+}
+x = true;
+
+// TCONTROL NEGS
+
+ng("Neg if");
+if 0 ;
+
+ng("Neg 2");
+if "str" ;
+
+ng("Neg else");
+if 1 ; else ;
+
+//while
+ng("Zero for while:");
+while true {
+    x;
+}
+
+//repeat
+ng("repeat");
+repeat {
+
+} while 42;
+
+ng("loop");
+loop {
+    x;
+    break;
+}
+
+ng("break");
+break;
+
+ng("break 2");
+{
+break;
+}
+ng("continue");
+continue;
+ng("continue 2");
+{
+    continue;
+}
+
+ng("guard");
+
+guard false else {
+    5;
+}
+
+//match
+
+ng("match");
+match 0 {
+    when true:
+}
+
+ng("match 2");
+match 0 {
+    when 0:
+    bad();
+    when 1:
+    ;
+}
+
+
+
+
+
+//functions
+ng("Function call");
+f();
+
+ng("Wrong short declaration:");
+func f() {}
+sd := f();
+
+ng("Function call 2");
+f(0);
+
+ng("fc");
+f();
+func f() {}
+
+ng("fc 3");
+func f() {}
+g();
+
+ng("fc");
+func f() {}
+func g() {}
+h();
+
+ng("function with no params");
+func f() {}
+f(0);
+
+ng("fc return");
+func f() int {}
+f();
+
+ng("fc return wrong");
+func f() int {return false;}
+f();
+
+
+ng("fc param");
+func f(a int) {}
+f();
+
+ng("fc param redeclare");
+func f(a int) {
+    var a int;
+}
+f();
+
+
+ng("Error in function");
+func f() {
+    x;
+}
+f();
+
+ng("fc param w/ none");
+func f() {}
+f(0);
+
+
+ng("fc bad param");
+func f(i int) {}
+f(true);
+
+ng("Use void return:");
+func f() {}
+f() + 0;
+
+ng("Return int when no return parameter specified:");
+func f() { return 0; }
+f();
+
+
+ng("Mix up parameters to function:");
+func f(i int, s string) {}
+f("abc", 10);
+
+ng("Repeat");
+func f(a int, a int){}
+
+
+ng("Repeat");
+func f(a, a int){}
+
+ng("Repeat");
+func f(a, b int, a int) {}
+
+ng("Variadic");
+func f(a ...int, b int) {}
+
+ng("Bad return in loop:");
+func f() int {
+loop {
+  return false;
+}
+}
+f();
+
+ng("No exit from guard:");
+guard false else {
+}
+
+ng("Range:");
+for x = range 1@10 {}
+
+ng("Range:");
+var x int;
+for x = range true {}
+
+ng("Range:");
+var x int;
+for x = range ["aap", "noot"] {}
+
+ng("Range:");
+var x [2]int;
+for x = range [5, 10] {}
+
+ng("Range:");
+var x int;
+for x = range (5, 10) {}
+
+ng("Range:");
+var x string;
+var y int;
+for x, y = range [5, 10] {}
+
+ng("Range:");
+var x int;
+var y int;
+for x, y = range {"aap": 5, "noot": 23} {}
+
+ng("Range:");
+var x int;
+var y int;
+for x, y = range 23 {}
+
+ng("Range:");
+var x string;
+var y int;
+for x, y = range ["aap", "noot"] {}
+
+ng("For triple:");
+for var x int; i < 5; i += "aap" {}
+
+ng("For triple:");
+for var x int; 2; i += 10 {}
+
+ng("For triple:");
+for var x string; i < 2; i += "aap" {}
+
+ng("For triple:");
+for var i []int; i < 2; i++ {}
+

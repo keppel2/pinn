@@ -1,0 +1,73 @@
+println("Press enter to start...");
+readLine();
+func tri(side int) {
+    var layer int;
+    var iter int;
+
+    for layer = range 1@side {
+        if layer == 1 {
+            for iter = range 1@side - 1 {
+                print(" ");
+            }
+            println("*");
+            continue;
+        }
+        if layer == side {
+            print("*");
+            for iter = range 1@side - 1 {
+              print(" *");
+            }
+            println();
+            continue;
+        }
+        for iter = range 1@side - layer {
+            print(" ");
+        }
+        print("*");
+        for iter = range 1@1 + (layer - 2 * 2) {
+            print(" ");
+        }
+        println("*");
+    }
+}
+var seconds int;
+for seconds = range 1@10 {
+    sleep(1);
+    println(seconds, seconds == 1 ? "second" : "seconds");
+    tri(seconds);
+    println();
+}
+println("Complete");
+
+
+
+
+
+
+// Rod cutting
+p := [1, 5, 8, 9, 10, 17, 17, 20, 24, 30];
+
+func max (a, b int) int { return a > b ? a : b ;}
+
+func cutRod (n int) int {
+  if n == 0 {
+    return 0;
+  }
+  var q int;
+  q = -1;
+  var i int;
+  for i = range 1@n {
+    q = max(q, p[i - 1] + cutRod(n - i));
+  }
+  return q;
+}
+println("go");
+println (cutRod(10));
+
+n := 4;
+var r[n + 1]int;
+var x int;
+for x = range 0:len(r) {
+  r[x] = -1;
+}
+

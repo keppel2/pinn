@@ -1,0 +1,161 @@
+EMPTY := 0;
+TIE := 3;
+PLAYER_A := 1;
+PLAYER_B := 2;
+SIZE := 2;
+var rHashMap [map]int;
+
+func rHash(board [SIZE][SIZE]int, player int) int {
+    rt := 0;
+    var v int;
+    var x int;
+    var y int;
+    for x = range 0:SIZE {
+        for y = range 0:SIZE {
+            v = board[x][y];
+            rt *= SIZE;
+            rt += v;
+        }
+    }
+    rt *= 2;
+    rt += player - 1;
+    return rt;
+}
+func printBoard (board [SIZE][SIZE]int) {
+  var y int;
+  var x int;
+  for y = range 0:SIZE {
+        print (board[0][y]);
+    for x = range 1:SIZE {
+        print (" ");
+        print (board[x][y]);
+    }
+        println("");
+  }
+  println ("---");
+}
+
+func full (board [SIZE][SIZE]int) bool {
+    var x int;
+    var y int;
+    for x = range 0:SIZE {
+        for y = range 0:SIZE {
+            if board[x][y] == EMPTY {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+func line (board [SIZE][SIZE]int, x int, y int, dx int, dy int) int {
+    comp := board[x][y];
+    if comp == EMPTY {
+        return TIE;
+    }
+    while x + dx < SIZE && y + dy < SIZE {
+        x += dx;
+        y += dy;
+        if board[x][y] != comp {
+            return TIE;
+        }
+    }
+    return comp;
+}
+
+func winner (board [SIZE][SIZE]int) int {
+  var i int;
+    var rt int;
+
+    for i = range 0:SIZE {
+        rt = line(board, i, 0, 0, 1);
+        if rt != TIE
+            return rt;
+        rt = line(board, 0, i, 1, 0);
+        if rt != TIE
+            return rt;
+    }
+    rt = line(board, 0, 0, 1, 1);
+    if rt != TIE
+        return rt;
+    rt = line(board, 0, SIZE - 1, 1, -1);
+    return rt;
+}
+
+func opposite (x int) int { return x == PLAYER_A ? PLAYER_B : PLAYER_A; }
+      
+func minimax (player int, board [SIZE][SIZE]int) int
+{
+    marker++;
+    if marker == 100 {
+    printBoard(board);
+    }
+  var result int;
+  best := opposite(player);
+
+  result = winner(board);
+  if result != TIE {
+    return result;
+    }
+    if full(board) {
+        return TIE;
+    }
+  var x int;
+  var y int;
+    var strRHash string;
+  for x = range 0:SIZE {
+    for y = range 0:SIZE {
+      if board[x][y] == EMPTY {
+        board[x][y] = player;
+                strRHash = stringValue(rHash(board, player));
+                if rHashMap[strRHash] > 0 {
+                    result = rHashMap[strRHash];
+                } else {
+                    result = minimax(opposite(player), board);
+                    rHashMap[strRHash] = result;
+                }
+        if result == player {
+          return player;
+        }
+        if result == TIE {
+          best = TIE;
+        }
+        board[x][y] = EMPTY;
+      }
+    }
+  }
+  return best;
+}
+
+func main() {
+    var    board [SIZE][SIZE]int;
+    println("Initial board");
+
+    printBoard(board);
+    
+    result := minimax (PLAYER_A, board);
+   
+    resultString := "";
+    match result {
+        when TIE:
+            resultString = "Tie.";
+        when PLAYER_A:
+            resultString = "Player A.";
+        when PLAYER_B:
+            resultString = "Player B.";
+    }
+    println ("Winner:", resultString);
+}
+marker := 0;
+time := 0;
+loop {
+println("loop", time);
+rHashMap = {};
+main();
+time += 1;
+marker = 0;
+    
+    
+    break;
+}
+//main();

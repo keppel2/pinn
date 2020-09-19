@@ -1,0 +1,112 @@
+
+ft("Literal zero");
+0;
+assert(0, 0);
+
+
+ft("Literals");
+42;
+assert(42, 42);
+101;
+1010;
+
+
+// Expressions
+
+
+ft("plus");
+assert(0 + 0, 0);
+
+ft("Plus 2");
+assert(1 + 2 + 3, 6);
+assert("con" + "cat", "concat");
+assert("ab" + "cdef", "abcdef");
+
+ft("Equal");
+at(0 == 0);
+
+ft("Equal 2");
+assert(0 == 1, false);
+assert(true == false, false);
+at(true == true);
+assert("abc" == "abcdef", false);
+
+ft("Equal 3");
+at([[1, 5], [23, 42]] == [[1, 5], [23, 42]]);
+
+
+
+ft("LT");
+0 < 10;
+assert(0 < 10, true);
+assert(10 < 0, false);
+assert("ab" < "def", true);
+
+ft("&&");
+true && true;
+true && false;
+false && 0 + true;
+
+ft("||");
+true || false;
+
+//Unary
+
+ft("Unary");
++0;
+-0;
+assert(!true, false);
+assert(!false, true);
+assert(+42, 42);
+assert(-12, 0 - 12);
+
+
+ft("Binary int->int");
+assert(2 + 3, 5); //5
+assert(2 - 3, 0 - 1); //-1
+assert(2 * 3, 6); //6
+assert(2 / 3, 0); //0
+assert(2 % 3, 2); //2
+
+ft("Shift");
+assert(1 << 1, 2);
+assert(2 >> 1, 1);
+
+ft("Bitwise");
+assert(3 & 1, 1); //11 & 01
+assert(3 | 4, 7); //11 | 100
+assert(3 ^ 2, 1); //11 ^ 10
+
+ft("Binary comp");
+true == true;
+assert(2 != 3, true);
+assert(2 > 3, false);
+assert(2 >= 3, false);
+assert(2 <= 3, true);
+
+ft("Range expr");
+at(sequal(0:1, ...[0]));
+
+
+ft("Range 2");
+at(sequal(0:5, ...[0, 1, 2, 3, 4]));
+at(sequal(1@3, ...[1, 2, 3]));
+
+ft("Paren");
+(0);
+assert((42), 42);
+
+ft("Paren comp");
+((0));
+assert(((101)), 101);
+
+ft("Conditional");
+assert(true ? 2 : 1, 2);
+
+ft("Conditional 2");
+assert(false ? 1 + 2 : true, true);
+
+ft("in");
+at(5 in (4@6));
+nat(7 in (1@6));
+at(5 in [1, 5, 10]);

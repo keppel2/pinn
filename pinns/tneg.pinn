@@ -1,0 +1,690 @@
+ng("Undeclared");
+x;
+
+ng("Undeclared 2");
+abc;
+
+ng("Undeclared 3");
+b1;
+
+ng("Redeclare");
+var x int;
+assert(x, 0);
+var x int;
+
+ng("Redeclare 2");
+var x int;
+x;
+var x int;
+
+ng("Create int order");
+x;
+var x int;
+
+ng("Create 2 ints order");
+var x int;
+x;
+y;
+var y int;
+
+//ng("0");
+//0 = 0;
+
+
+ng("Neg create int");
+x = 0;
+var x int;
+
+
+
+
+
+ng("Neg create int 2");
+var x int;
+x = false;
+
+ng("Neg create bool");
+var x bool;
+x = 42;
+
+ng("Create bool order");
+x;
+var x bool;
+
+ng("String bad index");
+"str"[3];
+
+ng("SBI");
+"str"[1:12];
+
+ng("Multiset");
+var x, y int;
+x, y = 10, 15, 201;
+
+
+
+// basic collections
+
+ng("Array");
+var x [true]int;
+
+ng("Array composite");
+var x [4][true] int;
+
+ng("Array assign");
+var x [3]int;
+var y [4]int;
+x = y;
+
+ng("Wrong type assignment defined types:");
+var x [2]int;
+var y [2]string;
+y = x;
+
+
+ng("Array index");
+var x [3]int;
+x[7];
+
+ng("Array index assign");
+var x [3]int;
+x[1] = true;
+
+ng("Array index assign");
+var x [2]int;
+x[7] = 0;
+
+ng("AIA multi-error");
+var x [3]int;
+x[8] = true;
+
+ng("Slice");
+x;
+var x []int;
+
+ng("Slice composite");
+x;
+var x [][]int;
+
+ng("Slice assign");
+var x []int;
+var y []bool;
+x = y;
+
+ng("Slice index");
+var x []int;
+x[7];
+
+ng("Slice index assign");
+var x[]int;
+x[0] = true;
+
+ng("Slice index assign");
+var x[]int;
+x[1] = 0;
+
+ng("Slice add bad");
+var x []int;
+x[0] = 42;
+x[2] = 101;
+
+
+
+
+//mix
+
+ng("Wrong type assignment defined types (scalar = array):");
+var x []bool;
+var y [2]bool;
+x = y;
+
+ng("Wrong type assignment defined types (array = slice, both size 2):");
+var x [2]int;
+var y []int;
+y[0] = 10;
+y[1] = 20;
+x = y;
+
+
+ng("Map");
+x;
+var x [map]int;
+
+ng("Map assign");
+var x [map]int;
+var y [map]bool;
+x = y;
+
+ng("Map index");
+var x [map]int;
+x[4];
+
+ng("Map index assign");
+var x [map]int;
+x["key"] = true;
+
+ng("Tuple");
+x;
+var x (int, int);
+
+ng("Tuple assign");
+var x (int, int);
+var y (int, bool);
+x = y;
+
+ng("Tuple index");
+var x (int, int);
+x[12];
+
+ng("Tuple index assign");
+var x (int, int);
+x[0] = true;
+
+ng("Pointer assign");
+var x *(int);
+var y *(bool);
+x = y;
+
+ng("Pointer assign");
+var x *(int, int);
+var y *(int);
+x = y;
+
+ng("Pointer index");
+var x *(int);
+x[0];
+
+ng("Pointer index assign");
+var x *(int);
+x[0] = 7;
+
+
+
+
+
+//Struct
+ng("Struct");
+var s {a: int, a: int};
+
+ng("Struct composite");
+var s {s2: {a: int, a: int}};
+
+ng("Struct assign");
+var s1 {a: int, b: int};
+var s2 {a: int, b: bool};
+s1 = s2;
+
+ng("Struct assign 2");
+var s1 {a: int};
+var s2 {z: int};
+s1 = s2;
+
+//ng("Struct index get");
+//var s1 {a: int};
+//s1["b"];
+
+ng("Struct index assign");
+var s1 {a: int, b: int};
+s1["a"] = true;
+
+
+
+
+
+
+
+
+
+// Collection literals
+ng("Array");
+[[0, 10], [2]];
+
+ng("Array literal");
+[10, true];
+
+ng("Slice literal");
+...[4, true];
+
+ng("Slice 2");
+...[...[5], ...[true]];
+
+
+ng("Object literal:");
+{"a": 5, "b": true};
+
+ng("Object literal repeat key");
+{b: 12, b: 42};
+
+ng("Tuple literal bad member");
+(5, 0 == true);
+
+ng("Pointer literal bad member");
+*(0 == true);
+
+ng("array null/non");
+[*(), *(42), *(1, 4)];
+
+ng("array/tuple mix");
+[(1, 4), (1, 10, 12)];
+
+ng("map null/non");
+{a: *(), b: *(42), c: *(101, 202)};
+
+ng("self");
+var z *(int, self);
+
+z = *(23, *(42, *(101, 202)));
+
+ng("self 2");
+var z *(int, self);
+
+z = *(23, *(101, *(202, *())));
+z[1][1][1] = *(302, true);
+
+ng("Slice");
+var x[3]int;
+x[0:4];
+
+ng("Slice 2");
+var x[3]int;
+x[4:];
+
+ng("At");
+var x[3]int;
+x[1@];
+
+ng("Slice a slice");
+var x[]int;
+x[0] = 2;
+x[1] = 23;
+x[2] = 101;
+x[0@3];
+
+
+ng("String");
+"abc"[2@3];
+
+ng("Repeat slice");
+"abcd"[2:4][0:3];
+
+ng("Slice type");
+3[1:2];
+
+ng("Slice type");
+(3, 1, 23)[0:1];
+
+// Set destructure
+
+ng("destruct");
+var x, y int;
+(x, y) = (2, true);
+
+ng("desturct 2");
+var x, y int;
+(x, y) = (1, 4, 10);
+
+
+
+
+
+// Short
+
+ng("Short");
+x := 1;
+x = true;
+
+ng("Short 2");
+var x int;
+y := true;
+x = y;
+
+ng("All short");
+a := 5;
+b := true;
+a = b;
+
+ng("Short list");
+a, b, c := 10, 45;
+
+   ng("Wrong short declaration");
+sdns := [[2, 1], 24];
+
+ng("Attempt to append to one more than length of slice:");
+s := [1, 4];
+assert(len(s), 2);
+s[3] = 42;
+
+ng("Index slice by string:");
+s := [1, 4];
+s["a"];
+
+ng("Slice literal with different types:");
+s := [4, 1, true];
+
+
+ng("Wrong multi short");
+a, b, c := 1, 5;
+
+
+ng("Wrong short declaration:");
+sdns := {"aap": 5, "noot": false};
+
+
+
+//neg expressions
+
+
+
+
+
+//Expression
+
+ng("Plus");
+0 + true;
+
+ng("Plus");
+"abc" + 0;
+
+ng("Plus with 3");
+1 + 2 + false;
+
+ng("-");
+3 - true;
+
+ng("*");
+3 * "a";
+
+ng("/");
+4 / false;
+
+ng("%");
+5 % "3"; //ain't javascript
+
+ng("<<");
+4 << true;
+
+ng(">>");
+true >> 12;
+
+
+ng("Equals basic");
+0 == true;
+
+ng("Equals");
+[1, 5] == [1, 5, 10];
+
+ng("Equals 2");
+...[0, 5] == ...[true, true];
+
+ng("Equal undeclared");
+x == 0;
+
+
+
+ng("LT");
+0 < true;
+
+ng(">");
+10 > "abc";
+
+
+
+ng("&&");
+true && 0;
+
+ng("||");
+false || 0;
+
+//Unary
+
+ng("+");
++true;
+
+ng("-");
+-"str";
+
+ng("!");
+!0;
+
+//Range
+
+ng("Range");
+2:1;
+
+ng("Range");
+2@0;
+
+
+ng("Slice operator fail:");
+[5, 42, 101][0@3];
+
+ng("Slice operator fail:");
+(2, true, false)[0@1];
+
+ng("Slice operator fail:");
+[[1, 2], [10, 11], [101, 102]][1@2][0][0@2];
+
+ng("Index operator fail:");
+[4, 5][-1];
+
+ng("Index operator fail:");
+(4, false)[-1];
+
+ng("Index operator fail:");
+5[0];
+
+
+
+
+
+
+
+
+
+ng("Neg create bool");
+var x bool;
+x = 0;
+
+ng("Neg create string");
+var x string;
+x = true;
+
+
+
+ng("Create array");
+var x [true]int;
+
+//ng("Array 2");
+//var x [0 - 1]int;
+
+
+
+
+
+
+
+
+
+
+
+ng("Print no arg");
+print();
+ng("Print undeclared");
+print(x);
+ng("Print multiple undeclared");
+print(x, y, z);
+ng("Print order");
+print(x);
+var x int;
+
+
+
+ng("Create array and set");
+var x [2]int;
+x[7] = 0;
+
+ng("Array 2");
+var x[2]int;
+x[2] = 0;
+
+
+ng("Wrong type assignment defined types:");
+var x [1]int;
+var y [2]int;
+y = x;
+
+
+
+
+
+
+
+ng("Wrong type assignment from declaration");
+var x int;
+x = *();
+
+
+
+
+
+
+
+
+
+ng("Assign in global context a local variable:");
+func f() {
+  x := 5;
+}
+f();
+x = 10;
+
+ng("Attempt to append to array:");
+var ar [3]int;
+ar[3] = 42;
+
+
+
+ng("Index map by integer:");
+var m[map]int;
+m[23] = 42;
+
+
+
+
+ng("Delete a non-map:");
+var x int;
+delete(x, "k");
+
+
+
+
+
+ng("Array set element with wrong type:");
+var arStr [3]string;
+arStr[0] = "alpha";
+arStr[1] = "bravo";
+arStr[2] = 42;
+
+
+
+ng("Exit with a value:");
+exit(5);
+
+ng("Exit with two values:");
+exit(true, true);
+
+ng("len:");
+len(4);
+
+ng("len:");
+len(true);
+
+
+ng("len:");
+len("abc", "def");
+
+
+ng("stringValue:");
+stringValue();
+
+ng("stringValue:");
+stringValue(5, ",");
+
+
+
+ng("Deeply nested bad assignment:");
+var dnt [2](bool, int, [map](int, string));
+dnt[1][2]["aap"] = (42, true);
+
+
+
+
+
+
+
+
+ng("Constant");
+const X = 10;
+x = 42;
+
+ng("Constant");
+const X = true;
+x = true;
+
+ng("Constant");
+const AR = [1, 10];
+AR[0] = 42;
+
+ng("Constant");
+const ST = *{a: 4, b: true};
+ST["a"] = 42;
+ng("Blank");
+
+var _ int;
+_;
+
+ng("Decimal");
+0.0 + true;
+ng("Decimal (feature?)");
+0.5 + 2;
+
+// negative NAMED
+
+ng("Named");
+var x bad;
+
+ng("Named 2");
+type t tBad;
+var x t;
+
+ng("Bad named type");
+type tInt int;
+var x tInt;
+x = true;
+
+ng("Increment");
+x++;
+
+ng("Dec");
+x--;
+
+ng("Compound");
+x += 1;
+
+ng("Multiple");
+x += y;
+
+
+
+
+
+
+
+ng("API");
+max(5);
+ng("API");
+abs(2, 5);
+ng("API");
+max(5, true);
+ng("sdf");
+x;

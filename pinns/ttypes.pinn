@@ -1,0 +1,1331 @@
+
+
+
+
+
+//Create all with defaults
+
+
+
+
+ft("Create int");
+var x int;
+assert(x, x);
+assert(x, 0);
+ft("Create 2 int");
+var x int;
+var y int;
+assert(x, 0);
+assert(y, 0);
+assert(x, y);
+
+
+
+ft("Xtra--create 2 int short");
+var x, y int;
+assert(x, 0);
+assert(y, 0);
+
+
+ft("Create and state");
+var x int;
+assert(x, 0);
+
+x;
+assert(x, 0);
+
+ft("Set x to 0");
+var x int;
+x = 0;
+assert(x, 0);
+ft("Int copies by value");
+var x int;
+var y int;
+x = 23;
+y = x;
+y = 42;
+assert(x, 23);
+assert(y, 42);
+
+
+ft("Set to x to 42");
+var x int;
+x = 42;
+assert(x, 42);
+assert(x, x);
+
+ft("Set x to itself");
+var x int;
+x = x;
+assert(x, 0);
+assert(x, x);
+
+ft("Create and set 2 ints");
+var x int;
+var y int;
+y = x;
+
+assert(x, 0);
+assert(y, 0);
+
+
+ft("Create and set 3 ints");
+var x int;
+var y int;
+var z int;
+y = x;
+z = y;
+assert(x, 0);
+assert(y, 0);
+assert(z, 0);
+
+
+ft("Create and set ints to each other");
+var x int;
+var y int;
+x = y;
+y = x;
+assert(x, 0);
+assert(y, 0);
+
+
+
+ft("Create 3 ints");
+var x int;
+var y int;
+var z int;
+x = y;
+y = x;
+x = z;
+z = x;
+y = z;
+z = y;
+assert(x, 0);
+assert(y, 0);
+assert(z, 0);
+
+
+ft("Multi set");
+var x int;
+var y int;
+x, y = 11, 42;
+assert(x, 11);
+assert(42, y);
+
+//BOOL AND STRING
+ft("Boolean");
+false;
+true;
+assert(false, false);
+assert(true, true);
+
+ft("String");
+"";
+"str";
+assert("str", "str");
+"a";
+
+ft("String index");
+assert("str"[2], "r");
+
+ft("Boolean and String literals");
+true;
+false;
+"str";
+"";
+
+ft("Create bool");
+var b bool;
+assert(b, false);
+
+
+ft("Create string");
+var str string;
+assert(str, "");
+
+//Create collections
+
+ft("Create array");
+var x [1]int;
+
+ft("Add len");
+var x[5]int;
+assert(len(x), 5);
+
+ft("Create array 2");
+var x [2]int;
+var y [7]int;
+
+ft("Variable array bounds");
+var bound int;
+bound = 2;
+var y [bound]int;
+assert(bound, len(y));
+bound = 3;
+var z [bound]int;
+assert(bound, len(z));
+
+
+
+
+
+ft("Create comp array");
+var x[1][1]int;
+var y[7][1]int;
+assert(len(y), 7);
+var z[1][7]int;
+
+ft("Array assign");
+var x[7]int;
+var y[7]int;
+x = y;
+y = x;
+assert(len(x), 7);
+assert(len(y), 7);
+
+ft("Array index");
+var x[3]int;
+x[2];
+assert(x[2], 0);
+x[0];
+assert(x[0], 0);
+
+ft("Array index assign");
+var x[3]int;
+x[0] = 0;
+
+ft("Create array and set");
+var na [2]int;
+na[0] = 42;
+na[1] = 101;
+assert(na[0], 42);
+assert(na[1], 101);
+//slice
+
+ft("Create slice");
+var x []int;
+assert(len(x), 0);
+
+ft("Slice 2");
+var x []int;
+var y []bool;
+assert(len(x), 0);
+assert(len(y), 0);
+
+ft("Slice composite");
+var x [][]int;
+var y [][][]bool;
+
+ft("Slice assign");
+var x, y []int;
+x = y;
+y = x;
+assert(x, y);
+
+ft("Slice extend");
+var x []int;
+assert(len(x), 0);
+x[0] = 10;
+assert(len(x), 1);
+
+x[1] = 42;
+assert(len(x), 2);
+
+ft("Slice index");
+var x []int;
+x[0] = 20;
+assert(x[0], 20);
+assert(len(x), 1);
+
+//map
+
+ft("Create map");
+var x [map]int;
+
+ft("Map 2");
+var x [map]bool;
+
+ft("Comp map");
+var x [map][map]int;
+var y [map][map][map]bool;
+
+ft("Map assign");
+var x, y [map]int;
+x = y;
+y = x;
+assert(x, y);
+var i[map][map]bool;
+var j[map][map]bool;
+i = j;
+j= i;
+assert(i, j);
+
+
+ft("Map index");
+var x [map]int;
+assert(x["k"], 0);
+
+
+//tuple and vars
+
+ft("Tuple");
+var t (int, int);
+assert(len(t), 2);
+
+ft("Tuple 2");
+var x (int, int, int);
+var y (int, bool);
+
+ft("Tuple composite");
+var x (int, (int, bool));
+
+ft("Tuple assign");
+var x, y (int, int);
+x = y;
+y = x;
+
+ft("Tuple index get");
+var x (int, int);
+x[0];
+assert(x[0], 0);
+ft("Tuple index assign");
+var x (int, bool);
+x[0] = 42;
+assert(x[0], 42);
+
+//tuple index assign
+ft("Tuple assignments");
+var tup2 ([]int, []string);
+tup2[0] = ...[3, 5];
+tup2[1] = ...["aap", "noot"];
+assert(tup2[0][1], 5);
+assert(tup2[1][0], "aap");
+
+
+ft("Tuple index assign");
+var y ((int, int), int);
+y[0][1] = 12;
+y[1] = 23;
+assert(y[0][1], 12);
+assert(y[1], 23);
+
+
+
+ft("Tuple copies");
+var tup (int, bool);
+var tup2 (int, bool);
+tup[0] = 42;
+tup2 = tup;
+tup2[1] = true;
+
+
+ft("Tuple destructure");
+var x, y int;
+(x, y) = (23, 42);
+assert(x, 23);
+assert(y, 42);
+
+ft("Tuple destructure 2");
+var x int;
+var y bool;
+(x, y) = (101, true);
+assert(x, 101);
+assert(y, true);
+
+
+
+//Pointer
+
+ft("Pointer");
+var p *(int);
+
+ft("Pointer 2");
+var x *(int, int);
+var y *(int, bool);
+var z *(bool);
+
+ft("Comp pointer");
+var p *(*(int), bool);
+var p2 *(*(int));
+
+ft("Pointer assign");
+var x *(int);
+var y *(int);
+x = y;
+y = x;
+
+//Pointer literals
+
+ft("Pointer");
+*();
+
+ft("Pointer 2");
+*(3);
+*(10, 11, 102);
+
+ft("Pointer composite");
+*(*(true, false), 1, 5, "abc");
+
+
+
+ft("Pointer as nullable it:");
+var pi *(int);
+pi = *(42);
+assert(pi[0], 42);
+
+ft("Pointer shares");
+var p *(int, int);
+var p2 *(int, int);
+p = *(23, 42);
+p2 = p;
+p2[0] = 101;
+assert(p[0], 101);
+
+ft("Pointer index (literal needed)");
+var p *(int, int);
+p = *(1, 4);
+p[0];
+assert(p[0], 1);
+assert(p[1], 4);
+
+
+// Struct
+
+ft("Struct");
+var s {a: int, b: bool};
+
+ft("Struct composite");
+var s {a: {z: int}};
+
+ft("Struct assign");
+var s1 {a: int, b: bool};
+var s2 {a: int, b: bool};
+s1 = s2;
+s2 = s1;
+
+ft("Xtra--Struct assign");
+var s1 {a: int, b: bool};
+var s2 {b: bool, a: int};
+s1 = s2;
+s2 = s1;
+
+ft("Struct index get");
+var s {a: int, b: bool};
+assert(s["a"], 0);
+assert(s["b"], false);
+
+ft("Struct index assign");
+var s {a: int, b: bool};
+s["a"] = 42;
+assert(s["a"], 42);
+s["b"] = true;
+assert(s["b"], true);
+
+
+
+
+// Compound literals
+
+
+// Array literal
+ft("Array literal");
+[0];
+
+ft("Array literal 2");
+[true];
+["str"];
+assert([1, 42][1], 42);
+
+ft("Array literal comp");
+assert([[0, 10], [2, 5]][0][1], 10);
+
+
+ft("Array");
+var x [1]int;
+x = [0];
+assert(x, [0]);
+var y [2]int;
+y = [0, 0];
+var z [3]bool;
+z = [false, true, false];
+assert(z[1], true);
+assert(len(z), 3);
+var comp [2][3]int;
+comp = [[1, 2, 5], [10, 12, 13]];
+assert(len(comp), 2);
+assert(comp[1][1], 12);
+
+
+
+
+// Slice literal
+ft("Slice literal");
+...[];
+
+ft("Slice literal 2");
+...[true];
+...[1, 2];
+...[1, 5, 10];
+
+ft("Slice literal comp");
+...[...[0]];
+
+
+ft("Slicing shares");
+var ssAr1, ssAr2 []int;
+ssAr1 = ...[1, 10, 101, 202];
+ssAr2 = ssAr1[1@2];
+ssAr2[0] = 777;
+
+ft("Slice of arrays does not share (bug)");
+var j [][1]int;
+j[0] = [23];
+var k [1]int;
+k = j[0];
+k[0] = 42;
+
+ft("Slice");
+var x[]int;
+x = ...[0];
+x = ...[12, 42];
+assert(len(x), 2);
+assert(x[0], 12);
+assert(x[1], 42);
+
+at(sequal(x, ...[12, 42]));
+
+var y[]bool;
+y = ...[false, true, false];
+var z[]string;
+z = ...["abc", "def"];
+var z2[][]int;
+z2 = ...[...[1, 2], ...[10, 11]];
+
+
+
+
+
+// Map literal
+ft("Map literal");
+{}
+
+ft("Map literal 2");
+{"a": "b", "c": "d", "e": "val"};
+{"key": 42};
+
+ft("Map compos");
+{"out": {"in": 5}};
+
+// Tuple literal
+
+ft("Tuple");
+();
+
+ft("Tuple 2");
+(1, 5);
+
+ft("Tuple composite");
+((1, true, false), 5);
+
+
+// Struct literal
+
+ft("Struct");
+*{a: 42, b: true};
+ft("Struct 2");
+*{a: true, b: 42, c: "str"};
+ft("Struct composite");
+*{key: *{a: true, b: 101}, key2: *{z: "zee"}};
+
+
+// Mixes
+
+ft("Arrays null");
+[*(), *(), *()];
+[...[], ...[]];
+[{}, {}];
+
+ft("Array mix null/non");
+[*(42), *(101), *()];
+[...[], ...[101, 4]];
+[{"bcd": false}, {}, {"a": true}];
+
+
+ft("Slice null");
+...[*(), *()];
+
+ft("Slice mix null/non");
+...[*(101), *(), *(202)];
+...[{}, {"a": 42}];
+
+ft("Map null");
+{a: *(), b: *()};
+{a: ...[], b: ...[]};
+
+ft("Map mix");
+{a: *(42), b: *()};
+
+
+
+// Short declaration
+
+ft("Short");
+x := 0;
+assert(x, 0);
+
+ft("ShortB");
+x := 42;
+assert(x, 42);
+
+ft("Short declaration");
+var x int;
+y := 4;
+x = y;
+assert(x, 4);
+assert(y, 4);
+
+ft("Short 2");
+a := true;
+assert(a, true);
+b := "spam";
+assert(b, "spam");
+
+
+ft("Short 3");
+var x int;
+y := x;
+assert(y, 0);
+y = 2;
+assert(y, 2);
+assert(x, 0);
+
+ft("Short declaration copies integer");
+sdci1 := 5;
+sdci2 := sdci1;
+sdci1 = 10;
+assert(sdci1, 10);
+assert(sdci2, 5);
+
+
+
+
+
+
+
+
+
+ft("Short list");
+x, y := 10, 105;
+assert(x, 10);
+assert(y, 105);
+
+
+//Short slice
+
+ft("Short slice equals");
+s := ...[15];
+a := ...[35];
+assert(a[0], 35);
+s = a;
+assert(s, a);
+at(sequal(s, a));
+assert(s[0], 35);
+assert(len(a), 1);
+
+ft("Slice to slice shares");
+sss := ...[7, 23, 42];
+sss2 := sss[:];
+sss2[0] = 101;
+
+
+
+
+// Collection literal assignment
+
+
+
+ft("Array short literal assign");
+
+ar := [1, 10];
+comp := [[1, 120], [2, 121], [3, 123]];
+assert(len(comp), 3);
+
+
+
+
+
+ft("Short declaration slice");
+sda := ...[10, 23, 42, 101];
+
+assert(sprint(sda), "[10 23 42 101]");
+var sds []int;
+
+sds = sda;
+assert(sprint(sds), "[10 23 42 101]");
+
+
+
+
+
+
+
+
+ft("Short declaration nested slice");
+sdns := ...[...[2, 1], ...[21, 23, 101]];
+var sdns2 [][]int;
+sdns2 = sdns;
+
+
+
+ft("Slicing can be repeated and still shares both ways");
+s := ...[101, 42];
+s2 := s[:][:][:];
+s2[0] = 201;
+assert(s[0], 201);
+s[1] = 301;
+assert(s2[1], 301);
+
+ft("Assign smaller slice to slice plus length");
+assts := ...[24, 30, 101];
+assts = [202, 302][:];
+assert(len(assts), 2);
+
+ft("Assign larger slice to slice plus length");
+alsts := ...[24, 30];
+alsts = ...[202, 302, 502];
+at(sequal(alsts, ...[202, 302, 502]));
+
+
+
+
+
+
+
+
+
+
+
+
+
+ft("Map");
+var x[map]int;
+x = {a: 42};
+assert(x["a"], 42);
+
+var y[map][map]bool;
+y = {a: {b: true}, b: {z: false, zz: true}};
+assert(y["a"]["b"], true);
+
+ft("Tuple assign literal");
+
+var x (int, bool, string);
+x = (42, true, "str");
+assert (x.0, 42);
+
+var y ((int, bool), string);
+y = ((23, false), "ing");
+assert(y[0][0], 23);
+
+ft("Tuple short declaration");
+tup := (42, true, "str");
+assert(tup[1], true);
+ft("Short destructure");
+(x, y) := (10, true);
+assert(x, 10);
+assert(y, true);
+
+
+
+ft("Multi-dimensional tuple");
+var mdt ([5]int, (bool, int));
+mdt[0][2] = 42;
+assert(mdt[0], [0, 0, 42, 0, 0]);
+mdt[1][1] = 101;
+mdt[1][0] = true;
+assert(mdt[1], (true, 101));
+
+ft("Short declaration and set tuple");
+tup := (42, true, "str");
+assert(tup[1], true);
+tup[0] = 23;
+tup[1] = false;
+assert(tup[0], 23);
+
+
+
+
+ft("Pointer assign literal");
+var x *(int);
+x = *(101);
+var y *(*(int, bool), string);
+y = *(*(42, true), "str");
+
+ft("Structure");
+var x {x: int, y: int, c: string};
+x = *{x: 10, y: 20, c: "green"};
+assert(x["c"], "green");
+
+
+
+
+
+
+ft("Composite all");
+(1, 5, 101, [1, 5], ...[10, 12], {"key": 42}, *(12, 20));
+
+
+
+
+
+
+
+
+// Stress
+
+ft("Nulls");
+var x (*(int), *(int), *(int));
+x = (*(), *(42), *());
+assert(len(x), 3);
+assert(x[0], *());
+assert(x[1][0], 42);
+assert(x[2], *());
+
+
+ft("Null deep structure");
+var x, y *(*(int), *(*(bool)));
+x = *(*(42), *());
+y = *(*(), *(*()));
+
+
+ft("Self");
+var x, y, z *(int, self);
+x = *(42, *());
+y = *(11, *(12, *()));
+z = *(23, *(42, *(101, *())));
+z[1][1][1] = *(202, *());
+
+ft("Assignability of recursive pointers");
+var point1 *(int, self);
+var point2 *(int, self);
+point1 = *(42, *());
+point2 = point1;
+
+
+//sequal
+
+ft("API: sequal");
+at(sequal(...[1, 5], ...[1, 5]));
+at(!sequal(...[5], ...[1]));
+at(!sequal(...[5], ...[5, 5]));
+
+
+
+//Slicing
+
+ft("Slicing");
+var x[3]int;
+x[0:2];
+
+ft("Slicing 2");
+var x[3]int;
+x[2];
+x[1:1];
+x[:3];
+x[1:];
+x[:];
+
+ft("At slicing");
+var x[3]int;
+x[0@2];
+x[@2];
+
+ft("Slice a slice");
+var x[]int;
+x[0] = 2;
+x[1] = 23;
+x[2] = 101;
+at(sequal(x[0@1], ...[2, 23]));
+x[:];
+
+ft("String slice");
+assert("abc"[0@2], "abc");
+
+assert("a"[0:0], "");
+
+ft("Repeat slicing");
+"abcd"[1:4][0:1];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ft("Range equals");
+var x []int;
+x = 1:3;
+assert(x[0], 1);
+x = 3:5;
+assert(len(x), 2);
+
+
+//Constant
+
+ft("Constant");
+const X = 12;
+
+assert(X, 12);
+
+ft("Constant collection");
+const AR = [[1, 5], [10, 21]];
+var a[2]int;
+a = AR[0];
+a[0] = 42;
+
+//Blank
+
+ft("Blank");
+var _ int;
+var _ bool;
+var _ (int, bool);
+(_, j) := (42, 101);
+assert(j, 101);
+
+
+
+//Decimal
+
+ft("Literal");
+0.0;
+assert(24., 24.0);
+1e2;
+assert(1e3, 1000.0);
+
+ft("Create decimal");
+var d decimal;
+
+ft("Create decimal value");
+var d decimal;
+assert(d, 0.0);
+
+ft("Print literal");
+assert(sprint(0.0), "0");
+
+ft("Decimal expressions");
+0.5 + 1.5;
+1.0 * 10.5;
+
+ft("Decimal expression values");
+assert(1.5 + 3.0, 4.5);
+assert(1.1 * 3.0, 3.3);
+assert(1.75 - 0.25, 1.5);
+
+
+
+//Named START
+ft("Named type");
+type tInt int;
+
+ft("Named type test");
+type tInt int;
+var x tInt;
+assert(x, 0);
+
+
+ft("Chained named type");
+type tA bool;
+type tB tA;
+var x tB;
+assert(x, false);
+
+ft("Create and set named type");
+type t string;
+var d t;
+assert(d, "");
+d = "str";
+assert(d, "str");
+
+ft("Create and set differently named types");
+type t int;
+var x1 t;
+x1 = 101;
+var x2 int;
+x2 = x1;
+assert(x1, 101);
+assert(x2, 101);
+var xA int;
+xA = 42;
+var xB t;
+xB = xA;
+assert(xA, 42);
+assert(xB, 42);
+
+ft("Create and set two named types derived from int");
+type tA int;
+type tB int;
+var vA tA;
+var vB tB;
+vA = vB;
+
+ft("Xtra--named");
+type tA int;
+type tB tA;
+type tC tB;
+var vA tA;
+var vB tB;
+var vC tC;
+vA = vB;
+vB = vA;
+vA = vC;
+vC = vA;
+vB = vC;
+vC = vB;
+
+
+ft("Short declaration and named");
+s := 101;
+type t int;
+var x t;
+x = s;
+s = x;
+assert(x, s);
+assert(s, 101);
+
+ft("Named slice");
+type ts []int;
+type tsa []ts;
+
+var v tsa;
+v[0][0] = 42;
+assert(v[0][0], 42);
+
+
+ft("Named tuple");
+type t (int, int);
+var v t;
+v[0] = 105;
+assert(v[0], 105);
+type t2 (t, int);
+var v2 t2;
+assert(len(v2), 2);
+assert(v2[1], 0);
+
+
+
+
+ft("Named");
+type t [2]int;
+var v t;
+
+v[0] = 42;
+var v2 [2]int;
+v2 = v;
+v = v2;
+
+ft("Stress--named array");
+type tA [3][2][3][2]decimal;
+type tB [2][5]tA;
+type tC [2]tA;
+var vA tA;
+var vB tB;
+var vC tC;
+
+
+
+
+ft("Sprint");
+sprint("");
+
+
+//Printing
+
+
+ft("Print one item");
+assert(stringValue(101), "101");
+
+ft("Print multiple items");
+assert(sprint(23, 42, 101), "23 42 101");
+
+
+ft("Print literals IBS");
+assert(sprint(42, true, "str"), "42 true str");
+
+ft("Print arrays");
+assert(sprint([23], [true, true], ["aa", "bb", "cc"]), "[23] [true true] [aa bb cc]");
+
+ft("Print slices");
+assert(sprint(...[10], ...[23, 45], ...["ab", "bc"]), "[10] [23 45] [ab bc]");
+
+ft("Print tuple");
+assert(sprint((1, true, 10.5)), "(1 true 10.5)");
+
+ft("Print pointer");
+assert(sprint(*(5, *(), true)), "*(5 *() true)");
+
+ft("Print single element object");
+assert(sprint({"foo": 42}), "{foo:42}");
+
+
+
+
+
+
+ft("Print");
+assert(sprint(""), "");
+
+ft("Print zero");
+assert(sprint(0), "0");
+
+ft("Mixed");
+assert(sprint(1, 2) + sprint(3), "1 23");
+
+ft("Print str");
+assert(sprint("str"), "str");
+
+ft("Print var");
+var x int;
+x = 23;
+assert(sprint(x), "23");
+
+
+
+
+
+
+ft("Recursive named");
+type node *(node, bool);
+var n node;
+assert(n, *());
+
+n = *(*(), true);
+assert(len(n), 2);
+assert(n[0], *());
+assert(n[1], true);
+
+
+
+
+
+
+
+
+//Block
+ft("Block");
+{}
+
+ft("Block 2");
+{
+    0;
+}
+{
+    true;
+}
+{
+    5;
+    10;
+    false;
+}
+
+   ft("Block nest");
+{
+    {}
+}
+
+   {
+    {
+        {
+        }
+    }
+}
+
+   ft("Blocks share scope");
+{
+    var x int;
+}
+x;
+
+
+
+
+
+
+
+
+
+
+
+
+ft("Postfix minus array tuple, map");
+pfA := [50];
+pfT := (101, "boo");
+pfM := {"aaa": 23};
+pfA[0]--;
+assert(pfA[0], 49);
+pfT[0]--;
+assert(pfT[0], 100);
+pfM["aaa"]--;
+assert(pfM["aaa"], 22);
+
+
+
+
+
+
+
+
+
+
+ft("Bubble sort");
+bub := [1, 1081, 20, 101, 202];
+
+var i int;
+var j int;
+for i = range 0:len(bub) - 1 {
+    for j = len(bub) - 1; j > i; j-- {
+      if bub[j] < bub[j - 1] {
+        bub[j - 1], bub[j] = bub[j], bub[j - 1];
+      }
+    }
+}
+assert(bub, [1, 20, 101, 202, 1081]);
+
+
+
+
+
+
+
+
+
+
+ft("");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ft("Named type test");
+type tInt int;
+var x tInt;
+x = 5;
+assert(x, 5);
+
+
+
+ft("Named type tuple string");
+type tTuple (string, string);
+var x tTuple;
+x[0] = "a";
+x[1] = "b";
+
+ft("Named type equality");
+type tInt int;
+var x tInt;
+var y tInt;
+x = 12;
+y = x;
+
+ft("Classify");
+var t *(*(*(bool), int), int);
+t = *(*(*(), 42), 101);
+//print(t, t[0], t[0][0]);
+var t2 *(self, int);
+t2 = *(*(*(), 42), 101);
+//print(t2, t2[0], t2[0][0]);
+
+ft("len");
+assert(len("abc"), 3);
+
+ft("Compound + - * % /");
+var comp int;
+comp = 5;
+comp += 2;
+assert(comp, 7);
+comp -= 3;
+assert(comp, 4);
+comp *= 2;
+assert(comp, 8);
+comp %= 3;
+assert(comp, 2);
+comp /= 2;
+assert(comp, 1);
+
+ft("Order of ops");
+assert(1 + 2 * 3, 9);
+assert(1 + (2 * 3), 7);
+
+ft("Linked list");
+var node, base *(self, int);
+base = *(*(), 12);
+node = base;
+node[0] = *(*(), 23);
+node = node[0];
+node[0] = *(*(), 42);
+node = node[0];
+node[0] = base;
+
+assert(base[1], 12);
+assert(base[0][1], 23);
+assert(base[0][0][1], 42);
+assert(base[0][0][0][1], 12);
+
+
+
+
+//Predefined API
+
+ft("API: max/min");
+assert(max(1, 4), 4);
+assert(max(42, 42), 42);
+assert(max(8, 7), 8);
+assert(min(8, 7), 7);
+
+
+ft("API: abs");
+assert(abs(0 - 4), 4);
+assert(abs(0), 0);
+assert(abs(10), 10);
+
+
+ft("Doubly linked list");
+var dll *(self, int, self);
+dll = *(*(), 5, *());
+dll[2] = *(dll, 7, *());
+
+ft("Call");
+func f(i int) int {
+    return i * 2;
+}
+x := call("f", 3);
+assert(x, 6);

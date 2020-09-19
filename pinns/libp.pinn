@@ -1,0 +1,25 @@
+func sequal(a []int, b []int) bool {
+    if len(a) != len(b) {
+    return false;
+    }
+    var x, v int;
+    for x, v = range a {
+        if v != b[x] {
+        return false;
+        }
+    }
+    return true;
+}
+
+func max(a, b int) int {
+    return a > b ? a : b;
+}
+
+func abs(a int) int {
+    return a < 0 ? -a : a;
+}
+
+func min(a, b int) int {
+    return a < b ? a : b;
+}
+

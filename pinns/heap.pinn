@@ -1,0 +1,200 @@
+//heap sort
+func left(i int) int {
+    return 2 * i;
+}
+func right(i int) int {
+    return 2 * i + 1;
+}
+
+//heap := [-1, 16, 4, 10, 14, 7, 9, 3, 2, 8, 1];
+heap := [-1, 4, 1, 3, 2, 16, 9, 10, 14, 8, 7];
+
+hsize := len(heap) - 1;
+func build_max() {
+    var x int;
+    for x = hsize / 2; x >= 1; x-- {
+        max_heap(x);
+    }
+}
+
+func max_heap(i int) {
+    l := left(i);
+    r := right(i);
+    if l <= hsize && heap[l] > heap[i] {
+        largest := l;
+    } else {
+        largest := i;
+    }
+    if r <= hsize && heap[r] > heap[largest] {
+        largest = r;
+    }
+    if largest != i {
+        temp := heap[i];
+        heap[i] = heap[largest];
+        heap[largest] = temp;
+        max_heap(largest);
+
+    }
+}
+func heapsort() {
+   var x int;
+   var temp int;
+   for x = hsize; x >= 2; x -- {
+      temp = heap[1];
+      heap[1] = heap[x];
+      heap[x] = temp;
+      hsize--;
+      max_heap(1);
+      
+   }
+}
+
+println(heap);
+build_max();
+//max_heap(2);
+println(heap);
+heapsort();
+println(heap);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//merge sort
+ar := [-1, 3, 24, 11, 12, 101, 52, 1, 7, 8];
+func merge(p int, q int, r int) {
+    var i int;
+    var j int;
+    var k int;
+    n1 := q - p + 1;
+    n2 := r - q;
+    L := ar[1@n1 + 1];
+    R := ar[1@n2 + 1];
+    for i = range 1@n1 {
+        L[i] = ar[p + i - 1];
+    }
+    for j = range 1@n2 {
+        R[j] = ar[q + j];
+    }
+    L[n1 + 1] = 1001;
+    R[n2 + 1] = 1001;
+    i, j = 1, 1;
+    for k = range p@r {
+        if L[i] <= R[j] {
+            ar[k] = L[i];
+            i++;
+        } else {
+            ar[k] = R[j];
+            j++;
+        }
+    }
+}
+
+func merge_sort(p int, r int) {
+    if p < r {
+        q := p + r / 2;
+        merge_sort(p, q);
+        merge_sort(q + 1, r);
+        merge(p, q, r);
+    }
+}
+
+merge_sort(1, len(ar) - 1);
+println(ar);
+
+
+
+
+
+
+
+
+
+//quicksort
+arq := [-1, 2, 8, 7, 1, 3, 5, 6, 4];
+
+func partition(p int, r int) int {
+    var j int;
+    x := arq[r];
+    i := p - 1;
+    for j = range p@r - 1 {
+        if arq[j] <= x {
+            i++;
+            arq[i], arq[j] = arq[j], arq[i];
+        }
+    }
+    arq[i+1], arq[r] = arq[r], arq[i + 1];
+    println(arq);
+    return i + 1;
+}
+
+func quicksort(p int, r int) {
+    if p < r {
+        q := partition(p, r);
+        quicksort(p, q - 1);
+        quicksort(q + 1, r);
+    }
+}
+
+quicksort(1, len(arq) - 1);
+println(arq);
+
+
+
+
+
+
+
+//O(n^3) time, O(N) space
+func contains(s string, sub string) bool {
+    index := 0;
+    while index + len(sub) <= len(s) {
+        if s[index:index + len(sub)] == sub {
+        return true;
+        }
+        index++;
+    }
+    return false;
+}
+a := "this is a long text the text is boring and long";
+println("Size", len(a));
+var i int;
+var size int;
+var substr string;
+for  size = range 1@len(a) {
+    for i = range 0@len(a) - size {
+        substr = a[i:i + size];
+        if contains(substr, "boring")
+           && contains(substr, "long")
+           && contains(substr, "text") {
+           println(size);
+           println(substr);
+           exit();
+        }
+    }
+}
+println(contains(a, "text"));
+println(contains(a, "afaf"));

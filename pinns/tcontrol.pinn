@@ -1,0 +1,690 @@
+
+ft("Block");
+{
+}
+
+ft("Block 2");
+var x int;
+{
+    x = 42;
+}
+assert(x, 42);
+
+ft("No block scoping (fix)?");
+{
+    {
+        x := 5;
+    }
+}
+assert(x, 5);
+
+ft("Empty");
+;
+
+//Control flow
+
+ft("Bare if");
+trip := false;
+
+if true {
+    trip = true;
+}
+at(trip);
+
+
+if false bad();
+
+
+ft("Else");
+trip := false;
+if false bad(); else trip = true;
+at(trip);
+
+ft("While");
+go := true;
+while go {
+    go = false;
+}
+assert(go, false);
+
+ft("While2");
+while false {
+    bad();
+}
+
+ft("While 3");
+var x int;
+x = 0;
+while x < 23 {
+    x = x + 1;
+}
+assert(x, 23);
+
+ft("Repeat");
+count := 0;
+repeat {
+    count += 1;
+} while false;
+assert(count, 1);
+
+ft("repeat 3");
+x := 0;
+repeat {
+    x = x + 1;
+} while x < 12;
+assert(x, 12);
+
+//break and loop
+ft("Break and loop");
+loop {
+    break;
+}
+
+ft("BL 2");
+loop {
+    {
+        break;
+    }
+}
+
+loop {
+    {
+        {
+            break;
+        }
+    }
+}
+
+loop {
+    loop {
+        break;
+    }
+    break;
+}
+loop {
+    loop {
+        {
+            break;
+        }
+    }
+    break;
+}
+
+ft("BL 3");
+loop {
+    break;
+    bad(); //lol
+}
+
+count := 0;
+loop {
+    count++;
+    break;
+}
+assert(count, 1);
+
+//continue
+ft("Continue");
+count := 0;
+loop {
+    count += 1;
+    if count < 3 {
+        continue;
+    }
+    break;
+}
+assert(count, 3);
+
+ft("Continue with while");
+x := 0;
+s := "";
+while x < 12 {
+    x += 1;
+    if x < 7 {
+        continue;
+    }
+    s += sprint(x, ",");
+}
+assert(s, "7 ,8 ,9 ,10 ,11 ,12 ,");
+
+
+ft("Guard");
+loop {
+    guard false else {
+        break;
+    }
+}
+
+b := false;
+loop {
+    guard b else {
+        b = true;
+        continue;
+    }
+    break;
+}
+
+
+
+
+
+
+//match
+
+ft("Match");
+match 0 {
+}
+
+ft("Match 2");
+match 2 {
+    when 1:
+    bad();
+}
+
+
+ft("Match true");
+count := 0;
+match true {
+when false:
+    bad();
+when true:
+    count++;
+when true:
+    count++;
+}
+assert(count, 1);
+
+
+ft("Match default");
+count := 0;
+match 5 {
+    when 2: bad();
+    when 1: bad();
+default:
+    count++;
+}
+assert(count, 1);
+
+ft("Fallthrough");
+countT, countF := 0, 0;
+match true {
+when true:
+    countT++;
+    fallthrough;
+when false:
+    countF++;
+}
+assert(countT, 1);
+assert(countF, 1);
+
+ft("Fallthrough default");
+trip := false;
+match "foo" {
+when "foo":
+    fallthrough;
+default:
+    trip = true;
+}
+at(trip);
+
+ft("Break out of default");
+match true {
+default:
+break;
+    bad();
+}
+
+ft("Multiple when");
+trip := false;
+match 3 {
+    when 1, 3, 10:
+    trip = true;
+}
+at(trip);
+
+ft("Continue with outer for");
+var deepX int;
+s := "";
+for deepX = range 12@14 {
+    s += sprint(deepX, ",");
+  match true {
+    when true:
+    continue;
+  }
+    bad();
+}
+assert(s,"12 ,13 ,14 ,");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// function isolated
+
+ft("Function");
+func f() {}
+
+ft("Function 2");
+saw := false;
+func f() {}
+func g() {
+    saw = true;
+}
+f();
+g();
+at(saw);
+
+ft("Function return, (fix?)");
+func f() int {}
+
+ft("Function parameter");
+
+func f(a int) {
+    assert(a, 10);
+}
+f(10);
+
+ft("2 parameters");
+func f(a int, b int) {
+    assert(a, 42);
+    assert(b, 101);
+}
+f(42, 101);
+
+ft("Parameter and return (reject?)");
+func f(a int) int {}
+
+
+
+ft("Call and return");
+func f(a int) int {
+    return 23;
+}
+var x int;
+assert(x, 0);
+x = f(0);
+assert(x, 23);
+
+ft("Call and return bools");
+func f(a bool) bool {
+    return true;
+}
+var x bool;
+x = f(true);
+assert(x, true);
+
+ft("Basics in function");
+func f() {
+    0;
+    42;
+    var x int;
+    x = 0;
+}
+f();
+
+ft("Variadic");
+func f(v ...int) {
+    assert(v, [0, 5, 10]);
+}
+f(0, 5, 10);
+
+ft("Variadic 2");
+func f(a bool, b ...int) {
+    at(a);
+    assert(b, [2, 42, 101]);
+}
+f(true, 2, 42, 101);
+
+
+
+
+ft("Forward call");
+
+func forward() {
+    forwardCalled();
+}
+
+func forwardCalled() {
+}
+forward();
+ft("Return exits");
+func exits() {
+    return;
+    bad();
+}
+exits();
+
+
+ft("Call recursive");
+
+s := "";
+func countToFour(i int) {
+    s += sprint(i) + ",";
+    if i > 1 {
+        countToFour(i - 1);
+    }
+}
+countToFour(4);
+assert(s, "4,3,2,1,");
+
+ft("Function with map, slice, variadic");
+func fLots(m [map]int, a []int, vary ...bool) {
+}
+var outerm [map]int;
+outerm["foo"] = 42;
+fLots(outerm, 10@14, false, false, true);
+
+ft("Deep function return");
+func deep() {
+    loop {
+        return;
+    }
+}
+
+ft("Global int in header");
+GLOB := 3;
+func giih(ar [GLOB]bool) {
+    assert(len(ar), 3);
+}
+var glob [GLOB] bool;
+giih(glob);
+
+ft("Array copies in call");
+func arFunc(ar [1]int) {
+    ar[0] = 42;
+}
+var arF[1]int;
+arF[0] = 23;
+arFunc(arF);
+
+
+ft("Slice shares in call");
+func slFunc(s []int) {
+    s[0] = 201;
+}
+var slf []int;
+slf = ...[23, 101];
+slFunc(slf);
+
+ft("Function copies pointer");
+func f(p *(int)) {
+  p = *(10);
+}
+func g(p *(int)) {
+  p[0] = 202;
+}
+var z *(int);
+z = *(23);
+f(z);
+assert(z[0], 23);
+g(z);
+assert(z[0], 202);
+
+
+
+
+
+ft("Guard fail");
+trip := false;
+func fguard() {
+    guard false else {
+        trip = true;
+        return;
+    }
+    bad();
+}
+fguard();
+at(trip);
+
+
+ft("Guard pass");
+func fguard2() {
+    guard true else {
+        bad();
+    }
+}
+fguard2();
+
+
+
+ft("For range string");
+var char string;
+var str string;
+for char = range "spam" {
+    assert(len(char), 1);
+    str += char;
+}
+assert(str, "spam");
+
+ft("For range 2");
+var k int;
+var char string;
+s := "eggs";
+for k, char = range s {
+    assert(char, s[k]);
+}
+
+ft("For range closed interval 11 to 14");
+var xRange int;
+var s string;
+for xRange = range 11@14 {
+    s += sprint(xRange, ",");
+}
+assert(s, "11 ,12 ,13 ,14 ,");
+
+
+ft("Continue on evens--print odds");
+var xRange86 int;
+var s string;
+for xRange86 = range 22@27 {
+    if xRange86 % 2 == 0 continue;
+    s += sprint(xRange86, ",");
+    
+}
+assert(s, "23 ,25 ,27 ,");
+
+// end range
+
+
+
+ft("Break 7");
+s := "";
+var xBreak int;
+for xBreak = range 101@104 {
+    if xBreak == 103 {
+    break;
+    }
+    s += sprint(xBreak, ",");
+}
+assert(s, "101 ,102 ,");
+
+
+
+ft("Deep return");
+func deepReturn() int {
+    var i int;
+    for i = range 202@205 {
+        if i == 203 return i;
+    }
+}
+assert(deepReturn(), 203);
+
+ft("3 part for statement");
+s := "";
+for forX := 10; forX < 15; forX += 2 {
+    s += sprint(forX, ",");
+}
+assert(s, "10 ,12 ,14 ,");
+
+
+ft("For range key value");
+var key int;
+var value string;
+arS := ["abcd", "xyz", "hello"];
+var s string;
+for key, value = range arS {
+    s += sprint(key, value, ",");
+}
+assert(s, "0 abcd ,1 xyz ,2 hello ,");
+
+ft("For loop without init");
+var x int;
+bFor := false;
+for ; bFor != true; bFor = !bFor {
+    x++;
+}
+assert(x, 1);
+
+
+ft("While countdown");
+wh := 50;
+s := "";
+while wh > 10 {
+    s += sprint(wh) + ",";
+    wh -= 10;
+}
+
+assert(s, "50,40,30,20,");
+
+
+
+
+
+
+
+
+
+
+
+ft("Mutually recurse");
+MLIMIT := 40;
+s := "";
+func mrecurse1(x int) {
+    s += sprint(x) + ",";
+    x += 1;
+    if x < MLIMIT {
+        mrecurse2(x);
+    }
+}
+func mrecurse2(i int) {
+    s += sprint(i) + ",";
+    i *= 2;
+    if i < MLIMIT {
+        mrecurse1(i);
+    }
+}
+
+mrecurse1(1);
+assert(s, "1,2,4,5,10,11,22,23,");
+
+
+
+
+//MATCH
+
+
+
+ft("Return from deep match in function");
+trip := false;
+func deepR() int {
+  var x int;
+  for x = range 200@204 {
+    match x {
+      when 203:
+      return 203;
+      when 201:
+        trip = true;
+    }
+  }
+}
+
+assert(deepR(), 203);
+
+
+
+//end MATCH
+
+
+
+
+
+
+
+
+ft("Binary search tree");
+var i int;
+var mbst *(self, int, self);
+func tree_insert(x int) {
+    if mbst == *() {
+            mbst = *(*(), x, *());
+            return;
+    }
+        cur := mbst;
+        loop {
+            if i < cur[1] {
+                if cur[0] == *() {
+                    cur[0] = *(*(), i, *());
+                    break;
+                } else {
+                    cur = cur[0];
+                    continue;
+                }
+            } else if i >= cur[1] {
+                if cur[2] == *() {
+                    cur[2] = *(*(), i, *());
+                    break;
+                } else {
+                    cur = cur[2];
+                    continue;
+                }
+            }
+            debug();
+    }
+}
+for i = range [1, 5, 5, 5, 10, 2, 3] {
+    tree_insert(i);
+}
+var ar []int;
+func dfs(node  *(self, int, self)) {
+    if node == *() {
+        return;
+    }
+    dfs(node[0]);
+    ar[len(ar)] = node[1];
+    dfs(node[2]);
+}
+dfs(mbst);
+at(sequal(ar, ...[1, 2, 3, 5, 5, 5, 10]));
+
+
+ft("Linked list");
+var ar[]int;
+var LL *(int, self);
+LL = *(5, *());
+base := LL;
+
+LL[1] = *(8, *());
+
+LL = LL[1];
+LL[1] = *(23, *());
+func pll(node *(int, self)) {
+    if node == *() {
+        return;
+    }
+    ar[len(ar)] = node[0];
+
+    pll(node[1]);
+}
+pll(base);
+
+at(sequal(ar, ...[5, 8, 23]));
