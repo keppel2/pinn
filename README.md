@@ -2,6 +2,8 @@
 
 Implement Pinn entirely in golang (remove ANTLR), outputting LLVM initially, and ARM64 later.
 
+## Pinn
+* Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn.
 ## Motivations
 
 * Repeatedly saw interpreted languages (Ruby, Python), slower by orders of magnitude than Go.
