@@ -12,3 +12,13 @@ Implement Pinn entirely in golang (remove ANTLR), outputting LLVM initially, and
 ## x64
 
 * Game consoles and most Windows. Switch runs ARM.
+
+## Steps
+
+* Lexer. `text/scanner` looks like a good library.
+* Parser. Follow example in `src/cmd/compile/internal/syntax`--used for self-hosted Go lexing and compilation. Self-contained.
+  * Avoid generated code such as in the `tokens.go` file in this directory.
+* Generate LLVM IR. https://github.com/llir/llvm is a Go library that can be used to generate the IR. Notably, it avoids the c bridge of the native llvm library for Go.
+* Self-host at this stage, like Rust?
+* Generate ARM64 assembly natively. Golang has tens of optimization passes which are tied to the language.
+* Self-host at this stage, like Go.
