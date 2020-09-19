@@ -27,7 +27,7 @@ func tok(s string) {
 }
 
 func _prn(s scan) string {
-	return fmt.Sprintf("%v,%v,%v,%v,%v,%v\n", s.line, s.col, s.tok, s.lit, s.kind, s.op)
+	return fmt.Sprintf("%v,%v,%v,%v\n", s.tok, s.lit, s.kind, s.op)
 }
 
 func f() {
@@ -53,7 +53,6 @@ type scan struct {
 	scanner.Scanner
 
 	// current token, valid after calling next()
-	line, col uint
 	tok       string
 	lit       string
 	kind      LitKind
