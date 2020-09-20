@@ -3,10 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
-	//	"strconv"
-//	"strings"
+//	"os"
 )
-
 
 type parser struct {
 	scan
@@ -27,7 +25,7 @@ func (p *parser) got(tok string) bool {
 
 func (p *parser) want(tok string) {
 	if !p.got(tok) {
-    panic("expecting " + tok)
+		panic("expecting " + tok)
 	}
 }
 
@@ -40,16 +38,49 @@ func contains(s []string, t string) bool {
 	return false
 }
 
+func visitDeclStmt(d DeclStmt) {
+  fmt.Println("Visit DeclStmt")
+}
+
+func visitExprStmt(e ExprStmt) {
+  fmt.Println("Visit ExprStmt")
+}
+
+func visitAssignStmt(a AssignStmt) {
+  fmt.Println("Visit AssignStmt")
+}
+
+func visitStmt(s Stmt) {
+  fmt.Println("Visit Stmt")
+  switch t := s.(type) {
+  case DeclStmt:
+    visitDeclStmt(t)
+  case ExprStmt:
+    visitExprStmt(t)
+  case AssignStmt:
+    visitAssignStmt(t)
+  }
+}
+
+func visitFile (f File) {
+  fmt.Println("Visit File")
+  for _, s := range f.SList {
+    visitStmt(s)
+  }
+}
+
 func (p *parser) fileA() File {
 	f := File{}
-  p.next()
+	f.Pos = p.p
+
+	p.next()
 	for p.tok != "EOF" {
 		switch p.tok {
 		case "var":
 			p.next()
 			f.SList = append(f.SList, p.declStmt(p.varDecl))
-    case "literal":
-      f.SList = append(f.SList, p.exprStmt())
+		case "literal":
+			f.SList = append(f.SList, p.exprStmt())
 		default:
 			panic("tok," + p.tok)
 		}
@@ -57,21 +88,24 @@ func (p *parser) fileA() File {
 			panic("No semi")
 		}
 	}
-  fmt.Println(f.SList)
+	fmt.Println(f.SList)
+  visitFile(f)
 
 	return f
 }
 
 func (p *parser) declStmt(f func() Decl) DeclStmt {
 	ds := DeclStmt{}
+	ds.Pos = p.p
 	ds.Decl = f()
 	return ds
 }
 
 func (p *parser) exprStmt() ExprStmt {
-  es := ExprStmt{}
-  es.Expr = p.numberExpr()
-  return es
+	es := ExprStmt{}
+	es.Pos = p.p
+	es.Expr = p.numberExpr()
+	return es
 
 }
 
@@ -98,29 +132,29 @@ func (p *parser) wLit() WLit {
 func (p *parser) varDecl() Decl {
 	d := VarDecl{}
 
-	d.wl = p.wLit()
+	d.Wl = p.wLit()
 	d.Kind = p.kind()
 	return d
 }
 
 func (p *parser) numberExpr() Expr {
-  ne := NumberExpr{}
+	ne := NumberExpr{}
 
-  ne.il = p.iLit()
-  return ne
-  
+	ne.Il = p.iLit()
+	return ne
+
 }
 
 func (p *parser) sKind() SKind {
-  rt := SKind{}
-  rt.wl = p.wLit()
-  return rt
+	rt := SKind{}
+	rt.Wl = p.wLit()
+	return rt
 }
 
 func (p *parser) kind() Kind {
 	switch p.tok {
 	case "name":
-    return p.sKind()
+		return p.sKind()
 	}
 	panic("")
 

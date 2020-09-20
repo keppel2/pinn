@@ -1,4 +1,5 @@
 package main
+
 //a
 import (
 	"fmt"
@@ -9,20 +10,18 @@ import (
 	"text/scanner"
 
 	"strings"
-	//	"unicode"
-	//	"unicode/utf8"
 )
 
 func tok(s string) {
-		var got scan
-		got.init(strings.NewReader(s))
-		for {
-			got.next()
-			fmt.Println(_prn(got))
-			if got.tok == "EOF" {
-				break
-			}
+	var got scan
+	got.init(strings.NewReader(s))
+	for {
+		got.next()
+		fmt.Println(_prn(got))
+		if got.tok == "EOF" {
+			break
 		}
+	}
 
 }
 
@@ -39,24 +38,31 @@ func f() {
 		bs, _ := ioutil.ReadFile("pinns/" + ofi.Name())
 		_ = bs
 		src := string(bs)
-    tok(src)
+		tok(src)
 
 	}
 }
 func main() {
-	f()
-  //tok(`4 ... 7 +`)
+	//f()
+	src := `
+var x int;
+123123;
+"abc";`
+	tok(src)
+	p := new(parser)
+	p.init(strings.NewReader(src))
+	p.fileA()
 	return
 }
 
 type scan struct {
 	scanner.Scanner
 
-	// current token, valid after calling next()
-	tok       string
-	lit       string
-	kind      LitKind
-	op        string
+	p    scanner.Position
+	tok  string
+	lit  string
+	kind LitKind
+	op   string
 }
 
 func (s *scan) init(src io.Reader) {
@@ -65,6 +71,7 @@ func (s *scan) init(src io.Reader) {
 
 func (s *scan) next() {
 	r := s.Scan()
+	s.p = s.Pos()
 	s.tok = s.TokenText()
 	switch r {
 	case scanner.EOF:
@@ -75,11 +82,11 @@ func (s *scan) next() {
 		s.tok = "literal"
 		s.kind = IntLit
 		return
-  case scanner.Float:
-    s.lit = s.tok
-    s.tok = "literal"
-    s.kind = FloatLit
-    return
+	case scanner.Float:
+		s.lit = s.tok
+		s.tok = "literal"
+		s.kind = FloatLit
+		return
 	case scanner.String:
 		s.lit = s.tok
 		s.tok = "literal"
@@ -96,9 +103,9 @@ func (s *scan) next() {
 			s.lit = s.tok
 			s.tok = "op"
 			return
-	  } else if tmOk(s.tok) {
-      return
-    }
-    panic(s.tok)
-  }
+		} else if tmOk(s.tok) {
+			return
+		}
+		panic(s.tok)
+	}
 }

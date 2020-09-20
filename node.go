@@ -1,19 +1,18 @@
 package main
 
-type Pos interface {
-}
+import "text/scanner"
 
 type Node interface {
-	Gpos() Pos
+	//	Gpos() scanner.Position
 	aNode()
 }
 
 type node struct {
-	Pos
+	Pos scanner.Position
 }
 
-func (n node) Gpos() Pos { return n.Pos }
-func (node) aNode()      {}
+//func (n node) Gpos() scanner.Position { return n.Pos }
+func (node) aNode() {}
 
 type Stmt interface {
 	Node
@@ -91,17 +90,24 @@ type kind struct{ node }
 func (kind) aKind() {}
 
 type SKind struct {
-	wl WLit
+	Wl WLit
 	kind
 }
 
 type VarDecl struct {
-	wl WLit
+	Wl WLit
 	Kind
 	decl
 }
 
 type NumberExpr struct {
-	il ILit
+	Il ILit
+	expr
+}
+
+type IntExpr struct {
+	LHS Expr
+	RHS Expr
+	op  string
 	expr
 }
