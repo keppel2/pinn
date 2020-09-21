@@ -76,9 +76,6 @@ func (p *parser) fileA() File {
 	p.next()
 	for p.tok != "EOF" {
 		switch p.tok {
-		case "var":
-			p.next()
-			f.SList = append(f.SList, p.declStmt(p.varDecl))
 		case "literal":
 			f.SList = append(f.SList, p.exprStmt())
 		default:
@@ -173,31 +170,5 @@ func (p *parser) numberExpr() Expr {
 
 	ne.Il = p.iLit()
 	return ne
-
-}
-
-
-
-func (p *parser) varDecl() Decl {
-	d := VarDecl{}
-
-	d.Wl = p.wLit()
-	d.Kind = p.kind()
-	return d
-}
-
-
-func (p *parser) sKind() SKind {
-	rt := SKind{}
-	rt.Wl = p.wLit()
-	return rt
-}
-
-func (p *parser) kind() Kind {
-	switch p.tok {
-	case "name":
-		return p.sKind()
-	}
-	panic("")
 
 }
