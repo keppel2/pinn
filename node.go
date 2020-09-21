@@ -3,15 +3,15 @@ package main
 import "text/scanner"
 
 type Node interface {
-	//	Gpos() scanner.Position
+	Gpos() scanner.Position
 	aNode()
 }
 
 type node struct {
-	Pos scanner.Position
+	scanner.Position
 }
 
-//func (n node) Gpos() scanner.Position { return n.Pos }
+func (n node) Gpos() scanner.Position { return n.Position }
 func (node) aNode() {}
 
 type Stmt interface {

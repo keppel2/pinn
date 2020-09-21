@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+  "reflect"
 	//	"os"
 )
 
@@ -29,6 +30,10 @@ func (p *parser) want(tok string) {
 	}
 }
 
+func pnode(n Node) {
+  fmt.Println(reflect.TypeOf(n) , n.Gpos())
+}
+
 func contains(s []string, t string) bool {
 	for _, v := range s {
 		if v == t {
@@ -39,19 +44,37 @@ func contains(s []string, t string) bool {
 }
 
 func visitDeclStmt(d DeclStmt) {
-	fmt.Println("Visit DeclStmt")
+  pnode(d)
 }
 
+func visitIntExpr(n IntExpr) {
+  pnode(n)
+
+}
+
+
+func visitExpr(n Expr) {
+  pnode(n)
+  switch t := n.(type) {
+  case NumberExpr:
+    println("Number",t.Il.Value)
+  case VarExpr:
+    println("Var",t.Wl.Value)
+  case IntExpr:
+    visitIntExpr(t)
+  }
+
+}
 func visitExprStmt(e ExprStmt) {
-	fmt.Println("Visit ExprStmt")
+  pnode(e)
+  visitExpr(e.Expr)
 }
 
 func visitAssignStmt(a AssignStmt) {
-	fmt.Println("Visit AssignStmt")
+  pnode(a)
 }
 
 func visitStmt(s Stmt) {
-	fmt.Println("Visit Stmt")
 	switch t := s.(type) {
 	case DeclStmt:
 		visitDeclStmt(t)
@@ -63,7 +86,7 @@ func visitStmt(s Stmt) {
 }
 
 func visitFile(f File) {
-	fmt.Println("Visit File")
+  pnode(f)
 	for _, s := range f.SList {
 		visitStmt(s)
 	}
@@ -71,7 +94,7 @@ func visitFile(f File) {
 
 func (p *parser) fileA() File {
 	f := File{}
-	f.Pos = p.p
+	f.Position = p.p
 
 	p.next()
 	for p.tok != "EOF" {
@@ -93,14 +116,14 @@ func (p *parser) fileA() File {
 
 func (p *parser) declStmt(f func() Decl) DeclStmt {
 	ds := DeclStmt{}
-	ds.Pos = p.p
+	ds.Position = p.p
 	ds.Decl = f()
 	return ds
 }
 
 func (p *parser) exprStmt() ExprStmt {
 	es := ExprStmt{}
-	es.Pos = p.p
+	es.Position = p.p
 	rt := p.expr()
 	if p.tok != ";" {
 		panic("")
@@ -131,6 +154,7 @@ func (p *parser) expr() Expr {
 
 func (p *parser) intExpr(lhs Expr) Expr {
 	op := p.op
+  p.next()
 	rhs := p.expr()
 	rt := IntExpr{}
 	rt.LHS = lhs
