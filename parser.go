@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
-//	"os"
+	//	"os"
 )
 
 type parser struct {
@@ -39,34 +39,34 @@ func contains(s []string, t string) bool {
 }
 
 func visitDeclStmt(d DeclStmt) {
-  fmt.Println("Visit DeclStmt")
+	fmt.Println("Visit DeclStmt")
 }
 
 func visitExprStmt(e ExprStmt) {
-  fmt.Println("Visit ExprStmt")
+	fmt.Println("Visit ExprStmt")
 }
 
 func visitAssignStmt(a AssignStmt) {
-  fmt.Println("Visit AssignStmt")
+	fmt.Println("Visit AssignStmt")
 }
 
 func visitStmt(s Stmt) {
-  fmt.Println("Visit Stmt")
-  switch t := s.(type) {
-  case DeclStmt:
-    visitDeclStmt(t)
-  case ExprStmt:
-    visitExprStmt(t)
-  case AssignStmt:
-    visitAssignStmt(t)
-  }
+	fmt.Println("Visit Stmt")
+	switch t := s.(type) {
+	case DeclStmt:
+		visitDeclStmt(t)
+	case ExprStmt:
+		visitExprStmt(t)
+	case AssignStmt:
+		visitAssignStmt(t)
+	}
 }
 
-func visitFile (f File) {
-  fmt.Println("Visit File")
-  for _, s := range f.SList {
-    visitStmt(s)
-  }
+func visitFile(f File) {
+	fmt.Println("Visit File")
+	for _, s := range f.SList {
+		visitStmt(s)
+	}
 }
 
 func (p *parser) fileA() File {
@@ -84,12 +84,12 @@ func (p *parser) fileA() File {
 		default:
 			panic("tok," + p.tok)
 		}
-		if !p.got(";") {
-			panic("No semi")
-		}
+//		if !p.got(";") {
+//			panic("No semi")
+//		}
 	}
 	fmt.Println(f.SList)
-  visitFile(f)
+	visitFile(f)
 
 	return f
 }
@@ -104,9 +104,42 @@ func (p *parser) declStmt(f func() Decl) DeclStmt {
 func (p *parser) exprStmt() ExprStmt {
 	es := ExprStmt{}
 	es.Pos = p.p
-	es.Expr = p.numberExpr()
+	rt := p.expr()
+	if p.tok != ";" {
+		panic("")
+	}
+	p.next()
+  es.Expr = rt
 	return es
+}
 
+func (p *parser) expr() Expr {
+	var lhs Expr
+	switch p.tok {
+	case "literal":
+		lhs = p.numberExpr()
+	case "name":
+		lhs = p.varExpr()
+	default:
+		panic(p.tok)
+	}
+	if p.tok == ";" {
+		return lhs
+	}
+	if p.tok == "op" {
+		return p.intExpr(lhs)
+	}
+  panic("")
+}
+
+func (p *parser) intExpr(lhs Expr) Expr {
+	op := p.op
+	rhs := p.expr()
+	rt := IntExpr{}
+	rt.LHS = lhs
+	rt.RHS = rhs
+	rt.op = op
+	return rt
 }
 
 func (p *parser) iLit() ILit {
@@ -129,12 +162,10 @@ func (p *parser) wLit() WLit {
 	return wl
 }
 
-func (p *parser) varDecl() Decl {
-	d := VarDecl{}
-
-	d.Wl = p.wLit()
-	d.Kind = p.kind()
-	return d
+func (p *parser) varExpr() Expr {
+  rt := VarExpr{}
+  rt.Wl = p.wLit()
+  return rt
 }
 
 func (p *parser) numberExpr() Expr {
@@ -144,6 +175,17 @@ func (p *parser) numberExpr() Expr {
 	return ne
 
 }
+
+
+
+func (p *parser) varDecl() Decl {
+	d := VarDecl{}
+
+	d.Wl = p.wLit()
+	d.Kind = p.kind()
+	return d
+}
+
 
 func (p *parser) sKind() SKind {
 	rt := SKind{}

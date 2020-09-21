@@ -105,6 +105,11 @@ type NumberExpr struct {
 	expr
 }
 
+type VarExpr struct {
+  Wl WLit
+  expr
+}
+
 type IntExpr struct {
 	LHS Expr
 	RHS Expr

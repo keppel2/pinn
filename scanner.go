@@ -44,13 +44,11 @@ func f() {
 }
 func main() {
 	//f()
-	src := `
-var x int;
-123123;
-"abc";`
-	tok(src)
+src, _ := ioutil.ReadFile("a.pinn")
+ssrc := string(src)
+	tok(ssrc)
 	p := new(parser)
-	p.init(strings.NewReader(src))
+	p.init(strings.NewReader(ssrc))
 	p.fileA()
 	return
 }
