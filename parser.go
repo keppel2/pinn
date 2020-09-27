@@ -119,9 +119,15 @@ func (p *parser) fileA() File {
 	for p.tok != "EOF" {
 		switch p.tok {
 		case "literal":
-			f.SList = append(f.SList, p.exprStmt())
+      lhs := p.numberExpr()
+			f.SList = append(f.SList, p.exprStmt(lhs))
     case "name":
-      f.SList = append(f.SList, p.exprStmt())
+      lhs := p.varExpr()
+      if p.tok == "=" {
+        f.SList = append(f.SList, p.assignStmt(lhs))
+      } else {
+        f.SList = append(f.SList, p.exprStmt(lhs))
+      }
     case "var":
       f.SList = append(f.SList, p.declStmt())
 		default:
@@ -164,32 +170,23 @@ func (p *parser) kind() Kind {
        case "name":
                return p.sKind()
        }
-       panic("")
+       panic(p.tok)
 }
 
-func (p *parser) exprStmt() ExprStmt {
+func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es := ExprStmt{}
 	es.Position = p.p
-	rt := p.expr()
+	rt := p.expr(LHS)
   es.Expr = rt
 	return es
 }
 
-func (p *parser) expr() Expr {
-	var lhs Expr
-	switch p.tok {
-	case "literal":
-		lhs = p.numberExpr()
-	case "name":
-		lhs = p.varExpr()
-	default:
-		panic(p.tok)
-	}
+func (p *parser) expr(LHS Expr) Expr {
 	if p.tok == ";" {
-		return lhs
+		return LHS
 	}
 	if p.tok == "op" {
-		return p.intExpr(lhs)
+		return p.intExpr(LHS)
 	}
   panic("")
 }
