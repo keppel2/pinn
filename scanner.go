@@ -26,16 +26,17 @@ func tok(s string) {
 }
 
 func _prn(s scan) string {
-	return fmt.Sprintf("%v,%v,%v,%v\n", s.tok, s.lit, s.kind, s.op)
+	return fmt.Sprintf("%v,%v,%v\n", s.tok, s.lit, s.kind)
 }
 
+var TD = "../pinn/"
 func f() {
-	rd, err := ioutil.ReadDir("pinns")
+	rd, err := ioutil.ReadDir(TD)
 	if err != nil {
 		log.Fatal(err)
 	}
 	for _, ofi := range rd {
-		bs, _ := ioutil.ReadFile("pinns/" + ofi.Name())
+		bs, _ := ioutil.ReadFile(TD + ofi.Name())
 		_ = bs
 		src := string(bs)
 		tok(src)
@@ -44,7 +45,7 @@ func f() {
 }
 func main() {
 	//f()
-src, _ := ioutil.ReadFile("a.pinn")
+src, _ := ioutil.ReadFile("a.pinn")//TD + "tparse.pinn")
 ssrc := string(src)
 	tok(ssrc)
 	p := new(parser)
@@ -60,7 +61,6 @@ type scan struct {
 	tok  string
 	lit  string
 	kind LitKind
-	op   string
 }
 
 func (s *scan) init(src io.Reader) {

@@ -43,15 +43,34 @@ func contains(s []string, t string) bool {
 	return false
 }
 
+func visitVarDecl(n VarDecl) {
+  fmt.Println("var: ", n.Wl.Value)
+  visitKind(n.Kind)
+}
+
 func visitDeclStmt(d DeclStmt) {
   pnode(d)
+  visitDecl(d.Decl)
+}
+
+func visitDecl(d Decl) {
+  switch t := d.(type) {
+  case VarDecl:
+    visitVarDecl(t)
+  }
+}
+
+func visitKind(n Kind) {
+  pnode(n)
+  sk := n.(SKind)
+  fmt.Println("Skind",sk.Wl.Value)
 }
 
 func visitIntExpr(n IntExpr) {
-  pnode(n)
-
+  visitExpr(n.LHS)
+  println("Op",n.op,".")
+  visitExpr(n.RHS)
 }
-
 
 func visitExpr(n Expr) {
   pnode(n)
@@ -101,12 +120,14 @@ func (p *parser) fileA() File {
 		switch p.tok {
 		case "literal":
 			f.SList = append(f.SList, p.exprStmt())
+    case "name":
+      f.SList = append(f.SList, p.exprStmt())
+    case "var":
+      f.SList = append(f.SList, p.declStmt())
 		default:
 			panic("tok," + p.tok)
 		}
-//		if !p.got(";") {
-//			panic("No semi")
-//		}
+    p.want(";")
 	}
 	fmt.Println(f.SList)
 	visitFile(f)
@@ -114,21 +135,42 @@ func (p *parser) fileA() File {
 	return f
 }
 
-func (p *parser) declStmt(f func() Decl) DeclStmt {
+func (p *parser) declStmt() DeclStmt {
 	ds := DeclStmt{}
 	ds.Position = p.p
-	ds.Decl = f()
+	ds.Decl = p.varDecl()
 	return ds
+}
+
+func (p *parser) varDecl() Decl {
+       d := VarDecl{}
+       d.Position = p.p
+       p.want("var")
+
+       d.Wl = p.wLit()
+       d.Kind = p.kind()
+       return d
+}
+
+
+func (p *parser) sKind() SKind {
+       rt := SKind{}
+       rt.Wl = p.wLit()
+       return rt
+}
+
+func (p *parser) kind() Kind {
+       switch p.tok {
+       case "name":
+               return p.sKind()
+       }
+       panic("")
 }
 
 func (p *parser) exprStmt() ExprStmt {
 	es := ExprStmt{}
 	es.Position = p.p
 	rt := p.expr()
-	if p.tok != ";" {
-		panic("")
-	}
-	p.next()
   es.Expr = rt
 	return es
 }
@@ -153,7 +195,7 @@ func (p *parser) expr() Expr {
 }
 
 func (p *parser) intExpr(lhs Expr) Expr {
-	op := p.op
+	op := p.lit
   p.next()
 	rhs := p.expr()
 	rt := IntExpr{}
@@ -165,6 +207,7 @@ func (p *parser) intExpr(lhs Expr) Expr {
 
 func (p *parser) iLit() ILit {
 	il := ILit{}
+  il.Position = p.p
 	if p.tok != "literal" {
 		panic("")
 	}
@@ -175,6 +218,7 @@ func (p *parser) iLit() ILit {
 }
 func (p *parser) wLit() WLit {
 	wl := WLit{}
+  wl.Position = p.p
 	if p.tok != "name" {
 		panic("")
 	}
@@ -185,12 +229,14 @@ func (p *parser) wLit() WLit {
 
 func (p *parser) varExpr() Expr {
   rt := VarExpr{}
+  rt.Position = p.p
   rt.Wl = p.wLit()
   return rt
 }
 
 func (p *parser) numberExpr() Expr {
 	ne := NumberExpr{}
+  ne.Position = p.p
 
 	ne.Il = p.iLit()
 	return ne

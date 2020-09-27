@@ -5,6 +5,7 @@ import "text/scanner"
 import "strings"
 
 func main() {
+println("a","","b")
 src := `var x int;
 y := 10abc "dkj ;`
 

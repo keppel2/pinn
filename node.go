@@ -96,3 +96,25 @@ type IntExpr struct {
 	op  string
 	expr
 }
+
+type Kind interface {
+       Node
+       aKind()
+}
+
+type kind struct{ node }
+
+func (kind) aKind() {}
+
+type SKind struct {
+       Wl WLit
+       kind
+}
+
+type VarDecl struct {
+       Wl WLit
+       Kind
+       decl
+}
+
+
