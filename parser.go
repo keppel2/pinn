@@ -111,6 +111,16 @@ func visitFile(f File) {
 	}
 }
 
+func (p *parser) unaryExpr() Expr {
+  switch p.tok {
+    case "literal":
+      return p.numberExpr()
+    case "name":
+      return p.varExpr()
+  }
+  panic(p.tok)
+}
+
 func (p *parser) fileA() File {
 	f := File{}
 	f.Position = p.p
@@ -119,12 +129,12 @@ func (p *parser) fileA() File {
 	for p.tok != "EOF" {
 		switch p.tok {
 		case "literal":
-      lhs := p.numberExpr()
+      lhs := p.unaryExpr()
 			f.SList = append(f.SList, p.exprStmt(lhs))
     case "name":
-      lhs := p.varExpr()
+      lhs := p.unaryExpr()
       if p.tok == "=" {
-        f.SList = append(f.SList, p.assignStmt(lhs))
+//        f.SList = append(f.SList, p.assignStmt(lhs))
       } else {
         f.SList = append(f.SList, p.exprStmt(lhs))
       }
@@ -194,11 +204,12 @@ func (p *parser) expr(LHS Expr) Expr {
 func (p *parser) intExpr(lhs Expr) Expr {
 	op := p.lit
   p.next()
-	rhs := p.expr()
 	rt := IntExpr{}
-	rt.LHS = lhs
-	rt.RHS = rhs
-	rt.op = op
+  rt.LHS = lhs
+  rt.op = op
+  rhs := p.unaryExpr()
+  rt.RHS = p.expr(rhs)
+
 	return rt
 }
 
