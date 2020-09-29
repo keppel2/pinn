@@ -12,7 +12,7 @@ type node struct {
 }
 
 func (n node) Gpos() scanner.Position { return n.Position }
-func (node) aNode() {}
+func (node) aNode()                   {}
 
 type Stmt interface {
 	Node
@@ -86,8 +86,8 @@ type NumberExpr struct {
 }
 
 type VarExpr struct {
-  Wl WLit
-  expr
+	Wl WLit
+	expr
 }
 
 type IntExpr struct {
@@ -98,15 +98,14 @@ type IntExpr struct {
 }
 
 type CallExpr struct {
-  ID Expr
-  Params []Expr
-  expr
+	ID     Expr
+	Params []Expr
+	expr
 }
 
-
 type Kind interface {
-       Node
-       aKind()
+	Node
+	aKind()
 }
 
 type kind struct{ node }
@@ -114,14 +113,12 @@ type kind struct{ node }
 func (kind) aKind() {}
 
 type SKind struct {
-       Wl WLit
-       kind
+	Wl WLit
+	kind
 }
 
 type VarDecl struct {
-       Wl WLit
-       Kind
-       decl
+	Wl WLit
+	Kind
+	decl
 }
-
-

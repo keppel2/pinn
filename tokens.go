@@ -12,9 +12,6 @@ var tokenMap = map[string]bool{
 	"EOF":         false,
 	"name":        false,
 	"literal":     false,
-	"op":          false,
-	"op=":         false,
-	"opop":        false,
 	"=":           false,
 	":=":          false,
 	"(":           false,
@@ -46,8 +43,6 @@ var tokenMap = map[string]bool{
 	"type":        true,
 	"var":         true,
 
-
-
 	"!":  false,
 	"||": false,
 	"&&": false,
@@ -67,7 +62,6 @@ var tokenMap = map[string]bool{
 	"&":  false,
 	"<<": false,
 	">>": false,
-
 }
 
 type LitKind uint8
@@ -77,4 +71,3 @@ const (
 	FloatLit
 	StringLit
 )
-

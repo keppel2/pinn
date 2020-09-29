@@ -30,6 +30,7 @@ func _prn(s scan) string {
 }
 
 var TD = "../pinn/"
+
 func f() {
 	rd, err := ioutil.ReadDir(TD)
 	if err != nil {
@@ -45,8 +46,8 @@ func f() {
 }
 func main() {
 	//f()
-src, _ := ioutil.ReadFile("a.pinn")//TD + "texpr.pinn")
-ssrc := string(src)
+	src, _ := ioutil.ReadFile("a.pinn") //TD + "texpr.pinn")
+	ssrc := string(src)
 	tok(ssrc)
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
