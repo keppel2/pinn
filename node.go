@@ -97,6 +97,13 @@ type IntExpr struct {
 	expr
 }
 
+type CallExpr struct {
+  ID Expr
+  Params []Expr
+  expr
+}
+
+
 type Kind interface {
        Node
        aKind()

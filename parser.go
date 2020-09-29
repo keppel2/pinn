@@ -72,6 +72,13 @@ func visitIntExpr(n IntExpr) {
   visitExpr(n.RHS)
 }
 
+func visitCallExpr(n CallExpr) {
+  visitExpr(n.ID)
+  for _, v := range n.Params {
+    visitExpr(v)
+  }
+}
+
 func visitExpr(n Expr) {
   pnode(n)
   switch t := n.(type) {
@@ -81,6 +88,8 @@ func visitExpr(n Expr) {
     println("Var",t.Wl.Value)
   case IntExpr:
     visitIntExpr(t)
+  case CallExpr:
+    visitCallExpr(t)
   }
 
 }
@@ -91,6 +100,8 @@ func visitExprStmt(e ExprStmt) {
 
 func visitAssignStmt(a AssignStmt) {
   pnode(a)
+  visitExpr(a.LHS)
+  visitExpr(a.RHS)
 }
 
 func visitStmt(s Stmt) {
@@ -134,8 +145,8 @@ func (p *parser) fileA() File {
     case "name":
       lhs := p.unaryExpr()
       if p.tok == "=" {
-//        f.SList = append(f.SList, p.assignStmt(lhs))
-      } else {
+        f.SList = append(f.SList, p.assignStmt(lhs))
+      } else if p.tok == "(" {
         f.SList = append(f.SList, p.exprStmt(lhs))
       }
     case "var":
@@ -183,6 +194,19 @@ func (p *parser) kind() Kind {
        panic(p.tok)
 }
 
+func (p *parser) assignStmt(LHS Expr) AssignStmt {
+  if !(p.got("=") || p.got(":=")) {
+    panic (p.tok)
+  }
+  rt := AssignStmt{}
+  rt.Position = p.p
+  rt.LHS = LHS
+  ua := p.unaryExpr()
+  rt.RHS = p.expr(ua)
+  return rt
+
+}
+
 func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es := ExprStmt{}
 	es.Position = p.p
@@ -195,10 +219,16 @@ func (p *parser) expr(LHS Expr) Expr {
 	if p.tok == ";" {
 		return LHS
 	}
+  if p.tok == "," || p.tok == ")" {
+    return LHS
+  }
 	if p.tok == "op" {
 		return p.intExpr(LHS)
 	}
-  panic("")
+  if p.tok == "(" {
+    return p.callExpr(LHS)
+  }
+  panic(p.p)
 }
 
 func (p *parser) intExpr(lhs Expr) Expr {
@@ -211,6 +241,22 @@ func (p *parser) intExpr(lhs Expr) Expr {
   rt.RHS = p.expr(rhs)
 
 	return rt
+}
+
+func (p *parser) callExpr(lhs Expr) Expr {
+  p.want("(")
+  rt := CallExpr{}
+  rt.ID = lhs
+  if p.got(")") {
+    return rt
+  }
+  e := p.expr(p.unaryExpr())
+  rt.Params = append(rt.Params, e)
+  for p.got(",") {
+    rt.Params = append(rt.Params, p.expr(p.unaryExpr()))
+  }
+  p.want(")")
+  return rt
 }
 
 func (p *parser) iLit() ILit {

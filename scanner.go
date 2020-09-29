@@ -45,7 +45,7 @@ func f() {
 }
 func main() {
 	//f()
-src, _ := ioutil.ReadFile("a.pinn")//TD + "tparse.pinn")
+src, _ := ioutil.ReadFile("a.pinn")//TD + "texpr.pinn")
 ssrc := string(src)
 	tok(ssrc)
 	p := new(parser)
