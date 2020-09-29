@@ -7,11 +7,6 @@ func tmOk(s string) bool {
 	return ok
 }
 
-func omOk(s string) bool {
-	_, ok := opMap[s]
-	return ok
-}
-
 // True are keywords that can be fast-forwarded to in case of error.
 var tokenMap = map[string]bool{
 	"EOF":         false,
@@ -50,6 +45,29 @@ var tokenMap = map[string]bool{
 	"return":      true,
 	"type":        true,
 	"var":         true,
+
+
+
+	"!":  false,
+	"||": false,
+	"&&": false,
+	"==": false,
+	"!=": false,
+	"<":  false,
+	"<=": false,
+	">":  false,
+	">=": false,
+	"+":  false,
+	"-":  false,
+	"|":  false,
+	"^":  false,
+	"*":  false,
+	"/":  false,
+	"%":  false,
+	"&":  false,
+	"<<": false,
+	">>": false,
+
 }
 
 type LitKind uint8
@@ -60,26 +78,3 @@ const (
 	StringLit
 )
 
-type Operator uint
-
-var opMap = map[string]struct{}{
-	"!":  n,
-	"||": n,
-	"&&": n,
-	"==": n,
-	"!=": n,
-	"<":  n,
-	"<=": n,
-	">":  n,
-	">=": n,
-	"+":  n,
-	"-":  n,
-	"|":  n,
-	"^":  n,
-	"*":  n,
-	"/":  n,
-	"%":  n,
-	"&":  n,
-	"<<": n,
-	">>": n,
-}

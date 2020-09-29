@@ -97,11 +97,7 @@ func (s *scan) next() {
 		}
 		return
 	default:
-		if omOk(s.tok) {
-			s.lit = s.tok
-			s.tok = "op"
-			return
-		} else if tmOk(s.tok) {
+		if tmOk(s.tok) {
 			return
 		}
 		panic(s.tok)
