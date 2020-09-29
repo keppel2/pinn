@@ -221,7 +221,7 @@ func (p *parser) expr(LHS Expr) Expr {
 	if p.tok == "," || p.tok == ")" {
 		return LHS
 	}
-	if p.tok == "+" {
+	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "==" {
 		return p.intExpr(LHS)
 	}
 	if p.tok == "(" {

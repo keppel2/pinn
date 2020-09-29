@@ -46,7 +46,7 @@ func f() {
 }
 func main() {
 	//f()
-	src, _ := ioutil.ReadFile("a.pinn") //TD + "texpr.pinn")
+	src, _ := ioutil.ReadFile("texpr.pinn") //TD + "texpr.pinn")
 	ssrc := string(src)
 	tok(ssrc)
 	p := new(parser)
@@ -99,7 +99,27 @@ func (s *scan) next() {
 		return
 	default:
 		if tmOk(s.tok) {
-			return
+      if s.tok == "=" && s.Peek() == '=' {
+        s.tok = "=="
+        s.Scan()
+        return
+      }
+      if s.tok == ":" && s.Peek() == '=' {
+        s.tok = ":="
+        s.Scan()
+			  return
+      }
+      if s.tok == "<" && s.Peek() == '<' {
+        s.tok = "<<"
+        s.Scan()
+        return
+       if s.tok == ">" && s.Peek() == '>' {
+        s.tok = ">>"
+        s.Scan()
+        return
+      }
+     }
+      return
 		}
 		panic(s.tok)
 	}
