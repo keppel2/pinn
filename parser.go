@@ -11,6 +11,10 @@ type parser struct {
 	scan
 }
 
+func (p *parser) err(msg string) {
+ panic(fmt.Sprintln(msg, p.p))
+}
+
 func (p *parser) init(r io.Reader) {
 	p.scan.init(
 		r)
@@ -26,7 +30,7 @@ func (p *parser) got(tok string) bool {
 
 func (p *parser) want(tok string) {
 	if !p.got(tok) {
-		panic("expecting " + tok)
+		p.err("expecting " + tok)
 	}
 }
 
@@ -129,7 +133,8 @@ func (p *parser) unaryExpr() Expr {
 	case "name":
 		return p.varExpr()
 	}
-	panic(p.tok)
+	p.err(p.tok)
+  return nil
 }
 
 func (p *parser) fileA() File {
@@ -152,7 +157,7 @@ func (p *parser) fileA() File {
 		case "var":
 			f.SList = append(f.SList, p.declStmt())
 		default:
-			panic("tok," + p.tok)
+			p.err(p.tok)
 		}
 		p.want(";")
 	}
@@ -195,7 +200,7 @@ func (p *parser) kind() Kind {
 
 func (p *parser) assignStmt(LHS Expr) AssignStmt {
 	if !(p.got("=") || p.got(":=")) {
-		panic(p.tok)
+		p.err(p.tok)
 	}
 	rt := AssignStmt{}
 	rt.Position = p.p
@@ -227,7 +232,8 @@ func (p *parser) expr(LHS Expr) Expr {
 	if p.tok == "(" {
 		return p.callExpr(LHS)
 	}
-	panic(p.p)
+	p.err("")
+  return nil
 }
 
 func (p *parser) intExpr(lhs Expr) Expr {
@@ -262,7 +268,7 @@ func (p *parser) iLit() ILit {
 	il := ILit{}
 	il.Position = p.p
 	if p.tok != "literal" {
-		panic("")
+		p.err("")
 	}
 	il.Value = p.lit
 	p.next()
@@ -273,7 +279,7 @@ func (p *parser) wLit() WLit {
 	wl := WLit{}
 	wl.Position = p.p
 	if p.tok != "name" {
-		panic("")
+		p.err("")
 	}
 	wl.Value = p.lit
 	p.next()
