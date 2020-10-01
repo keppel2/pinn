@@ -1,6 +1,6 @@
 # Pinn to llvm/ARM64 project. PinnProject.
 
-Implement Pinn entirely in golang (remove ANTLR), outputting LLVM initially, and ARM64 later.
+Implement Pinn entirely in golang (remove ANTLR), outputting LLVM initially, and ARM64/x64 later. Part of general artificial intelligence without ego project.
 
 ## Pinn
 * Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn.
