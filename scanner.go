@@ -44,16 +44,6 @@ func f() {
 
 	}
 }
-func main() {
-	//f()
-	src, _ := ioutil.ReadFile("texpr.pinn") //TD + "texpr.pinn")
-	ssrc := string(src)
-	tok(ssrc)
-	p := new(parser)
-	p.init(strings.NewReader(ssrc))
-	p.fileA()
-	return
-}
 
 type scan struct {
 	scanner.Scanner

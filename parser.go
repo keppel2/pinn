@@ -43,85 +43,6 @@ func contains(s []string, t string) bool {
 	return false
 }
 
-func visitVarDecl(n VarDecl) {
-	fmt.Println("var: ", n.Wl.Value)
-	visitKind(n.Kind)
-}
-
-func visitDeclStmt(d DeclStmt) {
-	pnode(d)
-	visitDecl(d.Decl)
-}
-
-func visitDecl(d Decl) {
-	switch t := d.(type) {
-	case VarDecl:
-		visitVarDecl(t)
-	}
-}
-
-func visitKind(n Kind) {
-	pnode(n)
-	sk := n.(SKind)
-	fmt.Println("Skind", sk.Wl.Value)
-}
-
-func visitIntExpr(n IntExpr) {
-	visitExpr(n.LHS)
-	println("Op", n.op, ".")
-	visitExpr(n.RHS)
-}
-
-func visitCallExpr(n CallExpr) {
-	visitExpr(n.ID)
-	for _, v := range n.Params {
-		visitExpr(v)
-	}
-}
-
-func visitExpr(n Expr) {
-	pnode(n)
-	switch t := n.(type) {
-	case NumberExpr:
-		println("Number", t.Il.Value)
-	case VarExpr:
-		println("Var", t.Wl.Value)
-	case IntExpr:
-		visitIntExpr(t)
-	case CallExpr:
-		visitCallExpr(t)
-	}
-
-}
-func visitExprStmt(e ExprStmt) {
-	pnode(e)
-	visitExpr(e.Expr)
-}
-
-func visitAssignStmt(a AssignStmt) {
-	pnode(a)
-	visitExpr(a.LHS)
-	visitExpr(a.RHS)
-}
-
-func visitStmt(s Stmt) {
-	switch t := s.(type) {
-	case DeclStmt:
-		visitDeclStmt(t)
-	case ExprStmt:
-		visitExprStmt(t)
-	case AssignStmt:
-		visitAssignStmt(t)
-	}
-}
-
-func visitFile(f File) {
-	pnode(f)
-	for _, s := range f.SList {
-		visitStmt(s)
-	}
-}
-
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
 	case "literal":
@@ -151,6 +72,8 @@ func (p *parser) fileA() File {
 			}
 		case "var":
 			f.SList = append(f.SList, p.declStmt())
+    case "type":
+      f.SList = append(f.SList, p.typeStmt())
 		default:
 			panic("tok," + p.tok)
 		}
@@ -167,6 +90,25 @@ func (p *parser) declStmt() DeclStmt {
 	ds.Position = p.p
 	ds.Decl = p.varDecl()
 	return ds
+}
+
+func (p *parser) typeStmt() DeclStmt {
+	ds := DeclStmt{}
+	ds.Position = p.p
+	ds.Decl = p.typeDecl()
+	return ds
+
+}
+
+func (p *parser) typeDecl() Decl {
+	d := TypeDecl{}
+	d.Position = p.p
+	p.want("type")
+
+	d.Wl = p.wLit()
+	d.Kind = p.kind()
+	return d
+
 }
 
 func (p *parser) varDecl() Decl {

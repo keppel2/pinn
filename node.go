@@ -122,3 +122,9 @@ type VarDecl struct {
 	Kind
 	decl
 }
+
+type TypeDecl struct {
+  Wl WLit
+  Kind
+  decl
+}
