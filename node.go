@@ -28,6 +28,11 @@ type File struct {
 	node
 }
 
+type BlockStmt struct {
+  SList []Stmt
+  stmt
+}
+
 type ExprStmt struct {
 	Expr
 	stmt
@@ -133,5 +138,6 @@ type FuncDecl struct {
   Wl WLit
   PList []VarDecl
   LastReturn bool
+  B BlockStmt
   decl
 }

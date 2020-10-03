@@ -131,9 +131,25 @@ func (p *parser) funcDecl() Decl {
     rt.PList = append(rt.PList, p.varDecl().(VarDecl))
     rt.LastReturn = true
   }
+  rt.B = p.blockStmt().(BlockStmt)
+
   return rt
 }
 
+//func (p *parser) stmtList() []Stmt {
+//}
+
+func (p *parser) blockStmt() Stmt {
+  rt := BlockStmt{}
+  p.want("{")
+  for p.tok != "}" {
+    switch p.tok {
+    }
+
+  }
+
+  p.want("}")
+}
 
 func (p *parser) typeDecl() Decl {
 	d := TypeDecl{}
