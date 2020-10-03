@@ -128,3 +128,10 @@ type TypeDecl struct {
   Kind
   decl
 }
+
+type FuncDecl struct {
+  Wl WLit
+  PList []VarDecl
+  LastReturn bool
+  decl
+}

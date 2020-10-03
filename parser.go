@@ -71,9 +71,11 @@ func (p *parser) fileA() File {
 				f.SList = append(f.SList, p.exprStmt(lhs))
 			}
 		case "var":
-			f.SList = append(f.SList, p.declStmt())
+			f.SList = append(f.SList, p.varStmt())
     case "type":
       f.SList = append(f.SList, p.typeStmt())
+    case "func":
+      f.SList = append(f.SList, p.funcStmt())
 		default:
 			panic("tok," + p.tok)
 		}
@@ -85,7 +87,14 @@ func (p *parser) fileA() File {
 	return f
 }
 
-func (p *parser) declStmt() DeclStmt {
+func (p *parser) funcStmt() DeclStmt {
+  ds := DeclStmt{}
+  ds.Decl = p.funcDecl()
+  return ds
+}
+
+func (p *parser) varStmt() DeclStmt {
+  p.want("var")
 	ds := DeclStmt{}
 	ds.Position = p.p
 	ds.Decl = p.varDecl()
@@ -99,6 +108,27 @@ func (p *parser) typeStmt() DeclStmt {
 	return ds
 
 }
+
+
+func (p *parser) funcDecl() Decl {
+  rt := FuncDecl{}
+  p.want("func")
+  rt.Wl = p.wLit()
+  if !p.got(")") {
+    vd := p.varDecl().(VarDecl)
+    rt.PList = append(rt.PList, vd)
+    for p.got(",") {
+      vd = p.varDecl().(VarDecl)
+      rt.PList = append(rt.PList, vd)
+    }
+  }
+  if !p.got("{") {
+    rt.PList = append(rt.PList, p.varDecl().(VarDecl))
+    rt.LastReturn = true
+  }
+  return rt
+}
+
 
 func (p *parser) typeDecl() Decl {
 	d := TypeDecl{}
@@ -114,7 +144,6 @@ func (p *parser) typeDecl() Decl {
 func (p *parser) varDecl() Decl {
 	d := VarDecl{}
 	d.Position = p.p
-	p.want("var")
 
 	d.Wl = p.wLit()
 	d.Kind = p.kind()
