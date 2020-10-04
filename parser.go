@@ -70,12 +70,22 @@ func (p *parser) unaryExpr() Expr {
 //  return p.primaryExpr()
 }
 
-/*
 func (p *parser) primaryExpr() Expr {
   x := p.operand()
+  return x
 }
 
-*/
+
+func (p *parser) operand() Expr {
+  switch p.tok {
+  case "name":
+    return p.varExpr()
+  case "literal":
+    return p.numberExpr()
+  }
+  p.err("")
+  return nil
+}
     
 
 
