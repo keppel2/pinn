@@ -44,7 +44,7 @@ func visitKind(n Kind) {
 	fmt.Println("Skind", sk.Wl.Value)
 }
 
-func visitIntExpr(n IntExpr) {
+func visitBinaryExpr(n BinaryExpr) {
 	visitExpr(n.LHS)
 	println("Op", n.op, ".")
 	visitExpr(n.RHS)
@@ -64,8 +64,8 @@ func visitExpr(n Expr) {
 		println("Number", t.Il.Value)
 	case VarExpr:
 		println("Var", t.Wl.Value)
-	case IntExpr:
-		visitIntExpr(t)
+	case BinaryExpr:
+		visitBinaryExpr(t)
 	case CallExpr:
 		visitCallExpr(t)
 	}

@@ -12,7 +12,7 @@ type parser struct {
 }
 
 func (p *parser) err(msg string) {
-	panic(fmt.Sprintln(msg, p.p))
+	panic(fmt.Sprintln(msg, p.p, p.tok, p.lit))
 }
 
 func (p *parser) init(r io.Reader) {
@@ -49,14 +49,38 @@ func contains(s []string, t string) bool {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
+  case "-":
+    ue := UnaryExpr{}
+    ue.op = p.tok
+    p.next()
+    ue.E = p.unaryExpr()
+    return ue
+
+
+
+
 	case "literal":
 		return p.numberExpr()
 	case "name":
 		return p.varExpr()
 	}
-	p.err(p.tok)
-	return nil
+  p.err("")
+  return nil
+
+//  return p.primaryExpr()
 }
+
+/*
+func (p *parser) primaryExpr() Expr {
+  x := p.operand()
+}
+
+*/
+    
+
+
+
+
 
 func (p *parser) fileA() File {
 	f := File{}
@@ -204,7 +228,7 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es.Position = p.p
 	rt := p.expr(LHS)
 	es.Expr = rt
-		p.want(";")
+	p.want(";")
 	return es
 }
 
@@ -225,7 +249,7 @@ func (p *parser) expr(LHS Expr) Expr {
 func (p *parser) intExpr(lhs Expr) Expr {
 	op := p.lit
 	p.next()
-	rt := IntExpr{}
+	rt := BinaryExpr{}
 	rt.LHS = lhs
 	rt.op = op
 	rhs := p.unaryExpr()

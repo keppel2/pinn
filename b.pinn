@@ -1,5 +1,6 @@
 1 + 5;
 f(0);
+2 + f(42);
 func f(a int, b bool) int { 42; }
 type t atype;
 var v avar;

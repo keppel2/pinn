@@ -95,7 +95,13 @@ type VarExpr struct {
 	expr
 }
 
-type IntExpr struct {
+type UnaryExpr struct {
+  E Expr
+  op string
+  expr
+}
+
+type BinaryExpr struct {
 	LHS Expr
 	RHS Expr
 	op  string
