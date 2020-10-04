@@ -6,10 +6,10 @@ import "fmt"
 import "os"
 
 func main() {
-fmt.Println(os.Args)
+	fmt.Println(os.Args)
 
 	//f()
-	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn") 
+	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
 	ssrc := string(src)
 	tok(ssrc)
 	p := new(parser)

@@ -1,5 +1,7 @@
 package main
+
 import "fmt"
+
 func visitVarDecl(n VarDecl) {
 	fmt.Println("var: ", n.Wl.Value)
 	visitKind(n.Kind)
@@ -10,7 +12,6 @@ func visitTypeDecl(n TypeDecl) {
 	visitKind(n.Kind)
 }
 
-
 func visitDeclStmt(d DeclStmt) {
 	pnode(d)
 	visitDecl(d.Decl)
@@ -20,8 +21,8 @@ func visitDecl(d Decl) {
 	switch t := d.(type) {
 	case VarDecl:
 		visitVarDecl(t)
-  case TypeDecl:
-    visitTypeDecl(t)
+	case TypeDecl:
+		visitTypeDecl(t)
 	}
 }
 
@@ -86,5 +87,3 @@ func visitFile(f File) {
 		visitStmt(s)
 	}
 }
-
-

@@ -89,27 +89,27 @@ func (s *scan) next() {
 		return
 	default:
 		if tmOk(s.tok) {
-      if s.tok == "=" && s.Peek() == '=' {
-        s.tok = "=="
-        s.Scan()
-        return
-      }
-      if s.tok == ":" && s.Peek() == '=' {
-        s.tok = ":="
-        s.Scan()
-			  return
-      }
-      if s.tok == "<" && s.Peek() == '<' {
-        s.tok = "<<"
-        s.Scan()
-        return
-       if s.tok == ">" && s.Peek() == '>' {
-        s.tok = ">>"
-        s.Scan()
-        return
-      }
-     }
-      return
+			if s.tok == "=" && s.Peek() == '=' {
+				s.tok = "=="
+				s.Scan()
+				return
+			}
+			if s.tok == ":" && s.Peek() == '=' {
+				s.tok = ":="
+				s.Scan()
+				return
+			}
+			if s.tok == "<" && s.Peek() == '<' {
+				s.tok = "<<"
+				s.Scan()
+				return
+				if s.tok == ">" && s.Peek() == '>' {
+					s.tok = ">>"
+					s.Scan()
+					return
+				}
+			}
+			return
 		}
 		panic(s.tok)
 	}

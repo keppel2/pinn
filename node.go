@@ -29,8 +29,8 @@ type File struct {
 }
 
 type BlockStmt struct {
-  SList []Stmt
-  stmt
+	SList []Stmt
+	stmt
 }
 
 type ExprStmt struct {
@@ -129,15 +129,15 @@ type VarDecl struct {
 }
 
 type TypeDecl struct {
-  Wl WLit
-  Kind
-  decl
+	Wl WLit
+	Kind
+	decl
 }
 
 type FuncDecl struct {
-  Wl WLit
-  PList []VarDecl
-  LastReturn bool
-  B BlockStmt
-  decl
+	Wl         WLit
+	PList      []VarDecl
+	LastReturn bool
+	B          BlockStmt
+	decl
 }

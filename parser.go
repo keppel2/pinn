@@ -12,7 +12,7 @@ type parser struct {
 }
 
 func (p *parser) err(msg string) {
- panic(fmt.Sprintln(msg, p.p))
+	panic(fmt.Sprintln(msg, p.p))
 }
 
 func (p *parser) init(r io.Reader) {
@@ -55,37 +55,14 @@ func (p *parser) unaryExpr() Expr {
 		return p.varExpr()
 	}
 	p.err(p.tok)
-  return nil
+	return nil
 }
 
 func (p *parser) fileA() File {
 	f := File{}
 	f.Position = p.p
-
-	p.next()
-	for p.tok != "EOF" {
-		switch p.tok {
-		case "literal":
-			lhs := p.unaryExpr()
-			f.SList = append(f.SList, p.exprStmt(lhs))
-		case "name":
-			lhs := p.unaryExpr()
-			if p.tok == "=" {
-				f.SList = append(f.SList, p.assignStmt(lhs))
-			} else if p.tok == "(" {
-				f.SList = append(f.SList, p.exprStmt(lhs))
-			}
-		case "var":
-			f.SList = append(f.SList, p.varStmt())
-    case "type":
-      f.SList = append(f.SList, p.typeStmt())
-    case "func":
-      f.SList = append(f.SList, p.funcStmt())
-		default:
-			p.err(p.tok)
-		}
-		p.want(";")
-	}
+  p.next()
+  f.SList = p.stmtList()
 	fmt.Println(f.SList)
 	visitFile(f)
 
@@ -93,13 +70,13 @@ func (p *parser) fileA() File {
 }
 
 func (p *parser) funcStmt() DeclStmt {
-  ds := DeclStmt{}
-  ds.Decl = p.funcDecl()
-  return ds
+	ds := DeclStmt{}
+	ds.Decl = p.funcDecl()
+	return ds
 }
 
 func (p *parser) varStmt() DeclStmt {
-  p.want("var")
+	p.want("var")
 	ds := DeclStmt{}
 	ds.Position = p.p
 	ds.Decl = p.varDecl()
@@ -114,41 +91,62 @@ func (p *parser) typeStmt() DeclStmt {
 
 }
 
-
 func (p *parser) funcDecl() Decl {
-  rt := FuncDecl{}
-  p.want("func")
-  rt.Wl = p.wLit()
-  if !p.got(")") {
-    vd := p.varDecl().(VarDecl)
-    rt.PList = append(rt.PList, vd)
-    for p.got(",") {
-      vd = p.varDecl().(VarDecl)
-      rt.PList = append(rt.PList, vd)
-    }
-  }
-  if !p.got("{") {
-    rt.PList = append(rt.PList, p.varDecl().(VarDecl))
-    rt.LastReturn = true
-  }
-  rt.B = p.blockStmt().(BlockStmt)
+	rt := FuncDecl{}
+	p.want("func")
+	rt.Wl = p.wLit()
+	if !p.got(")") {
+		vd := p.varDecl().(VarDecl)
+		rt.PList = append(rt.PList, vd)
+		for p.got(",") {
+			vd = p.varDecl().(VarDecl)
+			rt.PList = append(rt.PList, vd)
+		}
+	}
+	if !p.got("{") {
+		rt.PList = append(rt.PList, p.varDecl().(VarDecl))
+		rt.LastReturn = true
+	}
+	rt.B = p.blockStmt().(BlockStmt)
 
-  return rt
+	return rt
 }
 
-//func (p *parser) stmtList() []Stmt {
-//}
+func (p *parser) stmtList() []Stmt {
+	rt := make([]Stmt, 0)
+	for p.tok != "EOF" && p.tok != "}" {
+		switch p.tok {
+		case "literal":
+			lhs := p.unaryExpr()
+			rt = append(rt, p.exprStmt(lhs))
+		case "name":
+			lhs := p.unaryExpr()
+			if p.tok == "=" {
+				rt = append(rt, p.assignStmt(lhs))
+			} else if p.tok == "(" {
+				rt = append(rt, p.exprStmt(lhs))
+			}
+		case "var":
+			rt = append(rt, p.varStmt())
+		case "type":
+			rt = append(rt, p.typeStmt())
+		case "func":
+			rt = append(rt, p.funcStmt())
+		default:
+			p.err(p.tok)
+		}
+		p.want(";")
+
+	}
+	return rt
+}
 
 func (p *parser) blockStmt() Stmt {
-  rt := BlockStmt{}
-  p.want("{")
-  for p.tok != "}" {
-    switch p.tok {
-    }
-
-  }
-
-  p.want("}")
+	rt := BlockStmt{}
+	p.want("{")
+	rt.SList = p.stmtList()
+	p.want("}")
+  return rt
 }
 
 func (p *parser) typeDecl() Decl {
@@ -220,7 +218,7 @@ func (p *parser) expr(LHS Expr) Expr {
 		return p.callExpr(LHS)
 	}
 	p.err("")
-  return nil
+	return nil
 }
 
 func (p *parser) intExpr(lhs Expr) Expr {
