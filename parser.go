@@ -49,54 +49,43 @@ func contains(s []string, t string) bool {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
-  case "-":
-    ue := UnaryExpr{}
-    ue.op = p.tok
-    p.next()
-    ue.E = p.unaryExpr()
-    return ue
+	case "-":
+		ue := UnaryExpr{}
+		ue.op = p.tok
+		p.next()
+		ue.E = p.unaryExpr()
+		return ue
 
-
-
-
-	case "literal":
-		return p.numberExpr()
-	case "name":
-		return p.varExpr()
+	case "literal", "name":
+		return p.primaryExpr()
 	}
-  p.err("")
-  return nil
+	p.err("")
+	return nil
 
-//  return p.primaryExpr()
+	//  return p.primaryExpr()
 }
 
 func (p *parser) primaryExpr() Expr {
-  x := p.operand()
-  return x
+	x := p.operand()
+	return x
 }
-
 
 func (p *parser) operand() Expr {
-  switch p.tok {
-  case "name":
-    return p.varExpr()
-  case "literal":
-    return p.numberExpr()
-  }
-  p.err("")
-  return nil
+	switch p.tok {
+	case "name":
+		return p.varExpr()
+	case "literal":
+		return p.numberExpr()
+	}
+	p.err("")
+	return nil
 }
-    
-
-
-
-
 
 func (p *parser) fileA() File {
 	f := File{}
 	f.Position = p.p
-  p.next()
-  f.SList = p.stmtList()
+	p.next()
+	f.SList = p.stmtList()
 	fmt.Println(f.SList)
 	visitFile(f)
 
@@ -114,7 +103,7 @@ func (p *parser) varStmt() DeclStmt {
 	ds := DeclStmt{}
 	ds.Position = p.p
 	ds.Decl = p.varDecl()
-		p.want(";")
+	p.want(";")
 	return ds
 }
 
@@ -122,7 +111,7 @@ func (p *parser) typeStmt() DeclStmt {
 	ds := DeclStmt{}
 	ds.Position = p.p
 	ds.Decl = p.typeDecl()
-		p.want(";")
+	p.want(";")
 	return ds
 
 }
@@ -131,7 +120,7 @@ func (p *parser) funcDecl() Decl {
 	rt := FuncDecl{}
 	p.want("func")
 	rt.Wl = p.wLit()
-  p.want("(")
+	p.want("(")
 	if !p.got(")") {
 		vd := p.varDecl().(VarDecl)
 		rt.PList = append(rt.PList, vd)
@@ -139,40 +128,46 @@ func (p *parser) funcDecl() Decl {
 			vd = p.varDecl().(VarDecl)
 			rt.PList = append(rt.PList, vd)
 		}
-    p.want(")")
+		p.want(")")
 	}
 	if p.tok != "{" {
-    rt.Kind = p.kind()
+		rt.Kind = p.kind()
 	}
 	rt.B = p.blockStmt().(BlockStmt)
 
 	return rt
 }
 
+func (p *parser) stmt() Stmt {
+	var rt Stmt
+	switch p.tok {
+	case "literal":
+		lhs := p.unaryExpr()
+		rt = p.exprStmt(lhs)
+	case "name":
+		lhs := p.unaryExpr()
+		if p.tok == "=" {
+			rt = p.assignStmt(lhs)
+		} else if p.tok == "(" {
+			rt = p.exprStmt(lhs)
+		}
+	case "var":
+		rt = p.varStmt()
+	case "type":
+		rt = p.typeStmt()
+	case "func":
+		rt = p.funcStmt()
+	default:
+		p.err("")
+	}
+	return rt
+
+}
+
 func (p *parser) stmtList() []Stmt {
 	rt := make([]Stmt, 0)
 	for p.tok != "EOF" && p.tok != "}" {
-		switch p.tok {
-		case "literal":
-			lhs := p.unaryExpr()
-			rt = append(rt, p.exprStmt(lhs))
-		case "name":
-			lhs := p.unaryExpr()
-			if p.tok == "=" {
-				rt = append(rt, p.assignStmt(lhs))
-			} else if p.tok == "(" {
-				rt = append(rt, p.exprStmt(lhs))
-			}
-		case "var":
-			rt = append(rt, p.varStmt())
-		case "type":
-			rt = append(rt, p.typeStmt())
-		case "func":
-			rt = append(rt, p.funcStmt())
-		default:
-			p.err(p.tok)
-		}
-
+		rt = append(rt, p.stmt())
 	}
 	return rt
 }
@@ -182,7 +177,7 @@ func (p *parser) blockStmt() Stmt {
 	p.want("{")
 	rt.SList = p.stmtList()
 	p.want("}")
-  return rt
+	return rt
 }
 
 func (p *parser) typeDecl() Decl {
@@ -228,7 +223,7 @@ func (p *parser) assignStmt(LHS Expr) AssignStmt {
 	rt.LHS = LHS
 	ua := p.unaryExpr()
 	rt.RHS = p.expr(ua)
-		p.want(";")
+	p.want(";")
 	return rt
 
 }
@@ -247,7 +242,7 @@ func (p *parser) expr(LHS Expr) Expr {
 		return LHS
 	}
 	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "<" || p.tok == ">" || p.tok == "==" {
-		return p.intExpr(LHS)
+		return p.binaryExpr(LHS)
 	}
 	if p.tok == "(" {
 		return p.callExpr(LHS)
@@ -256,7 +251,7 @@ func (p *parser) expr(LHS Expr) Expr {
 	return nil
 }
 
-func (p *parser) intExpr(lhs Expr) Expr {
+func (p *parser) binaryExpr(lhs Expr) Expr {
 	op := p.lit
 	p.next()
 	rt := BinaryExpr{}

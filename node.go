@@ -96,9 +96,9 @@ type VarExpr struct {
 }
 
 type UnaryExpr struct {
-  E Expr
-  op string
-  expr
+	E  Expr
+	op string
+	expr
 }
 
 type BinaryExpr struct {
@@ -141,9 +141,9 @@ type TypeDecl struct {
 }
 
 type FuncDecl struct {
-	Wl         WLit
-	PList      []VarDecl
-  Kind
-	B          BlockStmt
+	Wl    WLit
+	PList []VarDecl
+	Kind
+	B BlockStmt
 	decl
 }
