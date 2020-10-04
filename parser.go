@@ -67,6 +67,9 @@ func (p *parser) unaryExpr() Expr {
 
 func (p *parser) primaryExpr() Expr {
 	x := p.operand()
+  switch p.tok {
+  case "(":
+    x = p.callExpr(x)
 	return x
 }
 
