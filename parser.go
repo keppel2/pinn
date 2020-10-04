@@ -80,6 +80,7 @@ func (p *parser) varStmt() DeclStmt {
 	ds := DeclStmt{}
 	ds.Position = p.p
 	ds.Decl = p.varDecl()
+		p.want(";")
 	return ds
 }
 
@@ -87,6 +88,7 @@ func (p *parser) typeStmt() DeclStmt {
 	ds := DeclStmt{}
 	ds.Position = p.p
 	ds.Decl = p.typeDecl()
+		p.want(";")
 	return ds
 
 }
@@ -95,6 +97,7 @@ func (p *parser) funcDecl() Decl {
 	rt := FuncDecl{}
 	p.want("func")
 	rt.Wl = p.wLit()
+  p.want("(")
 	if !p.got(")") {
 		vd := p.varDecl().(VarDecl)
 		rt.PList = append(rt.PList, vd)
@@ -102,10 +105,10 @@ func (p *parser) funcDecl() Decl {
 			vd = p.varDecl().(VarDecl)
 			rt.PList = append(rt.PList, vd)
 		}
+    p.want(")")
 	}
-	if !p.got("{") {
-		rt.PList = append(rt.PList, p.varDecl().(VarDecl))
-		rt.LastReturn = true
+	if p.tok != "{" {
+    rt.Kind = p.kind()
 	}
 	rt.B = p.blockStmt().(BlockStmt)
 
@@ -135,7 +138,6 @@ func (p *parser) stmtList() []Stmt {
 		default:
 			p.err(p.tok)
 		}
-		p.want(";")
 
 	}
 	return rt
@@ -192,6 +194,7 @@ func (p *parser) assignStmt(LHS Expr) AssignStmt {
 	rt.LHS = LHS
 	ua := p.unaryExpr()
 	rt.RHS = p.expr(ua)
+		p.want(";")
 	return rt
 
 }
@@ -201,17 +204,15 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es.Position = p.p
 	rt := p.expr(LHS)
 	es.Expr = rt
+		p.want(";")
 	return es
 }
 
 func (p *parser) expr(LHS Expr) Expr {
-	if p.tok == ";" {
+	if p.tok == ";" || p.tok == "," || p.tok == ")" {
 		return LHS
 	}
-	if p.tok == "," || p.tok == ")" {
-		return LHS
-	}
-	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "==" {
+	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "<" || p.tok == ">" || p.tok == "==" {
 		return p.intExpr(LHS)
 	}
 	if p.tok == "(" {

@@ -17,12 +17,24 @@ func visitDeclStmt(d DeclStmt) {
 	visitDecl(d.Decl)
 }
 
+func visitFuncDecl(n FuncDecl) {
+  pnode(n)
+  fmt.Println("fid: ", n.Wl.Value)
+  for _, vd := range n.PList {
+    visitVarDecl(vd)
+  }
+  fmt.Println(n.Kind)
+  visitBlockStmt(n.B)
+}
+
 func visitDecl(d Decl) {
 	switch t := d.(type) {
 	case VarDecl:
 		visitVarDecl(t)
 	case TypeDecl:
 		visitTypeDecl(t)
+  case FuncDecl:
+    visitFuncDecl(t)
 	}
 }
 
@@ -70,8 +82,17 @@ func visitAssignStmt(a AssignStmt) {
 	visitExpr(a.RHS)
 }
 
+func visitBlockStmt(t BlockStmt) {
+  pnode(t)
+	for _, s := range t.SList {
+		visitStmt(s)
+	}
+}
+
 func visitStmt(s Stmt) {
 	switch t := s.(type) {
+  case BlockStmt:
+    visitBlockStmt(t)
 	case DeclStmt:
 		visitDeclStmt(t)
 	case ExprStmt:

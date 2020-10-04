@@ -137,7 +137,7 @@ type TypeDecl struct {
 type FuncDecl struct {
 	Wl         WLit
 	PList      []VarDecl
-	LastReturn bool
+  Kind
 	B          BlockStmt
 	decl
 }

@@ -1,2 +1,3 @@
-func f() {
+func f(a int, b int) int {
+42;
 }
