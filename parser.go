@@ -70,8 +70,8 @@ func (p *parser) primaryExpr() Expr {
 	switch p.tok {
 	case "(":
 		x = p.callExpr(x)
-  case "[":
-    x = p.indexExpr(x)
+	case "[":
+		x = p.indexExpr(x)
 	}
 	return x
 }
@@ -243,21 +243,21 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 }
 
 func (p *parser) expr(LHS Expr) Expr {
-/*
-	if p.tok == ";" || p.tok == "," || p.tok == ")" || p.tok == "]" || p.tok == ":" {
-		return LHS
-	}
-  */
+	/*
+		if p.tok == ";" || p.tok == "," || p.tok == ")" || p.tok == "]" || p.tok == ":" {
+			return LHS
+		}
+	*/
 	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "<" || p.tok == ">" || p.tok == "==" {
 		return p.binaryExpr(LHS)
 	}
-  return LHS
+	return LHS
 	p.err("")
 	return nil
 }
 
 func (p *parser) uexpr() Expr {
-  return p.expr(p.unaryExpr())
+	return p.expr(p.unaryExpr())
 }
 
 func (p *parser) binaryExpr(lhs Expr) Expr {
@@ -275,27 +275,22 @@ func (p *parser) binaryExpr(lhs Expr) Expr {
 func (p *parser) indexExpr(lhs Expr) Expr {
 	p.want("[")
 	rt := IndexExpr{}
-  var e Expr
 	rt.X = lhs
-  
-  if p.tok != (":") {
-    e = p.uexpr()
-    if p.got("]") {
-      rt.Start = e
-      return rt
-    }
-  }
-  rt.Start = e
-  p.want(":")
-  if p.got("]") {
-    return rt
-  }
-  rt.End = p.uexpr()
-  p.want("]")
-  return rt
+
+	if p.tok != (":") {
+		rt.Start = p.uexpr()
+		if p.got("]") {
+			return rt
+		}
+	}
+	p.want(":")
+	if p.got("]") {
+		return rt
+	}
+	rt.End = p.uexpr()
+	p.want("]")
+	return rt
 }
-
-
 
 func (p *parser) callExpr(lhs Expr) Expr {
 	p.want("(")
