@@ -67,13 +67,15 @@ func (p *parser) unaryExpr() Expr {
 
 func (p *parser) primaryExpr() Expr {
 	x := p.operand()
+  for {
 	switch p.tok {
 	case "(":
 		x = p.callExpr(x)
 	case "[":
 		x = p.indexExpr(x)
+  default: return x
 	}
-	return x
+  }
 }
 
 func (p *parser) operand() Expr {

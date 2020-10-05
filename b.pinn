@@ -5,3 +5,9 @@ f(101) + 202;
 func f(a int, b bool) int { 42; }
 type t atype;
 var v avar;
+f[141];
+f[:];
+f[12:];
+f[:14];
+f[10:20];
+
