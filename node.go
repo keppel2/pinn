@@ -114,6 +114,13 @@ type CallExpr struct {
 	expr
 }
 
+type IndexExpr struct {
+  X Expr
+  Start Expr
+  End Expr
+  expr
+}
+
 type Kind interface {
 	Node
 	aKind()

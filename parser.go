@@ -67,9 +67,12 @@ func (p *parser) unaryExpr() Expr {
 
 func (p *parser) primaryExpr() Expr {
 	x := p.operand()
-  switch p.tok {
-  case "(":
-    x = p.callExpr(x)
+	switch p.tok {
+	case "(":
+		x = p.callExpr(x)
+  case "[":
+    x = p.indexExpr(x)
+	}
 	return x
 }
 
@@ -151,7 +154,7 @@ func (p *parser) stmt() Stmt {
 		lhs := p.unaryExpr()
 		if p.tok == "=" {
 			rt = p.assignStmt(lhs)
-		} else if p.tok == "(" {
+		} else {
 			rt = p.exprStmt(lhs)
 		}
 	case "var":
@@ -224,8 +227,7 @@ func (p *parser) assignStmt(LHS Expr) AssignStmt {
 	rt := AssignStmt{}
 	rt.Position = p.p
 	rt.LHS = LHS
-	ua := p.unaryExpr()
-	rt.RHS = p.expr(ua)
+	rt.RHS = p.uexpr()
 	p.want(";")
 	return rt
 
@@ -241,17 +243,21 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 }
 
 func (p *parser) expr(LHS Expr) Expr {
-	if p.tok == ";" || p.tok == "," || p.tok == ")" {
+/*
+	if p.tok == ";" || p.tok == "," || p.tok == ")" || p.tok == "]" || p.tok == ":" {
 		return LHS
 	}
+  */
 	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "<" || p.tok == ">" || p.tok == "==" {
 		return p.binaryExpr(LHS)
 	}
-	if p.tok == "(" {
-		return p.callExpr(LHS)
-	}
+  return LHS
 	p.err("")
 	return nil
+}
+
+func (p *parser) uexpr() Expr {
+  return p.expr(p.unaryExpr())
 }
 
 func (p *parser) binaryExpr(lhs Expr) Expr {
@@ -266,6 +272,36 @@ func (p *parser) binaryExpr(lhs Expr) Expr {
 	return rt
 }
 
+func (p *parser) indexExpr(lhs Expr) Expr {
+return nil
+}
+/*
+	p.want("[")
+	rt := IndexExpr{}
+  var e Expr
+	rt.X = lhs
+  if p.tok != (":") {
+    e = p.uexpr()
+
+    
+  if p.tok == (":") {
+    p.next()
+  } else {
+    rt.Start = p.uexpr()
+  }
+  if p.tok == (":")
+  if p.tok
+
+  if p.got(":") {
+    rt.End
+  }
+	p.want("]")
+	return rt
+}
+*/
+
+
+
 func (p *parser) callExpr(lhs Expr) Expr {
 	p.want("(")
 	rt := CallExpr{}
@@ -273,10 +309,10 @@ func (p *parser) callExpr(lhs Expr) Expr {
 	if p.got(")") {
 		return rt
 	}
-	e := p.expr(p.unaryExpr())
+	e := p.uexpr()
 	rt.Params = append(rt.Params, e)
 	for p.got(",") {
-		rt.Params = append(rt.Params, p.expr(p.unaryExpr()))
+		rt.Params = append(rt.Params, p.uexpr())
 	}
 	p.want(")")
 	return rt
