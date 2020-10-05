@@ -273,32 +273,27 @@ func (p *parser) binaryExpr(lhs Expr) Expr {
 }
 
 func (p *parser) indexExpr(lhs Expr) Expr {
-return nil
-}
-/*
 	p.want("[")
 	rt := IndexExpr{}
   var e Expr
 	rt.X = lhs
+  
   if p.tok != (":") {
     e = p.uexpr()
-
-    
-  if p.tok == (":") {
-    p.next()
-  } else {
-    rt.Start = p.uexpr()
+    if p.got("]") {
+      rt.Start = e
+      return rt
+    }
   }
-  if p.tok == (":")
-  if p.tok
-
-  if p.got(":") {
-    rt.End
+  rt.Start = e
+  p.want(":")
+  if p.got("]") {
+    return rt
   }
-	p.want("]")
-	return rt
+  rt.End = p.uexpr()
+  p.want("]")
+  return rt
 }
-*/
 
 
 
