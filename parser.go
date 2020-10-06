@@ -67,15 +67,16 @@ func (p *parser) unaryExpr() Expr {
 
 func (p *parser) primaryExpr() Expr {
 	x := p.operand()
-  for {
-	switch p.tok {
-	case "(":
-		x = p.callExpr(x)
-	case "[":
-		x = p.indexExpr(x)
-  default: return x
+	for {
+		switch p.tok {
+		case "(":
+			x = p.callExpr(x)
+		case "[":
+			x = p.indexExpr(x)
+		default:
+			return x
+		}
 	}
-  }
 }
 
 func (p *parser) operand() Expr {
@@ -84,11 +85,11 @@ func (p *parser) operand() Expr {
 		return p.varExpr()
 	case "literal":
 		return p.numberExpr()
-  case "(":
-    p.want("(")
-    e := p.uexpr()
-    p.want(")")
-    return e
+	case "(":
+		p.want("(")
+		e := p.uexpr()
+		p.want(")")
+		return e
 	}
 	p.err("")
 	return nil
@@ -109,6 +110,17 @@ func (p *parser) funcStmt() DeclStmt {
 	ds := DeclStmt{}
 	ds.Decl = p.funcDecl()
 	return ds
+}
+
+func (p *parser) ifStmt() IfStmt {
+	p.want("if")
+	rt := IfStmt{}
+	rt.Cond = p.uexpr()
+	rt.Then = p.stmt()
+	if p.got("else") {
+		rt.Else = p.stmt()
+	}
+	return rt
 }
 
 func (p *parser) varStmt() DeclStmt {
@@ -154,8 +166,8 @@ func (p *parser) funcDecl() Decl {
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
-    
-	case "literal"://, "-", "+":
+
+	case "literal": //, "-", "+":
 		lhs := p.unaryExpr()
 		rt = p.exprStmt(lhs)
 	case "name":
@@ -165,12 +177,16 @@ func (p *parser) stmt() Stmt {
 		} else {
 			rt = p.exprStmt(lhs)
 		}
+	case "{":
+		rt = p.blockStmt()
 	case "var":
 		rt = p.varStmt()
 	case "type":
 		rt = p.typeStmt()
 	case "func":
 		rt = p.funcStmt()
+	case "if":
+		rt = p.ifStmt()
 	default:
 		p.err("")
 	}
@@ -251,12 +267,12 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 }
 
 func (p *parser) expr(LHS Expr) Expr {
-	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == ">" || p.tok == "==" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<"  || p.tok == "&" || p.tok == "|" || p.tok == "^" {
+	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == ">" || p.tok == "==" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 		return p.binaryExpr(LHS)
 	}
-  if p.tok == "?" {
-    return p.trinaryExpr(LHS)
-  }
+	if p.tok == "?" {
+		return p.trinaryExpr(LHS)
+	}
 	return LHS
 	return nil
 }
@@ -266,13 +282,13 @@ func (p *parser) uexpr() Expr {
 }
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
-  rt := TrinaryExpr{}
-  rt.LHS = lhs
-  p.want("?")
-  rt.MS = p.uexpr()
-  p.want(":")
-  rt.RHS = p.uexpr()
-  return lhs
+	rt := TrinaryExpr{}
+	rt.LHS = lhs
+	p.want("?")
+	rt.MS = p.uexpr()
+	p.want(":")
+	rt.RHS = p.uexpr()
+	return lhs
 }
 
 func (p *parser) binaryExpr(lhs Expr) Expr {

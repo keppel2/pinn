@@ -59,10 +59,13 @@ func visitCallExpr(n CallExpr) {
 
 func visitIndexExpr(n IndexExpr) {
 	visitExpr(n.X)
-	if n.Start != nil {visitExpr(n.Start)
-  }
+	if n.Start != nil {
+		visitExpr(n.Start)
+	}
 
-	if n.End != nil {visitExpr(n.End)}
+	if n.End != nil {
+		visitExpr(n.End)
+	}
 }
 
 func visitExpr(n Expr) {
@@ -72,8 +75,8 @@ func visitExpr(n Expr) {
 		println("Number", t.Il.Value)
 	case VarExpr:
 		println("Var", t.Wl.Value)
-  case IndexExpr:
-    visitIndexExpr(t)
+	case IndexExpr:
+		visitIndexExpr(t)
 	case BinaryExpr:
 		visitBinaryExpr(t)
 	case CallExpr:

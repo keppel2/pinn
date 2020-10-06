@@ -103,22 +103,22 @@ func (s *scan) next() {
 				s.tok = "<<"
 				s.Scan()
 				return
-      }
-			if s.tok == ">" && s.Peek() == '>' {
-					s.tok = ">>"
-					s.Scan()
-					return
 			}
-      if s.tok == "&" && s.Peek() == '&' {
-          s.tok = "&&"
-          s.Scan()
-          return
-      }
-        if s.tok == "|" && s.Peek() == '|' {
-          s.tok = "||"
-          s.Scan()
-          return
-      }
+			if s.tok == ">" && s.Peek() == '>' {
+				s.tok = ">>"
+				s.Scan()
+				return
+			}
+			if s.tok == "&" && s.Peek() == '&' {
+				s.tok = "&&"
+				s.Scan()
+				return
+			}
+			if s.tok == "|" && s.Peek() == '|' {
+				s.tok = "||"
+				s.Scan()
+				return
+			}
 
 			return
 		}

@@ -48,6 +48,13 @@ type AssignStmt struct {
 	stmt
 }
 
+type IfStmt struct {
+	Cond Expr
+	Then Stmt
+	Else Stmt
+	stmt
+}
+
 type Decl interface {
 	Node
 	aDecl()
@@ -102,10 +109,10 @@ type UnaryExpr struct {
 }
 
 type TrinaryExpr struct {
-  LHS Expr
-  MS Expr
-  RHS Expr
-  expr
+	LHS Expr
+	MS  Expr
+	RHS Expr
+	expr
 }
 type BinaryExpr struct {
 	LHS Expr
