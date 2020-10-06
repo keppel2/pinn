@@ -49,14 +49,14 @@ func contains(s []string, t string) bool {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
-	case "-":
+	case "-", "+", "!":
 		ue := UnaryExpr{}
 		ue.op = p.tok
 		p.next()
 		ue.E = p.unaryExpr()
 		return ue
 
-	case "literal", "name":
+	case "literal", "name", "(":
 		return p.primaryExpr()
 	}
 	p.err("")
@@ -84,6 +84,11 @@ func (p *parser) operand() Expr {
 		return p.varExpr()
 	case "literal":
 		return p.numberExpr()
+  case "(":
+    p.want("(")
+    e := p.uexpr()
+    p.want(")")
+    return e
 	}
 	p.err("")
 	return nil
@@ -149,7 +154,8 @@ func (p *parser) funcDecl() Decl {
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
-	case "literal":
+    
+	case "literal", "-", "+":
 		lhs := p.unaryExpr()
 		rt = p.exprStmt(lhs)
 	case "name":
@@ -250,7 +256,7 @@ func (p *parser) expr(LHS Expr) Expr {
 			return LHS
 		}
 	*/
-	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "<" || p.tok == ">" || p.tok == "==" {
+	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == ">" || p.tok == "==" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<"  || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 		return p.binaryExpr(LHS)
 	}
 	return LHS
