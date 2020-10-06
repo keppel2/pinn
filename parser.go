@@ -251,21 +251,28 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 }
 
 func (p *parser) expr(LHS Expr) Expr {
-	/*
-		if p.tok == ";" || p.tok == "," || p.tok == ")" || p.tok == "]" || p.tok == ":" {
-			return LHS
-		}
-	*/
 	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == ">" || p.tok == "==" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<"  || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 		return p.binaryExpr(LHS)
 	}
+  if p.tok == "?" {
+    return p.trinaryExpr(LHS)
+  }
 	return LHS
-	p.err("")
 	return nil
 }
 
 func (p *parser) uexpr() Expr {
 	return p.expr(p.unaryExpr())
+}
+
+func (p *parser) trinaryExpr(lhs Expr) Expr {
+  rt := TrinaryExpr{}
+  rt.LHS = lhs
+  p.want("?")
+  rt.MS = p.uexpr()
+  p.want(":")
+  rt.RHS = p.uexpr()
+  return lhs
 }
 
 func (p *parser) binaryExpr(lhs Expr) Expr {

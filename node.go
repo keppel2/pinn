@@ -101,6 +101,12 @@ type UnaryExpr struct {
 	expr
 }
 
+type TrinaryExpr struct {
+  LHS Expr
+  MS Expr
+  RHS Expr
+  expr
+}
 type BinaryExpr struct {
 	LHS Expr
 	RHS Expr
