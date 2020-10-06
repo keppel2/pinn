@@ -155,7 +155,7 @@ func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
     
-	case "literal", "-", "+":
+	case "literal"://, "-", "+":
 		lhs := p.unaryExpr()
 		rt = p.exprStmt(lhs)
 	case "name":
