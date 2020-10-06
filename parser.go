@@ -111,6 +111,13 @@ func (p *parser) funcStmt() DeclStmt {
 	ds.Decl = p.funcDecl()
 	return ds
 }
+func (p *parser) whileStmt() WhileStmt {
+	p.want("while")
+	rt := WhileStmt{}
+	rt.Cond = p.uexpr()
+	rt.B = p.blockStmt().(BlockStmt)
+	return rt
+}
 
 func (p *parser) ifStmt() IfStmt {
 	p.want("if")
@@ -166,6 +173,16 @@ func (p *parser) funcDecl() Decl {
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
+	case "var":
+		rt = p.varStmt()
+	case "type":
+		rt = p.typeStmt()
+	case "func":
+		rt = p.funcStmt()
+	case "if":
+		rt = p.ifStmt()
+	case "while":
+		rt = p.whileStmt()
 
 	case "literal": //, "-", "+":
 		lhs := p.unaryExpr()
@@ -179,14 +196,8 @@ func (p *parser) stmt() Stmt {
 		}
 	case "{":
 		rt = p.blockStmt()
-	case "var":
-		rt = p.varStmt()
-	case "type":
-		rt = p.typeStmt()
-	case "func":
-		rt = p.funcStmt()
-	case "if":
-		rt = p.ifStmt()
+	case ";":
+		p.next()
 	default:
 		p.err("")
 	}

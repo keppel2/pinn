@@ -42,6 +42,7 @@ var tokenMap = map[string]bool{
 	"return":      true,
 	"type":        true,
 	"var":         true,
+	"while":       false,
 
 	"!":  false,
 	"||": false,

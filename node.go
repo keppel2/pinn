@@ -55,6 +55,12 @@ type IfStmt struct {
 	stmt
 }
 
+type WhileStmt struct {
+	Cond Expr
+	B    BlockStmt
+	stmt
+}
+
 type Decl interface {
 	Node
 	aDecl()
