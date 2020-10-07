@@ -37,10 +37,6 @@ type ExprStmt struct {
 	Expr
 	stmt
 }
-type DeclStmt struct {
-	Decl
-	stmt
-}
 
 type AssignStmt struct {
 	LHS Expr
@@ -61,15 +57,6 @@ type WhileStmt struct {
 	B    BlockStmt
 	stmt
 }
-
-type Decl interface {
-	Node
-	aDecl()
-}
-
-type decl struct{ node }
-
-func (decl) aDecl() {}
 
 type Expr interface {
 	Node
@@ -155,22 +142,28 @@ type SKind struct {
 	kind
 }
 
-type VarDecl struct {
+type VarStmt struct {
 	Wl WLit
 	Kind
-	decl
+  stmt
 }
 
-type TypeDecl struct {
+type Field struct {
+  Wl WLit
+  Kind
+  node
+}
+
+type TypeStmt struct {
 	Wl WLit
 	Kind
-	decl
+  stmt
 }
 
-type FuncDecl struct {
+type FuncStmt struct {
 	Wl    WLit
-	PList []VarDecl
+	PList []Field
 	Kind
 	B BlockStmt
-	decl
+  stmt
 }

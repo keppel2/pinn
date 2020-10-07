@@ -2,40 +2,29 @@ package main
 
 import "fmt"
 
-func visitVarDecl(n VarDecl) {
+func visitVarStmt(n VarStmt) {
 	fmt.Println("var: ", n.Wl.Value)
 	visitKind(n.Kind)
 }
 
-func visitTypeDecl(n TypeDecl) {
+func visitField(n Field) {
+	fmt.Println("var: ", n.Wl.Value)
+	visitKind(n.Kind)
+}
+
+func visitTypeStmt(n TypeStmt) {
 	fmt.Println("type: ", n.Wl.Value)
 	visitKind(n.Kind)
 }
 
-func visitDeclStmt(d DeclStmt) {
-	pnode(d)
-	visitDecl(d.Decl)
-}
-
-func visitFuncDecl(n FuncDecl) {
+func visitFuncStmt(n FuncStmt) {
 	pnode(n)
 	fmt.Println("fid: ", n.Wl.Value)
 	for _, vd := range n.PList {
-		visitVarDecl(vd)
+		visitField(vd)
 	}
 	fmt.Println(n.Kind)
 	visitBlockStmt(n.B)
-}
-
-func visitDecl(d Decl) {
-	switch t := d.(type) {
-	case VarDecl:
-		visitVarDecl(t)
-	case TypeDecl:
-		visitTypeDecl(t)
-	case FuncDecl:
-		visitFuncDecl(t)
-	}
 }
 
 func visitKind(n Kind) {
@@ -106,8 +95,12 @@ func visitStmt(s Stmt) {
 	switch t := s.(type) {
 	case BlockStmt:
 		visitBlockStmt(t)
-	case DeclStmt:
-		visitDeclStmt(t)
+	case VarStmt:
+		visitVarStmt(t)
+	case TypeStmt:
+		visitTypeStmt(t)
+	case FuncStmt:
+		visitFuncStmt(t)
 	case ExprStmt:
 		visitExprStmt(t)
 	case AssignStmt:

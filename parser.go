@@ -106,11 +106,6 @@ func (p *parser) fileA() File {
 	return f
 }
 
-func (p *parser) funcStmt() DeclStmt {
-	ds := DeclStmt{}
-	ds.Decl = p.funcDecl()
-	return ds
-}
 func (p *parser) whileStmt() WhileStmt {
 	p.want("while")
 	rt := WhileStmt{}
@@ -130,34 +125,47 @@ func (p *parser) ifStmt() IfStmt {
 	return rt
 }
 
-func (p *parser) varStmt() DeclStmt {
+func (p *parser) field() Field {
+  n := Field{}
+  n.Wl = p.wLit()
+  n.Kind = p.kind()
+  return n
+}
+
+func (p *parser) varStmt() VarStmt {
 	p.want("var")
-	ds := DeclStmt{}
+	ds := VarStmt{}
 	ds.Position = p.p
-	ds.Decl = p.varDecl()
+  ds.Wl = p.wLit()
+	ds.Kind = p.kind()
+
 	p.want(";")
 	return ds
 }
 
-func (p *parser) typeStmt() DeclStmt {
-	ds := DeclStmt{}
+func (p *parser) typeStmt() TypeStmt {
+	ds := TypeStmt{}
 	ds.Position = p.p
-	ds.Decl = p.typeDecl()
+	p.want("type")
+
+	ds.Wl = p.wLit()
+	ds.Kind = p.kind()
+
 	p.want(";")
 	return ds
 
 }
 
-func (p *parser) funcDecl() Decl {
-	rt := FuncDecl{}
+func (p *parser) funcStmt() FuncStmt {
+	rt := FuncStmt{}
 	p.want("func")
 	rt.Wl = p.wLit()
 	p.want("(")
 	if !p.got(")") {
-		vd := p.varDecl().(VarDecl)
+		vd := p.field()
 		rt.PList = append(rt.PList, vd)
 		for p.got(",") {
-			vd = p.varDecl().(VarDecl)
+			vd = p.field()
 			rt.PList = append(rt.PList, vd)
 		}
 		p.want(")")
@@ -221,26 +229,6 @@ func (p *parser) blockStmt() Stmt {
 	rt.SList = p.stmtList()
 	p.want("}")
 	return rt
-}
-
-func (p *parser) typeDecl() Decl {
-	d := TypeDecl{}
-	d.Position = p.p
-	p.want("type")
-
-	d.Wl = p.wLit()
-	d.Kind = p.kind()
-	return d
-
-}
-
-func (p *parser) varDecl() Decl {
-	d := VarDecl{}
-	d.Position = p.p
-
-	d.Wl = p.wLit()
-	d.Kind = p.kind()
-	return d
 }
 
 func (p *parser) sKind() SKind {
