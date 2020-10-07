@@ -126,17 +126,17 @@ func (p *parser) ifStmt() IfStmt {
 }
 
 func (p *parser) field() Field {
-  n := Field{}
-  n.Wl = p.wLit()
-  n.Kind = p.kind()
-  return n
+	n := Field{}
+	n.Wl = p.wLit()
+	n.Kind = p.kind()
+	return n
 }
 
 func (p *parser) varStmt() VarStmt {
 	p.want("var")
 	ds := VarStmt{}
 	ds.Position = p.p
-  ds.Wl = p.wLit()
+	ds.Wl = p.wLit()
 	ds.Kind = p.kind()
 
 	p.want(";")
@@ -200,8 +200,8 @@ func (p *parser) stmt() Stmt {
 		if p.tok == "=" {
 			rt = p.assignStmt(lhs, false)
 		} else if p.tok == ":=" {
-      rt = p.assignStmt(lhs, true)
-    } else {
+			rt = p.assignStmt(lhs, true)
+		} else {
 			rt = p.exprStmt(lhs)
 		}
 	case "{":
@@ -242,8 +242,8 @@ func (p *parser) kind() Kind {
 	case "name":
 		return p.sKind()
 	}
-  p.err("")
-  return nil
+	p.err("")
+	return nil
 }
 
 func (p *parser) assignStmt(LHS Expr, b bool) AssignStmt {
@@ -252,7 +252,7 @@ func (p *parser) assignStmt(LHS Expr, b bool) AssignStmt {
 	}
 	rt := AssignStmt{}
 	rt.Position = p.p
-  rt.Def = b
+	rt.Def = b
 	rt.LHS = LHS
 	rt.RHS = p.uexpr()
 	p.want(";")
@@ -270,7 +270,7 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 }
 
 func (p *parser) expr(LHS Expr) Expr {
-	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == ">" || p.tok == "==" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
+	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 		return p.binaryExpr(LHS)
 	}
 	if p.tok == "?" {

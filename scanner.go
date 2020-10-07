@@ -58,6 +58,13 @@ func (s *scan) init(src io.Reader) {
 	s.Init(src)
 }
 
+func (s *scan) _at() {
+	s.tok += string(s.Next())
+	if !tmOk(s.tok) {
+		panic("")
+	}
+}
+
 func (s *scan) next() {
 	r := s.Scan()
 	s.p = s.Pos()
@@ -89,38 +96,73 @@ func (s *scan) next() {
 		return
 	default:
 		if tmOk(s.tok) {
-			if s.tok == "=" && s.Peek() == '=' {
-				s.tok = "=="
-				s.Scan()
+      if s.tok == "." {
+        if s.Peek() == '.' {
+          s.Next()
+          if s.Peek() == '.' {
+            s.tok = "..."
+            if !tmOk(s.tok) {
+              panic("")
+            }
+            return
+          }
+          panic("")
+        }
+      }
+
+            
+			if s.tok == "=" {
+				if s.Peek() == '=' {
+					s._at()
+				}
 				return
 			}
-			if s.tok == ":" && s.Peek() == '=' {
-				s.tok = ":="
-				s.Scan()
+			if s.tok == ":" {
+				if s.Peek() == '=' {
+					s._at()
+				}
 				return
 			}
-			if s.tok == "<" && s.Peek() == '<' {
-				s.tok = "<<"
-				s.Scan()
+			if s.tok == "<" {
+				if s.Peek() == '<' {
+					s._at()
+				}
+				if s.Peek() == '=' {
+					s._at()
+				}
 				return
 			}
-			if s.tok == ">" && s.Peek() == '>' {
-				s.tok = ">>"
-				s.Scan()
-				return
-			}
-			if s.tok == "&" && s.Peek() == '&' {
-				s.tok = "&&"
-				s.Scan()
-				return
-			}
-			if s.tok == "|" && s.Peek() == '|' {
-				s.tok = "||"
-				s.Scan()
+			if s.tok == ">" {
+				if s.Peek() == '>' {
+					s._at()
+				}
+				if s.Peek() == '=' {
+					s._at()
+				}
 				return
 			}
 
-			return
+			if s.tok == "&" {
+				if s.Peek() == '&' {
+					s._at()
+				}
+				return
+			}
+			if s.tok == "|" {
+				if s.Peek() == '|' {
+					s._at()
+				}
+				return
+			}
+
+      if s.tok == "!" {
+        if s.Peek() == '=' {
+          s._at()
+        }
+
+			  return
+      }
+      return
 		}
 		panic(s.tok)
 	}

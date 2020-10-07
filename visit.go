@@ -40,11 +40,9 @@ func visitBinaryExpr(n BinaryExpr) {
 }
 func visitTrinaryExpr(n TrinaryExpr) {
 	visitExpr(n.LHS)
-  visitExpr(n.MS)
+	visitExpr(n.MS)
 	visitExpr(n.RHS)
 }
-
-
 
 func visitCallExpr(n CallExpr) {
 	visitExpr(n.ID)
@@ -54,8 +52,8 @@ func visitCallExpr(n CallExpr) {
 }
 
 func visitUnaryExpr(n UnaryExpr) {
-  visitExpr(n.E)
-  println("Uop", n.op)
+	visitExpr(n.E)
+	println("Uop", n.op)
 }
 
 func visitIndexExpr(n IndexExpr) {
@@ -82,20 +80,20 @@ func visitExpr(n Expr) {
 		visitBinaryExpr(t)
 	case CallExpr:
 		visitCallExpr(t)
-  case UnaryExpr:
-    visitUnaryExpr(t)
+	case UnaryExpr:
+		visitUnaryExpr(t)
 	}
 
 }
 func visitWhileStmt(n WhileStmt) {
-  visitExpr(n.Cond)
-  visitBlockStmt(n.B)
+	visitExpr(n.Cond)
+	visitBlockStmt(n.B)
 }
 
 func visitIfStmt(n IfStmt) {
-  visitExpr(n.Cond)
-  visitStmt(n.Then)
-  visitStmt(n.Else)
+	visitExpr(n.Cond)
+	visitStmt(n.Then)
+	visitStmt(n.Else)
 }
 
 func visitExprStmt(e ExprStmt) {
@@ -130,10 +128,10 @@ func visitStmt(s Stmt) {
 		visitExprStmt(t)
 	case AssignStmt:
 		visitAssignStmt(t)
-  case IfStmt:
-    visitIfStmt(t)
-  case WhileStmt:
-    visitWhileStmt(t)
+	case IfStmt:
+		visitIfStmt(t)
+	case WhileStmt:
+		visitWhileStmt(t)
 	}
 }
 

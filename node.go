@@ -41,7 +41,7 @@ type ExprStmt struct {
 type AssignStmt struct {
 	LHS Expr
 	RHS Expr
-  Def bool
+	Def bool
 	stmt
 }
 
@@ -145,19 +145,19 @@ type SKind struct {
 type VarStmt struct {
 	Wl WLit
 	Kind
-  stmt
+	stmt
 }
 
 type Field struct {
-  Wl WLit
-  Kind
-  node
+	Wl WLit
+	Kind
+	node
 }
 
 type TypeStmt struct {
 	Wl WLit
 	Kind
-  stmt
+	stmt
 }
 
 type FuncStmt struct {
@@ -165,5 +165,5 @@ type FuncStmt struct {
 	PList []Field
 	Kind
 	B BlockStmt
-  stmt
+	stmt
 }
