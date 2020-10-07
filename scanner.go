@@ -96,21 +96,20 @@ func (s *scan) next() {
 		return
 	default:
 		if tmOk(s.tok) {
-      if s.tok == "." {
-        if s.Peek() == '.' {
-          s.Next()
-          if s.Peek() == '.' {
-            s.tok = "..."
-            if !tmOk(s.tok) {
-              panic("")
-            }
-            return
-          }
-          panic("")
-        }
-      }
+			if s.tok == "." {
+				if s.Peek() == '.' {
+					s.Next()
+					if s.Peek() == '.' {
+						s.tok = "..."
+						if !tmOk(s.tok) {
+							panic("")
+						}
+						return
+					}
+					panic("")
+				}
+			}
 
-            
 			if s.tok == "=" {
 				if s.Peek() == '=' {
 					s._at()
@@ -155,7 +154,6 @@ func (s *scan) next() {
 				return
 			}
 
-
 			if s.tok == "+" {
 				if s.Peek() == '+' || s.Peek() == '=' {
 					s._at()
@@ -168,33 +166,30 @@ func (s *scan) next() {
 				}
 				return
 			}
-      if s.tok == "*" {
-        if s.Peek() == '=' {
-          s._at()
-        }
-      }
-      if s.tok == "/" {
-        if s.Peek() == '=' {
-          s._at()
-        }
-      }
-      if s.tok == "%" {
-        if s.Peek() == '=' {
-          s._at()
-        }
-      }
+			if s.tok == "*" {
+				if s.Peek() == '=' {
+					s._at()
+				}
+			}
+			if s.tok == "/" {
+				if s.Peek() == '=' {
+					s._at()
+				}
+			}
+			if s.tok == "%" {
+				if s.Peek() == '=' {
+					s._at()
+				}
+			}
 
+			if s.tok == "!" {
+				if s.Peek() == '=' {
+					s._at()
+				}
 
-
-
-      if s.tok == "!" {
-        if s.Peek() == '=' {
-          s._at()
-        }
-
-			  return
-      }
-      return
+				return
+			}
+			return
 		}
 		panic(s.tok)
 	}

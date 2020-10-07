@@ -263,13 +263,13 @@ func (p *parser) assignStmt(LHS Expr, b bool) AssignStmt {
 func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es := ExprStmt{}
 	es.Position = p.p
-	rt := p.expr(LHS)
+	rt := p.pexpr(LHS)
 	es.Expr = rt
 	p.want(";")
 	return es
 }
 
-func (p *parser) expr(LHS Expr) Expr {
+func (p *parser) pexpr(LHS Expr) Expr {
 	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 		return p.binaryExpr(LHS)
 	}
@@ -277,11 +277,10 @@ func (p *parser) expr(LHS Expr) Expr {
 		return p.trinaryExpr(LHS)
 	}
 	return LHS
-	return nil
 }
 
 func (p *parser) uexpr() Expr {
-	return p.expr(p.unaryExpr())
+	return p.pexpr(p.unaryExpr())
 }
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
@@ -300,8 +299,7 @@ func (p *parser) binaryExpr(lhs Expr) Expr {
 	rt := BinaryExpr{}
 	rt.LHS = lhs
 	rt.op = op
-	rhs := p.unaryExpr()
-	rt.RHS = p.expr(rhs)
+	rt.RHS = p.uexpr()
 
 	return rt
 }
