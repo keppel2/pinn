@@ -190,8 +190,10 @@ func (p *parser) stmt() Stmt {
 	case "name":
 		lhs := p.unaryExpr()
 		if p.tok == "=" {
-			rt = p.assignStmt(lhs)
-		} else {
+			rt = p.assignStmt(lhs, false)
+		} else if p.tok == ":=" {
+      rt = p.assignStmt(lhs, true)
+    } else {
 			rt = p.exprStmt(lhs)
 		}
 	case "{":
@@ -252,15 +254,17 @@ func (p *parser) kind() Kind {
 	case "name":
 		return p.sKind()
 	}
-	panic(p.tok)
+  p.err("")
+  return nil
 }
 
-func (p *parser) assignStmt(LHS Expr) AssignStmt {
+func (p *parser) assignStmt(LHS Expr, b bool) AssignStmt {
 	if !(p.got("=") || p.got(":=")) {
 		p.err(p.tok)
 	}
 	rt := AssignStmt{}
 	rt.Position = p.p
+  rt.Def = b
 	rt.LHS = LHS
 	rt.RHS = p.uexpr()
 	p.want(";")

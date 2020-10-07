@@ -52,8 +52,8 @@ true || false;
 //Unary
 
 ft("Unary");
-+0;
--0;
+x := +0;
+y := -0;
 assert(!true, false);
 assert(!false, true);
 assert(+42, 42);
