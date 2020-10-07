@@ -155,6 +155,38 @@ func (s *scan) next() {
 				return
 			}
 
+
+			if s.tok == "+" {
+				if s.Peek() == '+' || s.Peek() == '=' {
+					s._at()
+				}
+				return
+			}
+			if s.tok == "-" {
+				if s.Peek() == '-' || s.Peek() == '=' {
+					s._at()
+				}
+				return
+			}
+      if s.tok == "*" {
+        if s.Peek() == '=' {
+          s._at()
+        }
+      }
+      if s.tok == "/" {
+        if s.Peek() == '=' {
+          s._at()
+        }
+      }
+      if s.tok == "%" {
+        if s.Peek() == '=' {
+          s._at()
+        }
+      }
+
+
+
+
       if s.tok == "!" {
         if s.Peek() == '=' {
           s._at()
