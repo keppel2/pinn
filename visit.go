@@ -36,7 +36,7 @@ func visitFuncStmt(n FuncStmt) {
 	if n.K != nil {
 		visitKind(n.K)
 	}
-  pnode(n.B)
+	pnode(n.B)
 	visitBlockStmt(n.B)
 }
 
@@ -128,7 +128,7 @@ func visitBlockStmt(t BlockStmt) {
 }
 
 func visitStmt(s Stmt) {
-  pnode(s)
+	pnode(s)
 	switch t := s.(type) {
 	case BlockStmt:
 		visitBlockStmt(t)

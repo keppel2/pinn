@@ -6,14 +6,14 @@ import "fmt"
 import "os"
 
 func g() {
- ts := TypeStmt{}
- pnode(ts)
+	ts := TypeStmt{}
+	pnode(ts)
 }
 
 func main() {
 	fmt.Println(os.Args)
 
-	g()
+	//	g()
 	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
 	ssrc := string(src)
 	tok(ssrc)
