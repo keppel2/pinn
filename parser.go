@@ -127,7 +127,13 @@ func (p *parser) ifStmt() IfStmt {
 
 func (p *parser) field() Field {
 	n := Field{}
-	n.Wl = p.wLit()
+	n.List = append(n.List, p.wLit())
+	for p.got(",") {
+		n.List = append(n.List, p.wLit())
+	}
+	if p.got("...") {
+		n.Dots = true
+	}
 	n.Kind = p.kind()
 	return n
 }
@@ -136,7 +142,11 @@ func (p *parser) varStmt() VarStmt {
 	p.want("var")
 	ds := VarStmt{}
 	ds.Position = p.p
-	ds.Wl = p.wLit()
+	ds.List = append(ds.List, p.wLit())
+	for p.got(",") {
+		ds.List = append(ds.List, p.wLit())
+	}
+
 	ds.Kind = p.kind()
 
 	p.want(";")

@@ -3,12 +3,18 @@ package main
 import "fmt"
 
 func visitVarStmt(n VarStmt) {
-	fmt.Println("var: ", n.Wl.Value)
+	for _, vd := range n.List {
+		fmt.Println("var: ", vd.Value)
+	}
+
 	visitKind(n.Kind)
 }
 
 func visitField(n Field) {
-	fmt.Println("var: ", n.Wl.Value)
+	for _, vd := range n.List {
+		fmt.Println("fvar: ", vd.Value)
+	}
+
 	visitKind(n.Kind)
 }
 

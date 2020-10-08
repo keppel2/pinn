@@ -143,14 +143,15 @@ type SKind struct {
 }
 
 type VarStmt struct {
-	Wl WLit
+	List []WLit
 	Kind
 	stmt
 }
 
 type Field struct {
-	Wl WLit
+	List []WLit
 	Kind
+	Dots bool
 	node
 }
 
