@@ -164,7 +164,7 @@ type TypeStmt struct {
 type FuncStmt struct {
 	Wl    WLit
 	PList []Field
-	Kind
-	B BlockStmt
+	K     Kind
+	B     BlockStmt
 	stmt
 }

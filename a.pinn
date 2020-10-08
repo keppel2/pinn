@@ -1,1 +1,1 @@
-func f(b, c ...int) int {}
+func f(b int) {}

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"reflect"
 	//	"os"
 )
 
@@ -32,10 +31,6 @@ func (p *parser) want(tok string) {
 	if !p.got(tok) {
 		p.err("expecting " + tok)
 	}
-}
-
-func pnode(n Node) {
-	fmt.Println(reflect.TypeOf(n), n.Gpos())
 }
 
 func contains(s []string, t string) bool {
@@ -181,7 +176,7 @@ func (p *parser) funcStmt() FuncStmt {
 		p.want(")")
 	}
 	if p.tok != "{" {
-		rt.Kind = p.kind()
+		rt.K = p.kind()
 	}
 	rt.B = p.blockStmt().(BlockStmt)
 

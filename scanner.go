@@ -104,6 +104,7 @@ func (s *scan) next() {
 						if !tmOk(s.tok) {
 							panic("")
 						}
+						s.Next()
 						return
 					}
 					panic("")

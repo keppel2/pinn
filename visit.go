@@ -1,6 +1,11 @@
 package main
 
 import "fmt"
+import "reflect"
+
+func pnode(n Node) {
+	fmt.Println(reflect.TypeOf(n), n.Gpos())
+}
 
 func visitVarStmt(n VarStmt) {
 	for _, vd := range n.List {
@@ -29,7 +34,9 @@ func visitFuncStmt(n FuncStmt) {
 	for _, vd := range n.PList {
 		visitField(vd)
 	}
-	fmt.Println(n.Kind)
+	if n.K != nil {
+		visitKind(n.K)
+	}
 	visitBlockStmt(n.B)
 }
 
