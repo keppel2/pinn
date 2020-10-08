@@ -1,1 +1,2 @@
-func f(b int) {}
+func f(a, c, b int) {}
+var a, b int;

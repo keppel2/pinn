@@ -5,10 +5,15 @@ import "strings"
 import "fmt"
 import "os"
 
+func g() {
+ ts := TypeStmt{}
+ pnode(ts)
+}
+
 func main() {
 	fmt.Println(os.Args)
 
-	//f()
+	g()
 	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
 	ssrc := string(src)
 	tok(ssrc)

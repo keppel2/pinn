@@ -29,7 +29,6 @@ func visitTypeStmt(n TypeStmt) {
 }
 
 func visitFuncStmt(n FuncStmt) {
-	pnode(n)
 	fmt.Println("fid: ", n.Wl.Value)
 	for _, vd := range n.PList {
 		visitField(vd)
@@ -37,6 +36,7 @@ func visitFuncStmt(n FuncStmt) {
 	if n.K != nil {
 		visitKind(n.K)
 	}
+  pnode(n.B)
 	visitBlockStmt(n.B)
 }
 
@@ -110,12 +110,10 @@ func visitIfStmt(n IfStmt) {
 }
 
 func visitExprStmt(e ExprStmt) {
-	pnode(e)
 	visitExpr(e.Expr)
 }
 
 func visitAssignStmt(a AssignStmt) {
-	pnode(a)
 	visitExpr(a.LHS)
 	fmt.Println("Op", a.Op)
 	if a.RHS != nil {
@@ -124,13 +122,13 @@ func visitAssignStmt(a AssignStmt) {
 }
 
 func visitBlockStmt(t BlockStmt) {
-	pnode(t)
 	for _, s := range t.SList {
 		visitStmt(s)
 	}
 }
 
 func visitStmt(s Stmt) {
+  pnode(s)
 	switch t := s.(type) {
 	case BlockStmt:
 		visitBlockStmt(t)

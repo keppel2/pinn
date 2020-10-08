@@ -157,8 +157,8 @@ type Field struct {
 
 type TypeStmt struct {
 	Wl WLit
-	Kind
 	stmt
+	Kind
 }
 
 type FuncStmt struct {
