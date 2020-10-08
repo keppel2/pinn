@@ -35,7 +35,7 @@ func visitKind(n Kind) {
 
 func visitBinaryExpr(n BinaryExpr) {
 	visitExpr(n.LHS)
-	println("Op", n.op, ".")
+	fmt.Println("Op", n.op, ".")
 	visitExpr(n.RHS)
 }
 func visitTrinaryExpr(n TrinaryExpr) {
@@ -53,7 +53,7 @@ func visitCallExpr(n CallExpr) {
 
 func visitUnaryExpr(n UnaryExpr) {
 	visitExpr(n.E)
-	println("Uop", n.op)
+	fmt.Println("Uop", n.op)
 }
 
 func visitIndexExpr(n IndexExpr) {
@@ -71,9 +71,9 @@ func visitExpr(n Expr) {
 	pnode(n)
 	switch t := n.(type) {
 	case NumberExpr:
-		println("Number", t.Il.Value)
+		fmt.Println("Number", t.Il.Value)
 	case VarExpr:
-		println("Var", t.Wl.Value)
+		fmt.Println("Var", t.Wl.Value)
 	case IndexExpr:
 		visitIndexExpr(t)
 	case BinaryExpr:
@@ -104,7 +104,10 @@ func visitExprStmt(e ExprStmt) {
 func visitAssignStmt(a AssignStmt) {
 	pnode(a)
 	visitExpr(a.LHS)
-	visitExpr(a.RHS)
+	fmt.Println("Op", a.Op)
+	if a.RHS != nil {
+		visitExpr(a.RHS)
+	}
 }
 
 func visitBlockStmt(t BlockStmt) {

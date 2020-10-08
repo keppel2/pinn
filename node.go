@@ -41,7 +41,7 @@ type ExprStmt struct {
 type AssignStmt struct {
 	LHS Expr
 	RHS Expr
-	Def bool
+	Op  string
 	stmt
 }
 

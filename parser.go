@@ -197,10 +197,8 @@ func (p *parser) stmt() Stmt {
 		rt = p.exprStmt(lhs)
 	case "name":
 		lhs := p.unaryExpr()
-		if p.tok == "=" {
-			rt = p.assignStmt(lhs, false)
-		} else if p.tok == ":=" {
-			rt = p.assignStmt(lhs, true)
+		if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
+			rt = p.assignStmt(lhs)
 		} else {
 			rt = p.exprStmt(lhs)
 		}
@@ -246,15 +244,17 @@ func (p *parser) kind() Kind {
 	return nil
 }
 
-func (p *parser) assignStmt(LHS Expr, b bool) AssignStmt {
-	if !(p.got("=") || p.got(":=")) {
-		p.err(p.tok)
-	}
+func (p *parser) assignStmt(LHS Expr) AssignStmt {
+
 	rt := AssignStmt{}
 	rt.Position = p.p
-	rt.Def = b
+	rt.Op = p.tok
+	p.next()
 	rt.LHS = LHS
-	rt.RHS = p.uexpr()
+	if rt.Op == "++" || rt.Op == "--" {
+	} else {
+		rt.RHS = p.uexpr()
+	}
 	p.want(";")
 	return rt
 
