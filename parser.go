@@ -252,6 +252,19 @@ func (p *parser) sKind() SKind {
 
 func (p *parser) kind() Kind {
 	switch p.tok {
+	case "[":
+		p.want("[")
+		if p.got("]") {
+			rt := SlKind{}
+			rt.K = p.kind()
+			return rt
+		}
+		rt := ArKind{}
+		rt.Len = p.uexpr()
+		p.want("]")
+		rt.K = p.kind()
+		return rt
+
 	case "name":
 		return p.sKind()
 	}

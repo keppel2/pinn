@@ -42,8 +42,25 @@ func visitFuncStmt(n FuncStmt) {
 
 func visitKind(n Kind) {
 	pnode(n)
-	sk := n.(SKind)
-	fmt.Println("Skind", sk.Wl.Value)
+	switch t := n.(type) {
+	case SlKind:
+		visitSlKind(t)
+	case ArKind:
+		visitArKind(t)
+	case SKind:
+		visitSKind(t)
+	}
+}
+
+func visitSlKind(n SlKind) {
+	visitKind(n.K)
+}
+func visitArKind(n ArKind) {
+	visitExpr(n.Len)
+	visitKind(n.K)
+}
+func visitSKind(n SKind) {
+	fmt.Println("Skind", n.Wl.Value)
 }
 
 func visitBinaryExpr(n BinaryExpr) {

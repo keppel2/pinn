@@ -137,6 +137,17 @@ type kind struct{ node }
 
 func (kind) aKind() {}
 
+type SlKind struct {
+	K Kind
+	kind
+}
+
+type ArKind struct {
+	Len Expr
+	K   Kind
+	kind
+}
+
 type SKind struct {
 	Wl WLit
 	kind
