@@ -39,9 +39,9 @@ type ExprStmt struct {
 }
 
 type AssignStmt struct {
-	LHS Expr
-	RHS Expr
-	Op  string
+	LHSa []Expr
+	RHSa []Expr
+	Op   string
 	stmt
 }
 

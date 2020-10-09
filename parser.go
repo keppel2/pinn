@@ -201,11 +201,11 @@ func (p *parser) stmt() Stmt {
 		lhs := p.unaryExpr()
 		rt = p.exprStmt(lhs)
 	case "name":
-		lhs := p.unaryExpr()
+		lhsa := p.exprList()
 		if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
-			rt = p.assignStmt(lhs)
+			rt = p.assignStmt(lhsa)
 		} else {
-			rt = p.exprStmt(lhs)
+			rt = p.exprStmt(lhsa[0])
 		}
 	case "{":
 		rt = p.blockStmt()
@@ -222,6 +222,16 @@ func (p *parser) stmtList() []Stmt {
 	rt := make([]Stmt, 0)
 	for p.tok != "EOF" && p.tok != "}" {
 		rt = append(rt, p.stmt())
+	}
+	return rt
+}
+
+func (p *parser) exprList() []Expr {
+	rt := make([]Expr, 0)
+	rt = append(rt, p.uexpr())
+	for p.tok == "," {
+		p.next()
+		rt = append(rt, p.uexpr())
 	}
 	return rt
 }
@@ -249,16 +259,16 @@ func (p *parser) kind() Kind {
 	return nil
 }
 
-func (p *parser) assignStmt(LHS Expr) AssignStmt {
+func (p *parser) assignStmt(LHSa []Expr) AssignStmt {
 
 	rt := AssignStmt{}
 	rt.Position = p.p
 	rt.Op = p.tok
 	p.next()
-	rt.LHS = LHS
+	rt.LHSa = LHSa
 	if rt.Op == "++" || rt.Op == "--" {
 	} else {
-		rt.RHS = p.uexpr()
+		rt.RHSa = p.exprList()
 	}
 	p.want(";")
 	return rt

@@ -1,2 +1,1 @@
-func f(a, c, b int) {}
-var a, b int;
+a, b = 12, 14;

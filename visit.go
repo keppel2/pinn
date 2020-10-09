@@ -114,10 +114,12 @@ func visitExprStmt(e ExprStmt) {
 }
 
 func visitAssignStmt(a AssignStmt) {
-	visitExpr(a.LHS)
+	for _, e := range a.LHSa {
+		visitExpr(e)
+	}
 	fmt.Println("Op", a.Op)
-	if a.RHS != nil {
-		visitExpr(a.RHS)
+	for _, e := range a.RHSa {
+		visitExpr(e)
 	}
 }
 
