@@ -123,7 +123,8 @@ func visitWhileStmt(n WhileStmt) {
 func visitIfStmt(n IfStmt) {
 	visitExpr(n.Cond)
 	visitStmt(n.Then)
-	visitStmt(n.Else)
+	if n.Else != nil {visitStmt(n.Else)
+  }
 }
 
 func visitExprStmt(e ExprStmt) {
