@@ -137,6 +137,11 @@ type kind struct{ node }
 
 func (kind) aKind() {}
 
+type MKind struct {
+	K Kind
+	kind
+}
+
 type SlKind struct {
 	K Kind
 	kind

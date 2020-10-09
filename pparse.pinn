@@ -32,6 +32,9 @@ d * 204;
 10 > 20 > 30;
 var v []int;
 var v [10]int;
+var v, x, y int;
+
+var z, x [][]bool;
 a, b = 10, 12;
 a, b := 101, 202;
 
@@ -40,3 +43,4 @@ if true {}
 if true 10; else 20;
 while true {}
 
+var v[map]int;

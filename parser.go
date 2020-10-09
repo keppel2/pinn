@@ -259,6 +259,12 @@ func (p *parser) kind() Kind {
 			rt.K = p.kind()
 			return rt
 		}
+		if p.got("map") {
+			p.want("]")
+			rt := MKind{}
+			rt.K = p.kind()
+			return rt
+		}
 		rt := ArKind{}
 		rt.Len = p.uexpr()
 		p.want("]")

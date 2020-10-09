@@ -43,6 +43,8 @@ func visitFuncStmt(n FuncStmt) {
 func visitKind(n Kind) {
 	pnode(n)
 	switch t := n.(type) {
+	case MKind:
+		visitMKind(t)
 	case SlKind:
 		visitSlKind(t)
 	case ArKind:
@@ -50,6 +52,9 @@ func visitKind(n Kind) {
 	case SKind:
 		visitSKind(t)
 	}
+}
+func visitMKind(n MKind) {
+	visitKind(n.K)
 }
 
 func visitSlKind(n SlKind) {
@@ -123,8 +128,9 @@ func visitWhileStmt(n WhileStmt) {
 func visitIfStmt(n IfStmt) {
 	visitExpr(n.Cond)
 	visitStmt(n.Then)
-	if n.Else != nil {visitStmt(n.Else)
-  }
+	if n.Else != nil {
+		visitStmt(n.Else)
+	}
 }
 
 func visitExprStmt(e ExprStmt) {
