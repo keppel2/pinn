@@ -45,3 +45,6 @@ if true 10; else 20;
 while true {}
 
 var v[map]int;
+
+b = [1, 10, 20];
+d = ...[12, 42];

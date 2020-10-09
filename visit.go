@@ -103,6 +103,12 @@ func visitIndexExpr(n IndexExpr) {
 	}
 }
 
+func visitArrayExpr(n ArrayExpr) {
+	for _, e := range n.EL {
+		visitExpr(e)
+	}
+}
+
 func visitExpr(n Expr) {
 	pnode(n)
 	switch t := n.(type) {
@@ -118,6 +124,8 @@ func visitExpr(n Expr) {
 		visitCallExpr(t)
 	case UnaryExpr:
 		visitUnaryExpr(t)
+	case ArrayExpr:
+		visitArrayExpr(t)
 	}
 
 }

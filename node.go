@@ -129,6 +129,12 @@ type IndexExpr struct {
 	expr
 }
 
+type ArrayExpr struct {
+	EL   []Expr
+	Dots bool
+	expr
+}
+
 type Kind interface {
 	Node
 	aKind()

@@ -51,7 +51,7 @@ func (p *parser) unaryExpr() Expr {
 		ue.E = p.unaryExpr()
 		return ue
 
-	case "literal", "name", "(":
+	case "literal", "name", "(", "[", "...":
 		return p.primaryExpr()
 	}
 	p.err("")
@@ -75,6 +75,7 @@ func (p *parser) primaryExpr() Expr {
 }
 
 func (p *parser) operand() Expr {
+	dots := false
 	switch p.tok {
 	case "name":
 		return p.varExpr()
@@ -85,9 +86,24 @@ func (p *parser) operand() Expr {
 		e := p.uexpr()
 		p.want(")")
 		return e
+	case "...":
+		p.next()
+		dots = true
+		fallthrough
+	case "[":
+		p.want("[")
+		return p.arrayExpr(dots)
 	}
 	p.err("")
 	return nil
+}
+
+func (p *parser) arrayExpr(d bool) ArrayExpr {
+	rt := ArrayExpr{}
+	rt.EL = p.exprList()
+	p.want("]")
+	rt.Dots = d
+	return rt
 }
 
 func (p *parser) fileA() File {
