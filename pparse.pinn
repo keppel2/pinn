@@ -43,10 +43,12 @@ a, b := 101, 202;
 
 if true {}
 if true 10; else 20;
-while true {}
+while true {101;}
 
 var v[map]int;
 
 b = [1, 10, 20];
 d = ...[12, 42];
 return 10;
+
+loop {42;}

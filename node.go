@@ -63,6 +63,11 @@ type WhileStmt struct {
 	stmt
 }
 
+type LoopStmt struct {
+	B BlockStmt
+	stmt
+}
+
 type Expr interface {
 	Node
 	aExpr()

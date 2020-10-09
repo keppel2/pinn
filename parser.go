@@ -117,6 +117,12 @@ func (p *parser) fileA() File {
 	return f
 }
 
+func (p *parser) loopStmt() LoopStmt {
+	p.want("loop")
+	rt := LoopStmt{}
+	rt.B = p.blockStmt().(BlockStmt)
+	return rt
+}
 func (p *parser) whileStmt() WhileStmt {
 	p.want("while")
 	rt := WhileStmt{}
@@ -224,6 +230,8 @@ func (p *parser) stmt() Stmt {
 		rt = p.ifStmt()
 	case "while":
 		rt = p.whileStmt()
+	case "loop":
+		rt = p.loopStmt()
 
 	case "literal": //, "-", "+":
 		lhs := p.unaryExpr()

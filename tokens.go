@@ -37,6 +37,7 @@ var tokenMap = map[string]bool{
 	"for":         true,
 	"func":        false,
 	"if":          true,
+	"loop":        false,
 	"map":         false,
 	"range":       false,
 	"return":      true,

@@ -140,6 +140,9 @@ func visitWhileStmt(n WhileStmt) {
 	visitBlockStmt(n.B)
 }
 
+func visitLoopStmt(n LoopStmt) {
+	visitBlockStmt(n.B)
+}
 func visitIfStmt(n IfStmt) {
 	visitExpr(n.Cond)
 	visitStmt(n.Then)
@@ -187,6 +190,8 @@ func visitStmt(s Stmt) {
 		visitIfStmt(t)
 	case WhileStmt:
 		visitWhileStmt(t)
+	case LoopStmt:
+		visitLoopStmt(t)
 	case ReturnStmt:
 		visitReturnStmt(t)
 	}
