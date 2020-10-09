@@ -125,6 +125,7 @@ type IndexExpr struct {
 	X     Expr
 	Start Expr
 	End   Expr
+	Inc   bool
 	expr
 }
 

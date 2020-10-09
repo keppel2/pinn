@@ -96,6 +96,7 @@ func visitIndexExpr(n IndexExpr) {
 	if n.Start != nil {
 		visitExpr(n.Start)
 	}
+	fmt.Println("Inc", n.Inc)
 
 	if n.End != nil {
 		visitExpr(n.End)

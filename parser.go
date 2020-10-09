@@ -343,13 +343,16 @@ func (p *parser) indexExpr(lhs Expr) Expr {
 	rt := IndexExpr{}
 	rt.X = lhs
 
-	if p.tok != (":") {
+	if p.tok != (":") && p.tok != ("@") {
 		rt.Start = p.uexpr()
 		if p.got("]") {
 			return rt
 		}
 	}
-	p.want(":")
+	if p.tok == "@" {
+		rt.Inc = true
+	}
+	p.next()
 	if p.got("]") {
 		return rt
 	}
