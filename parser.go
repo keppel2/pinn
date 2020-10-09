@@ -199,9 +199,21 @@ func (p *parser) funcStmt() FuncStmt {
 	return rt
 }
 
+func (p *parser) returnStmt() ReturnStmt {
+	rt := ReturnStmt{}
+	p.want("return")
+	if !p.got(";") {
+		rt.E = p.uexpr()
+		p.want(";")
+	}
+	return rt
+}
+
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
+	case "return":
+		rt = p.returnStmt()
 	case "var":
 		rt = p.varStmt()
 	case "type":

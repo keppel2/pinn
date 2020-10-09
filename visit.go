@@ -28,6 +28,12 @@ func visitTypeStmt(n TypeStmt) {
 	visitKind(n.Kind)
 }
 
+func visitReturnStmt(n ReturnStmt) {
+	if n.E != nil {
+		visitExpr(n.E)
+	}
+}
+
 func visitFuncStmt(n FuncStmt) {
 	fmt.Println("fid: ", n.Wl.Value)
 	for _, vd := range n.PList {
@@ -181,6 +187,8 @@ func visitStmt(s Stmt) {
 		visitIfStmt(t)
 	case WhileStmt:
 		visitWhileStmt(t)
+	case ReturnStmt:
+		visitReturnStmt(t)
 	}
 }
 

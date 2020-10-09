@@ -33,6 +33,11 @@ type BlockStmt struct {
 	stmt
 }
 
+type ReturnStmt struct {
+	E Expr
+	stmt
+}
+
 type ExprStmt struct {
 	Expr
 	stmt
