@@ -360,7 +360,7 @@ func (p *parser) trinaryExpr(lhs Expr) Expr {
 	rt.MS = p.uexpr()
 	p.want(":")
 	rt.RHS = p.uexpr()
-	return lhs
+	return rt
 }
 
 func (p *parser) binaryExpr(lhs Expr) Expr {

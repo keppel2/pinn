@@ -118,6 +118,8 @@ func visitArrayExpr(n ArrayExpr) {
 func visitExpr(n Expr) {
 	pnode(n)
 	switch t := n.(type) {
+	case TrinaryExpr:
+		visitTrinaryExpr(t)
 	case NumberExpr:
 		fmt.Println("Number", t.Il.Value)
 	case VarExpr:
