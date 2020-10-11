@@ -332,25 +332,46 @@ func (p *parser) assignStmt(LHSa []Expr) AssignStmt {
 
 func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es := ExprStmt{}
-	es.Position = p.p
-	rt := p.pexpr(LHS)
+	rt := p.pexpr(LHS, 0)
 	es.Expr = rt
 	p.want(";")
 	return es
 }
 
-func (p *parser) pexpr(LHS Expr) Expr {
-	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
-		return p.binaryExpr(LHS)
+func (p *parser) pexpr(LHS Expr, prec int) Expr {
+	//	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
+	rt := LHS
+
+	for tokenMap[p.tok] > prec {
+		if p.tok == "?" {
+			return p.trinaryExpr(rt)
+		}
+
+		t := BinaryExpr{}
+		t.op = p.tok
+		t.LHS = rt
+		prec := tokenMap[p.tok]
+		p.next()
+		e := p.uexpr()
+		t.RHS = p.pexpr(e, prec)
+		rt = t
 	}
-	if p.tok == "?" {
-		return p.trinaryExpr(LHS)
-	}
-	return LHS
+	return rt
+
+	/*
+
+
+
+		}
+		if p.tok == "?" {
+			return p.trinaryExpr(LHS)
+		}
+		return LHS
+	*/
 }
 
 func (p *parser) uexpr() Expr {
-	return p.pexpr(p.unaryExpr())
+	return p.pexpr(p.unaryExpr(), 0)
 }
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
@@ -364,7 +385,7 @@ func (p *parser) trinaryExpr(lhs Expr) Expr {
 }
 
 func (p *parser) binaryExpr(lhs Expr) Expr {
-	op := p.lit
+	op := p.tok
 	p.next()
 	rt := BinaryExpr{}
 	rt.LHS = lhs
