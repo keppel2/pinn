@@ -25,6 +25,7 @@ var tokenMap = map[string]bool{
 	":":           false,
 	"?":           false,
 	"@":           false,
+	"#":           false,
 	".":           false,
 	"...":         false,
 	"break":       false,
