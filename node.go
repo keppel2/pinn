@@ -132,10 +132,8 @@ type CallExpr struct {
 }
 
 type IndexExpr struct {
-	X     Expr
-	Start Expr
-	End   Expr
-	Inc   bool
+	X Expr
+	E Expr
 	expr
 }
 

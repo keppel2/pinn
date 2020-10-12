@@ -44,10 +44,16 @@ func contains(s []string, t string) bool {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
-	case "-", "+", "!":
+	case "-", "+", "!", "@", "#":
 		ue := UnaryExpr{}
 		ue.op = p.tok
 		p.next()
+		if p.tok == "]" {
+			if ue.op != "@" && ue.op != "#" {
+				p.err("")
+			}
+			return ue
+		}
 		ue.E = p.unaryExpr()
 		return ue
 
@@ -352,6 +358,9 @@ func (p *parser) pexpr(LHS Expr, prec int) Expr {
 		t.LHS = rt
 		prec := tokenMap[p.tok]
 		p.next()
+		if p.tok == "]" {
+			return rt
+		}
 		e := p.uexpr()
 		t.RHS = p.pexpr(e, prec)
 		rt = t
@@ -384,6 +393,7 @@ func (p *parser) trinaryExpr(lhs Expr) Expr {
 	return rt
 }
 
+/*
 func (p *parser) binaryExpr(lhs Expr) Expr {
 	op := p.tok
 	p.next()
@@ -394,28 +404,37 @@ func (p *parser) binaryExpr(lhs Expr) Expr {
 
 	return rt
 }
+*/
 
 func (p *parser) indexExpr(lhs Expr) Expr {
 	p.want("[")
 	rt := IndexExpr{}
 	rt.X = lhs
-
-	if p.tok != ("#") && p.tok != ("@") {
-		rt.Start = p.uexpr()
-		if p.got("]") {
-			return rt
-		}
-	}
-	if p.tok == "@" {
-		rt.Inc = true
-	}
-	p.next()
 	if p.got("]") {
 		return rt
 	}
-	rt.End = p.uexpr()
+	rt.E = p.uexpr()
 	p.want("]")
 	return rt
+	/*
+
+		if p.tok != ("#") && p.tok != ("@") {
+			rt.Start = p.uexpr()
+			if p.got("]") {
+				return rt
+			}
+		}
+		if p.tok == "@" {
+			rt.Inc = true
+		}
+		p.next()
+		if p.got("]") {
+			return rt
+		}
+		rt.End = p.uexpr()
+		p.want("]")
+		return rt
+	*/
 }
 
 func (p *parser) callExpr(lhs Expr) Expr {

@@ -93,20 +93,25 @@ func visitCallExpr(n CallExpr) {
 }
 
 func visitUnaryExpr(n UnaryExpr) {
-	visitExpr(n.E)
+	if n.E != nil {
+		visitExpr(n.E)
+	}
 	fmt.Println("Uop", n.op)
 }
 
 func visitIndexExpr(n IndexExpr) {
 	visitExpr(n.X)
-	if n.Start != nil {
-		visitExpr(n.Start)
-	}
-	fmt.Println("Inc", n.Inc)
+	visitExpr(n.E)
+	/*
+		if n.Start != nil {
+			visitExpr(n.Start)
+		}
+		fmt.Println("Inc", n.Inc)
 
-	if n.End != nil {
-		visitExpr(n.End)
-	}
+		if n.End != nil {
+			visitExpr(n.End)
+		}
+	*/
 }
 
 func visitArrayExpr(n ArrayExpr) {
