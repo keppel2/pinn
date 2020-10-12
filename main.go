@@ -10,6 +10,12 @@ func g() {
 	pnode(ts)
 }
 
+func f2() {
+	// rd, _ := ioutil.ReadDir(os.Args[1])
+	//  for _, ofi := range rd {
+
+}
+
 func main() {
 	fmt.Println(os.Args)
 
@@ -19,7 +25,8 @@ func main() {
 	tok(ssrc)
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
-	p.fileA()
+	f := p.fileA()
+	visitFile(f)
 	return
 
 }

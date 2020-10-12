@@ -117,8 +117,6 @@ func (p *parser) fileA() File {
 	f.Position = p.p
 	p.next()
 	f.SList = p.stmtList()
-	fmt.Println(f.SList)
-	visitFile(f)
 
 	return f
 }

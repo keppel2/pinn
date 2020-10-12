@@ -17,7 +17,7 @@ func tok(s string) {
 	got.init(strings.NewReader(s))
 	for {
 		got.next()
-		fmt.Println(_prn(got))
+		//		fmt.Println(_prn(got))
 		if got.tok == "EOF" {
 			break
 		}
