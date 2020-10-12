@@ -36,6 +36,7 @@ var tokenMap = map[string]int{
 	"else":        0,
 	"fallthrough": 0,
 	"for":         0,
+	"forr":        0,
 	"func":        0,
 	"if":          0,
 	"loop":        0,

@@ -61,3 +61,6 @@ loop {42;}
 a << b >> c & d | e ^ f;
 1 == 2 != 3 > 4 < 5 >= 6 <= 7;
 a && b || c;
+
+forr a, b  := range 24 { 25; }
+forr a := range 10 { 101; }

@@ -44,7 +44,7 @@ func contains(s []string, t string) bool {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
-	case "-", "+", "!", "@", "#":
+	case "-", "+", "!", "@", "#", "range":
 		ue := UnaryExpr{}
 		ue.op = p.tok
 		p.next()
@@ -219,9 +219,26 @@ func (p *parser) returnStmt() ReturnStmt {
 	return rt
 }
 
+func (p *parser) forrStmt() ForrStmt {
+	rt := ForrStmt{}
+	p.want("forr")
+	rt.LH = p.exprList()
+
+	if p.tok != "=" && p.tok != ":=" {
+		p.err("")
+	}
+	rt.Op = p.tok
+	p.next()
+	rt.RH = p.uexpr()
+	rt.B = p.blockStmt().(BlockStmt)
+	return rt
+}
+
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
+	case "forr":
+		rt = p.forrStmt()
 	case "return":
 		rt = p.returnStmt()
 	case "var":

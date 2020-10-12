@@ -28,6 +28,15 @@ func visitTypeStmt(n TypeStmt) {
 	visitKind(n.Kind)
 }
 
+func visitForrStmt(n ForrStmt) {
+	for _, e := range n.LH {
+		visitExpr(e)
+	}
+	fmt.Println("forr op: ", n.Op)
+	visitExpr(n.RH)
+	visitBlockStmt(n.B)
+
+}
 func visitReturnStmt(n ReturnStmt) {
 	if n.E != nil {
 		visitExpr(n.E)
@@ -181,6 +190,8 @@ func visitBlockStmt(t BlockStmt) {
 func visitStmt(s Stmt) {
 	pnode(s)
 	switch t := s.(type) {
+	case ForrStmt:
+		visitForrStmt(t)
 	case BlockStmt:
 		visitBlockStmt(t)
 	case VarStmt:

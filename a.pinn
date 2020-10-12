@@ -1,2 +1,2 @@
-a[@];
-
+forr a, b  := range 24 { 25; }
+forr a := range 10 { 101; }
