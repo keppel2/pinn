@@ -1,2 +1,1 @@
-forr a, b  := range 24 { 25; }
-forr a := range 10 { 101; }
+forr a, b := range 1@10 { p(a,b) ; }
