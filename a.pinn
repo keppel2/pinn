@@ -1,1 +1,4 @@
 forr a, b := range 1@10 { p(a,b) ; }
+for a := 10; a < 20; a++; {
+f(42);
+}

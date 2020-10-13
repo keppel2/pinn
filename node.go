@@ -38,6 +38,14 @@ type ReturnStmt struct {
 	stmt
 }
 
+type ForStmt struct {
+	Init Stmt
+	E    Expr
+	Loop Stmt
+	B    BlockStmt
+	stmt
+}
+
 type ForrStmt struct {
 	LH []Expr
 	Op string

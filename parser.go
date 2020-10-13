@@ -124,14 +124,14 @@ func (p *parser) fileA() File {
 func (p *parser) loopStmt() LoopStmt {
 	p.want("loop")
 	rt := LoopStmt{}
-	rt.B = p.blockStmt().(BlockStmt)
+	rt.B = p.blockStmt()
 	return rt
 }
 func (p *parser) whileStmt() WhileStmt {
 	p.want("while")
 	rt := WhileStmt{}
 	rt.Cond = p.uexpr()
-	rt.B = p.blockStmt().(BlockStmt)
+	rt.B = p.blockStmt()
 	return rt
 }
 
@@ -204,7 +204,7 @@ func (p *parser) funcStmt() FuncStmt {
 	if p.tok != "{" {
 		rt.K = p.kind()
 	}
-	rt.B = p.blockStmt().(BlockStmt)
+	rt.B = p.blockStmt()
 
 	return rt
 }
@@ -230,13 +230,26 @@ func (p *parser) forrStmt() ForrStmt {
 	rt.Op = p.tok
 	p.next()
 	rt.RH = p.uexpr()
-	rt.B = p.blockStmt().(BlockStmt)
+	rt.B = p.blockStmt()
+	return rt
+}
+
+func (p *parser) forStmt() ForStmt {
+	rt := ForStmt{}
+	p.want("for")
+	rt.Init = p.stmt()
+	rt.E = p.uexpr()
+	p.want(";")
+	rt.Loop = p.stmt()
+	rt.B = p.blockStmt()
 	return rt
 }
 
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
+	case "for":
+		rt = p.forStmt()
 	case "forr":
 		rt = p.forrStmt()
 	case "return":
@@ -293,7 +306,7 @@ func (p *parser) exprList() []Expr {
 	return rt
 }
 
-func (p *parser) blockStmt() Stmt {
+func (p *parser) blockStmt() BlockStmt {
 	rt := BlockStmt{}
 	p.want("{")
 	rt.SList = p.stmtList()
