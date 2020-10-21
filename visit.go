@@ -221,3 +221,36 @@ func visitFile(f File) {
 		visitStmt(s)
 	}
 }
+
+var rMap = make(map[string]int)
+var creg = 1
+
+func emitStmt(s Stmt) string {
+	rt := ""
+	switch t := s.(type) {
+	case ReturnStmt:
+		rt += "  mov w0, "
+		switch t2 := t.E.(type) {
+		case NumberExpr:
+			rt += t2.Il.Value + "\n"
+		case VarExpr:
+			rt += "w" + string(rMap[t2.Wl.Value])
+		}
+
+	}
+	rt += "  ret\n"
+	return rt
+
+}
+
+func emit(f File) string {
+	rt := `
+.global main
+main:
+`
+	for _, s := range f.SList {
+		rt += emitStmt(s)
+	}
+//	rt += "ret\n"
+	return rt
+}

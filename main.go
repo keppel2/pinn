@@ -17,7 +17,7 @@ func f2() {
 }
 
 func main() {
-	fmt.Println(os.Args)
+//	fmt.Println(os.Args)
 
 	//	g()
 	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
@@ -26,7 +26,8 @@ func main() {
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
 	f := p.fileA()
-	visitFile(f)
+//	visitFile(f)
+	fmt.Println(emit(f))
 	return
 
 }
