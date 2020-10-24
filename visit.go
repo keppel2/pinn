@@ -239,6 +239,8 @@ func (e *emitter) emitExpr(ex Expr) string {
 		rt += t.Il.Value
 	case VarExpr:
 		rt += "w" + fmt.Sprint(e.rMap[t.Wl.Value])
+	case BinaryExpr:
+		rt += "binop"
 	}
 
 	return rt
@@ -253,7 +255,12 @@ func (e *emitter) emitStmt(s Stmt) string {
 		rt += "  ret\n"
 	case AssignStmt:
 		lh := e.emitExpr(t.LHSa[0])
-		rh := e.emitExpr(t.RHSa[0])
+		rh := ""
+		switch t2 := t.RHSa[0].(type) {
+		case NumberExpr, VarExpr:
+			rh += e.emitExpr(t2)
+		}
+		//rh := e.emitExpr(t.RHSa[0])
 		rt += "  mov " + lh + ", " + rh + "\n"
 
 

@@ -1,5 +1,10 @@
+
 var x int;
+x = 10;
 var y int;
-x = 101;
 y = x;
-return y;
+
+/*
+x = x + 101;
+return x;
+*/
