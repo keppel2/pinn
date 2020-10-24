@@ -1,10 +1,8 @@
 
 var x int;
 x = 10;
-var y int;
-y = x;
-
-/*
 x = x + 101;
+var y int;
+y = 12;
+x = x + y;
 return x;
-*/

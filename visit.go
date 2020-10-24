@@ -232,6 +232,11 @@ func (e *emitter) init() {
 	e.creg = 1
 }
 
+func (e *emitter) err(msg string) {
+
+	panic(fmt.Sprintln(msg, e.rMap, e.creg))
+}
+
 func (e *emitter) emitExpr(ex Expr) string {
 	rt := ""
 	switch t := ex.(type) {
@@ -240,7 +245,7 @@ func (e *emitter) emitExpr(ex Expr) string {
 	case VarExpr:
 		rt += "w" + fmt.Sprint(e.rMap[t.Wl.Value])
 	case BinaryExpr:
-		rt += "binop"
+		e.err("")
 	}
 
 	return rt
@@ -259,9 +264,13 @@ func (e *emitter) emitStmt(s Stmt) string {
 		switch t2 := t.RHSa[0].(type) {
 		case NumberExpr, VarExpr:
 			rh += e.emitExpr(t2)
+			rt += "  mov " + lh + ", " + rh + "\n"
+			return rt
+		case BinaryExpr:
+			rt = "  add " + lh + ", " + e.emitExpr(t2.LHS) + ", " + e.emitExpr(t2.RHS) + "\n"
+			return rt
 		}
 		//rh := e.emitExpr(t.RHSa[0])
-		rt += "  mov " + lh + ", " + rh + "\n"
 
 
 	case VarStmt:
