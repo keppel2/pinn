@@ -1,1 +1,2 @@
-return 49 + 10;
+var a int;
+a = 24 + 101;

@@ -17,13 +17,28 @@ func (e *emitter) err(msg string) {
 	panic(fmt.Sprintln(msg, e.rMap, e.creg))
 }
 
-func (e *emitter) emitExpr(ex Expr) string {
+func (e *emitter) regOrImm(ex Expr) string {
 	rt := ""
 	switch t := ex.(type) {
 	case NumberExpr:
-		rt += t.Il.Value
+		rt = "#" + t.Il.Value
 	case VarExpr:
-		rt += "w" + fmt.Sprint(e.rMap[t.Wl.Value])
+		i, ok := e.rMap[t.Wl.Value]; if !ok {
+			e.err("")
+		}
+		rt = "w" + fmt.Sprint(i)
+	default:
+		e.err("")
+	}
+	return rt
+
+}
+
+func (e *emitter) emitExpr(ex Expr) string {
+	rt := ""
+	switch t := ex.(type) {
+	case NumberExpr, VarExpr:
+		rt = e.regOrImm(t)
 	case BinaryExpr:
 		e.err("")
 	}
@@ -35,11 +50,13 @@ func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
 	case ReturnStmt:
+		/*
 		rt += "  mov w0, "
 		rt += e.emitExpr(t.E) + "\n"
 		rt += "  ret\n"
+		*/
 	case AssignStmt:
-		lh := e.emitExpr(t.LHSa[0])
+		lh := e.emitExpr(t.LHSa[0].(VarExpr))
 		rh := ""
 		switch t2 := t.RHSa[0].(type) {
 		case NumberExpr, VarExpr:
