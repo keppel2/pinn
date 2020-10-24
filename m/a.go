@@ -1,10 +1,7 @@
 package main
 
-import "fmt"
+import "os"
 
-func f() {}
 func main() {
-fmt.Println("mn")
-b := 101
-+b = 42
+	os.Exit(42)
 }

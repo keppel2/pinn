@@ -26,7 +26,10 @@ func main() {
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
 	f := p.fileA()
-//	visitFile(f)
+	if len(os.Args) > 2 {
+
+	visitFile(f)
+}
 	e := emitter{}
 	e.init()
 	s := e.emit(f)
