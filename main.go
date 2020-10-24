@@ -27,7 +27,10 @@ func main() {
 	p.init(strings.NewReader(ssrc))
 	f := p.fileA()
 //	visitFile(f)
-	fmt.Println(emit(f))
+	e := emitter{}
+	e.init()
+	s := e.emit(f)
+	fmt.Println(s)
 	return
 
 }

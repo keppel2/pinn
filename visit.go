@@ -222,10 +222,16 @@ func visitFile(f File) {
 	}
 }
 
-var rMap = make(map[string]int)
-var creg = 1
+type emitter struct {
+	rMap map[string]int
+	creg int
+}
+func (e *emitter) init() {
+	e.rMap = make(map[string]int)
+	e.creg = 1
+}
 
-func emitStmt(s Stmt) string {
+func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
 	case ReturnStmt:
@@ -234,7 +240,7 @@ func emitStmt(s Stmt) string {
 		case NumberExpr:
 			rt += t2.Il.Value + "\n"
 		case VarExpr:
-			rt += "w" + string(rMap[t2.Wl.Value])
+			rt += "w" + string(e.rMap[t2.Wl.Value])
 		}
 
 	}
@@ -243,13 +249,13 @@ func emitStmt(s Stmt) string {
 
 }
 
-func emit(f File) string {
+func (e *emitter) emit(f File) string {
 	rt := `
 .global main
 main:
 `
 	for _, s := range f.SList {
-		rt += emitStmt(s)
+		rt += e.emitStmt(s)
 	}
 //	rt += "ret\n"
 	return rt
