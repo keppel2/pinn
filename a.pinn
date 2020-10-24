@@ -1,3 +1,5 @@
 var x int;
+var y int;
 x = 101;
-return x;
+y = x;
+return y;
