@@ -1,8 +1,1 @@
-
-var x int;
-x = 10;
-x = x + 101;
-var y int;
-y = 12;
-x = x + y;
-return x;
+return 49 + 10;
