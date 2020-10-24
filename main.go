@@ -17,7 +17,7 @@ func f2() {
 }
 
 func main() {
-//	fmt.Println(os.Args)
+	//	fmt.Println(os.Args)
 
 	//	g()
 	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")

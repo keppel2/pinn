@@ -226,9 +226,22 @@ type emitter struct {
 	rMap map[string]int
 	creg int
 }
+
 func (e *emitter) init() {
 	e.rMap = make(map[string]int)
 	e.creg = 1
+}
+
+func (e *emitter) emitExpr(ex Expr) string {
+	rt := ""
+	switch t := ex.(type) {
+	case NumberExpr:
+		rt += t.Il.Value
+	case VarExpr:
+		rt += "w" + fmt.Sprint(e.rMap[t.Wl.Value])
+	}
+
+	return rt
 }
 
 func (e *emitter) emitStmt(s Stmt) string {
@@ -236,15 +249,19 @@ func (e *emitter) emitStmt(s Stmt) string {
 	switch t := s.(type) {
 	case ReturnStmt:
 		rt += "  mov w0, "
-		switch t2 := t.E.(type) {
-		case NumberExpr:
-			rt += t2.Il.Value + "\n"
-		case VarExpr:
-			rt += "w" + string(e.rMap[t2.Wl.Value])
-		}
+		rt += e.emitExpr(t.E) + "\n"
+		rt += "  ret\n"
+	case AssignStmt:
+		lh := e.emitExpr(t.LHSa[0])
+		rh := e.emitExpr(t.RHSa[0])
+		rt += "  mov " + lh + ", " + rh + "\n"
 
+
+	case VarStmt:
+		s := t.List[0].Value
+		e.rMap[s] = e.creg
+		e.creg++
 	}
-	rt += "  ret\n"
 	return rt
 
 }
@@ -257,6 +274,6 @@ main:
 	for _, s := range f.SList {
 		rt += e.emitStmt(s)
 	}
-//	rt += "ret\n"
+	//	rt += "ret\n"
 	return rt
 }

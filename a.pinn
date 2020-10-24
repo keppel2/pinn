@@ -1,1 +1,3 @@
-return 42;
+var x int;
+x = 101;
+return x;
