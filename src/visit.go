@@ -3,13 +3,28 @@ package main
 import "fmt"
 import "reflect"
 
+const indent = "  "
+var ilevel = 0
+
+func prn(s ...interface {}) {
+	for i := 0; i < ilevel; i++ {
+		fmt.Print(indent)
+	}
+	fmt.Println(s)
+}
+
+func iminus() {
+	ilevel--
+}
+
 func pnode(n Node) {
-	fmt.Println(reflect.TypeOf(n), n.Gpos())
+	prn(reflect.TypeOf(n), n.Gpos())
+	ilevel++
 }
 
 func visitVarStmt(n VarStmt) {
 	for _, vd := range n.List {
-		fmt.Println("var: ", vd.Value)
+		prn("var: ", vd.Value)
 	}
 
 	visitKind(n.Kind)
@@ -17,14 +32,14 @@ func visitVarStmt(n VarStmt) {
 
 func visitField(n Field) {
 	for _, vd := range n.List {
-		fmt.Println("fvar: ", vd.Value)
+		prn("fvar: ", vd.Value)
 	}
 
 	visitKind(n.Kind)
 }
 
 func visitTypeStmt(n TypeStmt) {
-	fmt.Println("type: ", n.Wl.Value)
+	prn("type: ", n.Wl.Value)
 	visitKind(n.Kind)
 }
 
@@ -32,7 +47,7 @@ func visitForrStmt(n ForrStmt) {
 	for _, e := range n.LH {
 		visitExpr(e)
 	}
-	fmt.Println("forr op: ", n.Op)
+	prn("forr op: ", n.Op)
 	visitExpr(n.RH)
 	visitBlockStmt(n.B)
 
@@ -44,7 +59,7 @@ func visitReturnStmt(n ReturnStmt) {
 }
 
 func visitFuncStmt(n FuncStmt) {
-	fmt.Println("fid: ", n.Wl.Value)
+	prn("fid: ", n.Wl.Value)
 	for _, vd := range n.PList {
 		visitField(vd)
 	}
@@ -52,11 +67,13 @@ func visitFuncStmt(n FuncStmt) {
 		visitKind(n.K)
 	}
 	pnode(n.B)
+	defer iminus()
 	visitBlockStmt(n.B)
 }
 
 func visitKind(n Kind) {
 	pnode(n)
+	defer iminus()
 	switch t := n.(type) {
 	case MKind:
 		visitMKind(t)
@@ -80,12 +97,12 @@ func visitArKind(n ArKind) {
 	visitKind(n.K)
 }
 func visitSKind(n SKind) {
-	fmt.Println("Skind", n.Wl.Value)
+	prn("Skind", n.Wl.Value)
 }
 
 func visitBinaryExpr(n BinaryExpr) {
 	visitExpr(n.LHS)
-	fmt.Println("Op", n.op, ".")
+	prn("Op", n.op, ".")
 	visitExpr(n.RHS)
 }
 func visitTrinaryExpr(n TrinaryExpr) {
@@ -105,7 +122,7 @@ func visitUnaryExpr(n UnaryExpr) {
 	if n.E != nil {
 		visitExpr(n.E)
 	}
-	fmt.Println("Uop", n.op)
+	prn("Uop", n.op)
 }
 
 func visitIndexExpr(n IndexExpr) {
@@ -115,7 +132,7 @@ func visitIndexExpr(n IndexExpr) {
 		if n.Start != nil {
 			visitExpr(n.Start)
 		}
-		fmt.Println("Inc", n.Inc)
+		prn("Inc", n.Inc)
 
 		if n.End != nil {
 			visitExpr(n.End)
@@ -131,13 +148,14 @@ func visitArrayExpr(n ArrayExpr) {
 
 func visitExpr(n Expr) {
 	pnode(n)
+	defer iminus()
 	switch t := n.(type) {
 	case TrinaryExpr:
 		visitTrinaryExpr(t)
 	case NumberExpr:
-		fmt.Println("Number", t.Il.Value)
+		prn("Number", t.Il.Value)
 	case VarExpr:
-		fmt.Println("Var", t.Wl.Value)
+		prn("Var", t.Wl.Value)
 	case IndexExpr:
 		visitIndexExpr(t)
 	case BinaryExpr:
@@ -175,7 +193,7 @@ func visitAssignStmt(a AssignStmt) {
 	for _, e := range a.LHSa {
 		visitExpr(e)
 	}
-	fmt.Println("Op", a.Op)
+	prn("Op", a.Op)
 	for _, e := range a.RHSa {
 		visitExpr(e)
 	}
@@ -189,6 +207,7 @@ func visitBlockStmt(t BlockStmt) {
 
 func visitStmt(s Stmt) {
 	pnode(s)
+	defer iminus()
 	switch t := s.(type) {
 	case ForrStmt:
 		visitForrStmt(t)
@@ -217,6 +236,7 @@ func visitStmt(s Stmt) {
 
 func visitFile(f File) {
 	pnode(f)
+	defer iminus()
 	for _, s := range f.SList {
 		visitStmt(s)
 	}
