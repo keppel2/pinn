@@ -3,5 +3,7 @@ package main
 import "os"
 
 func main() {
-	os.Exit(42)
+	j := 42
+	j, 23, 23
+	os.Exit(j)
 }

@@ -245,6 +245,20 @@ func (p *parser) forStmt() ForStmt {
 	return rt
 }
 
+func (p *parser) assignOrExprStmt() Stmt {
+	lhsa := p.exprList()
+	var rt Stmt
+		if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
+			rt = p.assignStmt(lhsa)
+		} else {
+			if len(lhsa) != 1 {
+				p.err("")
+			}
+			rt = p.exprStmt(lhsa[0])
+		}
+		return rt
+}
+
 func (p *parser) stmt() Stmt {
 	var rt Stmt
 	switch p.tok {
@@ -267,16 +281,8 @@ func (p *parser) stmt() Stmt {
 	case "loop":
 		rt = p.loopStmt()
 
-	case "literal": //, "-", "+":
-		lhs := p.unaryExpr()
-		rt = p.exprStmt(lhs)
-	case "name":
-		lhsa := p.exprList()
-		if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
-			rt = p.assignStmt(lhsa)
-		} else {
-			rt = p.exprStmt(lhsa[0])
-		}
+	case "literal", "name": //, "-", "+":
+		rt = p.assignOrExprStmt()
 	case "{":
 		rt = p.blockStmt()
 	case ";":
@@ -366,17 +372,19 @@ func (p *parser) assignStmt(LHSa []Expr) AssignStmt {
 
 func (p *parser) exprStmt(LHS Expr) ExprStmt {
 	es := ExprStmt{}
-	rt := p.pexpr(LHS, 0)
-	es.Expr = rt
+	es.Expr = LHS
 	p.want(";")
 	return es
 }
 
-func (p *parser) pexpr(LHS Expr, prec int) Expr {
+func (p *parser) pexpr(prec int) Expr {
 	//	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
-	rt := LHS
+	rt := p.unaryExpr()
+	fmt.Println(prec, p.tok, p.lit, tokenMap[p.tok])
 
 	for tokenMap[p.tok] > prec {
+		fmt.Println(p.tok, "in")
+
 		if p.tok == "?" {
 			return p.trinaryExpr(rt)
 		}
@@ -389,8 +397,7 @@ func (p *parser) pexpr(LHS Expr, prec int) Expr {
 		if p.tok == "]" {
 			return rt
 		}
-		e := p.uexpr()
-		t.RHS = p.pexpr(e, prec)
+		t.RHS = p.pexpr(prec)
 		rt = t
 	}
 	return rt
@@ -408,7 +415,7 @@ func (p *parser) pexpr(LHS Expr, prec int) Expr {
 }
 
 func (p *parser) uexpr() Expr {
-	return p.pexpr(p.unaryExpr(), 0)
+	return p.pexpr(0)
 }
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
