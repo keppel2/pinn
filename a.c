@@ -1,8 +1,8 @@
 int main() {
 	int i;
 	i = 2;
-	int j;
-	j = 3;
-	i = i * j;
+	if (i == 2) {
+		i = 3;
+	}
 	return i;
 }

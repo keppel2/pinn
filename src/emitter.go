@@ -9,13 +9,15 @@ const TR = "w29"
 const TR2 = "w28"
 
 type emitter struct {
-	rMap map[string]int
-	creg int
+	rMap    map[string]int
+	creg    int
+	cbranch int
 }
 
 func (e *emitter) init() {
 	e.rMap = make(map[string]int)
 	e.creg = 1
+	e.cbranch = 1
 }
 
 func (e *emitter) err(msg string) {
@@ -88,13 +90,14 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 
 	case "%":
 		if v, ok := be.RHS.(NumberExpr); ok {
-
 			rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
 			rh = TR
 		} else {
 			rh = e.regOrImm(be.RHS)
 		}
 		rt += ind + "udiv" + AM + TR2 + OS + dest + OS + rh + "\n"
+		rt += ind + "msub" + AM + dest + OS + TR2 + OS + rh + OS + dest + "\n"
+		return rt
 
 	}
 
@@ -114,6 +117,8 @@ func (e *emitter) emitExpr(dest string, ex Expr) string {
 func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
+	case IfStmt:
+		rt += e.binaryExpr("", t.Cond.(BinaryExpr))
 	case ReturnStmt:
 		rt += ind + "mov" + AM + "w0" + OS
 		rt += e.regOrImm(t.E) + "\n"
