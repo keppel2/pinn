@@ -1,6 +1,2 @@
 var a int;
-a = 11;
-var b int;
-b = 3;
-a = 1 + 2 + b - 4;
-return a;
+a = 2 + 3;

@@ -56,14 +56,27 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 		rt += e.binaryExpr(dest, t)
 	}
 	op := ""
+	rh := ""
 	switch be.op {
 	case "+":
 		op = "add"
+		fallthrough
 	case "-":
-		op = "sub"
+		if op == "" {
+			op = "sub"
+		}
+		rh = e.regOrImm(be.RHS)
+	case "*":
+		op = "mul"
+		if v, ok := be.RHS.(NumberExpr); ok {
+
+		  rt += "  mov w30, " + e.regOrImm(v) + "\n"
+		}
+		rh = "w30"
+		
 	}
 
-	rt += "  " + op + " " + dest + "," + dest + "," + e.regOrImm(be.RHS) + "\n"
+	rt += "  " + op + " " + dest + "," + dest + "," + rh + "\n"
 	return rt
 
 
