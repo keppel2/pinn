@@ -66,13 +66,17 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 			op = "sub"
 		}
 		rh = e.regOrImm(be.RHS)
-	case "*":
-		op = "mul"
+	case "*", "/":
+		if be.op == "*" {
+			op = "mul" } else
+			 {
+				op = "udiv"
+			}
 		if v, ok := be.RHS.(NumberExpr); ok {
 
-		  rt += "  mov w30, " + e.regOrImm(v) + "\n"
+		  rt += "  mov w29, " + e.regOrImm(v) + "\n"
 		}
-		rh = "w30"
+		rh = "w29"
 		
 	}
 
@@ -132,6 +136,6 @@ main:
 	for _, s := range f.SList {
 		rt += e.emitStmt(s)
 	}
-	//	rt += "ret\n"
+		rt += "  ret\n"
 	return rt
 }
