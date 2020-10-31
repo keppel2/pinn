@@ -1,4 +1,4 @@
 var a int;
 var b int;
-a = a * b;
-return a;
+b = 2;
+a = b + 3;

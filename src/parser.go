@@ -248,15 +248,15 @@ func (p *parser) forStmt() ForStmt {
 func (p *parser) assignOrExprStmt() Stmt {
 	lhsa := p.exprList()
 	var rt Stmt
-		if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
-			rt = p.assignStmt(lhsa)
-		} else {
-			if len(lhsa) != 1 {
-				p.err("")
-			}
-			rt = p.exprStmt(lhsa[0])
+	if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
+		rt = p.assignStmt(lhsa)
+	} else {
+		if len(lhsa) != 1 {
+			p.err("")
 		}
-		return rt
+		rt = p.exprStmt(lhsa[0])
+	}
+	return rt
 }
 
 func (p *parser) stmt() Stmt {
@@ -380,10 +380,10 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 func (p *parser) pexpr(prec int) Expr {
 	//	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 	rt := p.unaryExpr()
-//	fmt.Println(prec, p.tok, p.lit, tokenMap[p.tok])
+	//	fmt.Println(prec, p.tok, p.lit, tokenMap[p.tok])
 
 	for tokenMap[p.tok] > prec {
-//		fmt.Println(p.tok, "in")
+		//		fmt.Println(p.tok, "in")
 
 		if p.tok == "?" {
 			return p.trinaryExpr(rt)

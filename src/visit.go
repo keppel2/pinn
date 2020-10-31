@@ -4,9 +4,10 @@ import "fmt"
 import "reflect"
 
 const indent = "  "
+
 var ilevel = 0
 
-func prn(s ...interface {}) {
+func prn(s ...interface{}) {
 	for i := 0; i < ilevel; i++ {
 		fmt.Print(indent)
 	}

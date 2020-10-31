@@ -22,14 +22,14 @@ func main() {
 	//	g()
 	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
 	ssrc := string(src)
-//	tok(ssrc)
+	//	tok(ssrc)
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
 	f := p.fileA()
 	if len(os.Args) > 2 {
 
-	visitFile(f)
-}
+		visitFile(f)
+	}
 	e := emitter{}
 	e.init()
 	s := e.emit(f)
