@@ -380,10 +380,10 @@ func (p *parser) exprStmt(LHS Expr) ExprStmt {
 func (p *parser) pexpr(prec int) Expr {
 	//	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 	rt := p.unaryExpr()
-	fmt.Println(prec, p.tok, p.lit, tokenMap[p.tok])
+//	fmt.Println(prec, p.tok, p.lit, tokenMap[p.tok])
 
 	for tokenMap[p.tok] > prec {
-		fmt.Println(p.tok, "in")
+//		fmt.Println(p.tok, "in")
 
 		if p.tok == "?" {
 			return p.trinaryExpr(rt)

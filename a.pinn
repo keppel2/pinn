@@ -1,2 +1,6 @@
-x = 1 - 2 - 3;
-y = 1 && 2 + 3;
+var a int;
+a = 11;
+var b int;
+b = 3;
+a = 1 + 2 + b - 4;
+return a;

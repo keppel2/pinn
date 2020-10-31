@@ -49,7 +49,21 @@ func (e *emitter) operand(ex Expr) string {
 
 func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 	rt := ""
-	rt += "  add " + dest + "," + dest
+	switch t := be.LHS.(type) {
+	case NumberExpr, VarExpr:
+		rt += "  mov " + dest + ", " + e.regOrImm(t) + "\n"
+	case BinaryExpr:
+		rt += e.binaryExpr(dest, t)
+	}
+	op := ""
+	switch be.op {
+	case "+":
+		op = "add"
+	case "-":
+		op = "sub"
+	}
+
+	rt += "  " + op + " " + dest + "," + dest + "," + e.regOrImm(be.RHS) + "\n"
 	return rt
 
 
@@ -63,15 +77,14 @@ func (e *emitter) emitExpr(dest string, ex Expr) string {
 //	}
 }
 
+
 func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
 	case ReturnStmt:
-		/*
 		rt += "  mov w0, "
-		rt += e.emitExpr(t.E) + "\n"
+		rt += e.regOrImm(t.E) + "\n"
 		rt += "  ret\n"
-		*/
 	case AssignStmt:
 		lh := e.operand(t.LHSa[0].(VarExpr))
 		rh := ""
@@ -81,7 +94,9 @@ func (e *emitter) emitStmt(s Stmt) string {
 			rt += "  mov " + lh + ", " + rh + "\n"
 			return rt
 		case BinaryExpr:
-			rt = "  add " + lh + ", " + e.emitExpr(lh, t2.LHS) + ", " + e.emitExpr(lh, t2.RHS) + "\n"
+			
+			rt += e.binaryExpr(lh, t2)
+//			rt = "  add " + lh + ", " + e.emitExpr(lh, t2.LHS) + ", " + e.emitExpr(lh, t2.RHS) + "\n"
 			return rt
 		}
 		//rh := e.emitExpr(t.RHSa[0])
