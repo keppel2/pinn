@@ -2,6 +2,11 @@ package main
 
 import "fmt"
 
+const ind = "  "
+const OS = ", "
+const AM = " "
+const TR = "w29"
+
 type emitter struct {
 	rMap map[string]int
 	creg int
@@ -51,7 +56,7 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 	rt := ""
 	switch t := be.LHS.(type) {
 	case NumberExpr, VarExpr:
-		rt += "  mov " + dest + ", " + e.regOrImm(t) + "\n"
+		rt += ind + "mov" + AM + dest + OS + e.regOrImm(t) + "\n"
 	case BinaryExpr:
 		rt += e.binaryExpr(dest, t)
 	}
@@ -74,7 +79,7 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 			}
 		if v, ok := be.RHS.(NumberExpr); ok {
 
-		  rt += "  mov w29, " + e.regOrImm(v) + "\n"
+		  rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
 		  rh = "w29"
 		} else {
 			rh = e.regOrImm(be.RHS)
@@ -85,14 +90,18 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 		if v, ok := be.RHS.(NumberExpr); ok {
 
 		  rt += "  mov w29, " + e.regOrImm(v) + "\n"
+		  rh = "w29"
+		} else {
+			rh = e.regOrImm(be.RHS)
 		}
 		*/
+
 
 
 		
 	}
 
-	rt += "  " + op + " " + dest + "," + dest + "," + rh + "\n"
+	rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
 	return rt
 
 
@@ -111,16 +120,15 @@ func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
 	case ReturnStmt:
-		rt += "  mov w0, "
+		rt += ind + "mov" + AM + "w0" + OS
 		rt += e.regOrImm(t.E) + "\n"
-		rt += "  ret\n"
 	case AssignStmt:
 		lh := e.operand(t.LHSa[0].(VarExpr))
 		rh := ""
 		switch t2 := t.RHSa[0].(type) {
 		case NumberExpr, VarExpr:
 			rh += e.operand(t2)
-			rt += "  mov " + lh + ", " + rh + "\n"
+			rt += ind + "mov" + AM + lh + OS + rh + "\n"
 			return rt
 		case BinaryExpr:
 			
@@ -148,6 +156,6 @@ main:
 	for _, s := range f.SList {
 		rt += e.emitStmt(s)
 	}
-		rt += "  ret\n"
+		rt += ind + "ret\n"
 	return rt
 }
