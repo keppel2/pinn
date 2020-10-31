@@ -1,0 +1,17 @@
+var a int;
+var b int;
+b = 42;
+var c int;
+c = 101;
+a = 1 + 2;
+a = 10 - 1;
+a = 1 + 2 + 3;
+a = b;
+a = b + 4;
+a = 4 + b;
+a = b + c;
+a = b * c;
+a = b / c;
+a = b % c;
+a = 5 % c * b + 41; 
+return a;
