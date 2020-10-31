@@ -1,3 +1,4 @@
 var a int;
-a = 13 / 3;
+var b int;
+a = a * b;
 return a;

@@ -75,8 +75,20 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 		if v, ok := be.RHS.(NumberExpr); ok {
 
 		  rt += "  mov w29, " + e.regOrImm(v) + "\n"
+		  rh = "w29"
+		} else {
+			rh = e.regOrImm(be.RHS)
 		}
-		rh = "w29"
+		
+		/*
+	case "%":
+		if v, ok := be.RHS.(NumberExpr); ok {
+
+		  rt += "  mov w29, " + e.regOrImm(v) + "\n"
+		}
+		*/
+
+
 		
 	}
 
