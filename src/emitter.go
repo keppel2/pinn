@@ -58,8 +58,8 @@ func (e *emitter) operand(ex Expr) string {
 func (e *emitter) moveToTr(ex Expr) (string, string) {
 	rt := ""
 	if v, ok := ex.(NumberExpr); ok {
-			rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
-			return rt, TR
+		rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
+		return rt, TR
 	}
 	return rt, e.regOrImm(ex)
 }
@@ -106,10 +106,10 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 		rt += ind + "udiv" + AM + TR2 + OS + dest + OS + rh + "\n"
 		rt += ind + "msub" + AM + dest + OS + TR2 + OS + rh + OS + dest + "\n"
 		return rt
-	rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
+		rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
+		return rt
+	}
 	return rt
-}
-return rt
 }
 func (e *emitter) emitExpr(dest string, ex Expr) string {
 
