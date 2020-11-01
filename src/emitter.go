@@ -106,9 +106,8 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 		rt += ind + "udiv" + AM + TR2 + OS + dest + OS + rh + "\n"
 		rt += ind + "msub" + AM + dest + OS + TR2 + OS + rh + OS + dest + "\n"
 		return rt
-		rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
-		return rt
 	}
+	rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
 	return rt
 }
 func (e *emitter) emitExpr(dest string, ex Expr) string {
