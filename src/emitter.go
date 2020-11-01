@@ -55,8 +55,24 @@ func (e *emitter) operand(ex Expr) string {
 	return rt
 }
 
+func (e *emitter) moveToTr(ex Expr) (string, string) {
+	rt := ""
+	if v, ok := ex.(NumberExpr); ok {
+			rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
+			return rt, TR
+	}
+	return rt, e.regOrImm(ex)
+}
+
 func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 	rt := ""
+	if be.op == "==" {
+		mtr, lh := e.moveToTr(be.LHS)
+		rt += mtr
+		rh := e.regOrImm(be.RHS)
+		rt += ind + "cmp" + AM + lh + OS + rh + "\n"
+		return rt
+	}
 	switch t := be.LHS.(type) {
 	case NumberExpr, VarExpr:
 		rt += ind + "mov" + AM + dest + OS + e.regOrImm(t) + "\n"
@@ -80,30 +96,20 @@ func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 		} else {
 			op = "udiv"
 		}
-		if v, ok := be.RHS.(NumberExpr); ok {
-
-			rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
-			rh = "w29"
-		} else {
-			rh = e.regOrImm(be.RHS)
-		}
-
+		mtr := ""
+		mtr, rh = e.moveToTr(be.RHS)
+		rt += mtr
 	case "%":
-		if v, ok := be.RHS.(NumberExpr); ok {
-			rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
-			rh = TR
-		} else {
-			rh = e.regOrImm(be.RHS)
-		}
+		mtr := ""
+		mtr, rh = e.moveToTr(be.RHS)
+		rt += mtr
 		rt += ind + "udiv" + AM + TR2 + OS + dest + OS + rh + "\n"
 		rt += ind + "msub" + AM + dest + OS + TR2 + OS + rh + OS + dest + "\n"
 		return rt
-
-	}
-
 	rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
 	return rt
-
+}
+return rt
 }
 func (e *emitter) emitExpr(dest string, ex Expr) string {
 
@@ -117,8 +123,18 @@ func (e *emitter) emitExpr(dest string, ex Expr) string {
 func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
+	case BlockStmt:
+		for _, s := range t.SList {
+			rt += e.emitStmt(s)
+		}
 	case IfStmt:
 		rt += e.binaryExpr("", t.Cond.(BinaryExpr))
+		lab := fmt.Sprintf("ifb%v", e.cbranch)
+		e.cbranch++
+		rt += ind + "bne" + AM + lab + "\n"
+		rt += e.emitStmt(t.Then)
+		rt += lab + ":\n"
+
 	case ReturnStmt:
 		rt += ind + "mov" + AM + "w0" + OS
 		rt += e.regOrImm(t.E) + "\n"
