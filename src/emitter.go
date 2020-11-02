@@ -20,6 +20,10 @@ func (e *emitter) init() {
 	e.cbranch = 1
 }
 
+func (e emitter) clab() string {
+	return fmt.Sprintf("ifb%v", e.cbranch)
+}
+
 func (e *emitter) err(msg string) {
 
 	panic(fmt.Sprintln(msg, e.rMap, e.creg))
@@ -66,11 +70,29 @@ func (e *emitter) moveToTr(ex Expr) (string, string) {
 
 func (e *emitter) binaryExpr(dest string, be BinaryExpr) string {
 	rt := ""
-	if be.op == "==" {
+	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == ">" {
 		mtr, lh := e.moveToTr(be.LHS)
 		rt += mtr
 		rh := e.regOrImm(be.RHS)
 		rt += ind + "cmp" + AM + lh + OS + rh + "\n"
+		lab := e.clab()
+		bi := ""
+		switch be.op {
+		case "==":
+			bi = "NE"
+		case "!=":
+			bi = "EQ"
+		case "<":
+			bi = "GE"
+		case "<=":
+			bi = "GT"
+		case ">":
+			bi = "LE"
+		case ">=":
+			bi = "LT"
+		}
+		rt += ind + "b." + bi + AM + lab + "\n"
+
 		return rt
 	}
 	switch t := be.LHS.(type) {
@@ -128,11 +150,11 @@ func (e *emitter) emitStmt(s Stmt) string {
 		}
 	case IfStmt:
 		rt += e.binaryExpr("", t.Cond.(BinaryExpr))
-		lab := fmt.Sprintf("ifb%v", e.cbranch)
+		lab := e.clab()
 		e.cbranch++
-		rt += ind + "bne" + AM + lab + "\n"
 		rt += e.emitStmt(t.Then)
 		rt += lab + ":\n"
+		e.cbranch--
 
 	case ReturnStmt:
 		rt += ind + "mov" + AM + "w0" + OS
