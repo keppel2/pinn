@@ -148,6 +148,12 @@ func (e *emitter) emitStmt(s Stmt) string {
 		for _, s := range t.SList {
 			rt += e.emitStmt(s)
 		}
+	case LoopStmt:
+		lab := e.clab()
+		e.cbranch++
+		rt += e.emitStmt(t.B)
+		rt += lab + ":\n"
+		e.cbranch--
 	case IfStmt:
 		rt += e.binaryExpr("", t.Cond.(BinaryExpr))
 		lab := e.clab()
