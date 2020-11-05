@@ -27,6 +27,7 @@ a = 101;
 }
 loop {
 a = 1024;
+break;
 }
 
 return a;

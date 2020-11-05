@@ -41,6 +41,10 @@ type BlockStmt struct {
 	stmt
 }
 
+type BreakStmt struct {
+	stmt
+}
+
 type ReturnStmt struct {
 	E Expr
 	stmt

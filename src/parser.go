@@ -217,6 +217,13 @@ func (p *parser) funcStmt() *FuncStmt {
 	return rt
 }
 
+func (p *parser) breakStmt() *BreakStmt {
+	rt := new(BreakStmt)
+	rt.Init(p.p)
+	p.want("break")
+	p.want(";")
+	return rt
+}
 func (p *parser) returnStmt() *ReturnStmt {
 	rt := new(ReturnStmt)
 	rt.Init(p.p)
@@ -279,6 +286,8 @@ func (p *parser) stmt() Stmt {
 		rt = p.forrStmt()
 	case "return":
 		rt = p.returnStmt()
+	case "break":
+		rt = p.breakStmt()
 	case "var":
 		rt = p.varStmt()
 	case "type":
