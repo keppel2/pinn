@@ -45,7 +45,8 @@ func contains(s []string, t string) bool {
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
 	case "-", "+", "!", "@", "#", "range":
-		ue := UnaryExpr{}
+		ue := new(UnaryExpr)
+		ue.Init(p.p)
 		ue.op = p.tok
 		p.next()
 		if p.tok == "]" {
@@ -104,12 +105,12 @@ func (p *parser) operand() Expr {
 	return nil
 }
 
-func (p *parser) arrayExpr(d bool) ArrayExpr {
+func (p *parser) arrayExpr(d bool) *ArrayExpr {
 	rt := ArrayExpr{}
 	rt.EL = p.exprList()
 	p.want("]")
 	rt.Dots = d
-	return rt
+	return &rt
 }
 
 func (p *parser) fileA() File {
@@ -121,23 +122,26 @@ func (p *parser) fileA() File {
 	return f
 }
 
-func (p *parser) loopStmt() LoopStmt {
+func (p *parser) loopStmt() *LoopStmt {
 	p.want("loop")
-	rt := LoopStmt{}
+	rt := new(LoopStmt)
+	rt.Init(p.p)
 	rt.B = p.blockStmt()
 	return rt
 }
-func (p *parser) whileStmt() WhileStmt {
+func (p *parser) whileStmt() *WhileStmt {
 	p.want("while")
-	rt := WhileStmt{}
+	rt := new(WhileStmt)
+	rt.Init(p.p)
 	rt.Cond = p.uexpr()
 	rt.B = p.blockStmt()
 	return rt
 }
 
-func (p *parser) ifStmt() IfStmt {
+func (p *parser) ifStmt() *IfStmt {
 	p.want("if")
-	rt := IfStmt{}
+	rt := new(IfStmt)
+	rt.Init(p.p)
 	rt.Cond = p.uexpr()
 	rt.Then = p.stmt()
 	if p.got("else") {
@@ -146,8 +150,9 @@ func (p *parser) ifStmt() IfStmt {
 	return rt
 }
 
-func (p *parser) field() Field {
-	n := Field{}
+func (p *parser) field() *Field {
+	n := new(Field)
+	n.node.Init(p.p)
 	n.List = append(n.List, p.wLit())
 	for p.got(",") {
 		n.List = append(n.List, p.wLit())
@@ -159,9 +164,10 @@ func (p *parser) field() Field {
 	return n
 }
 
-func (p *parser) varStmt() VarStmt {
+func (p *parser) varStmt() *VarStmt {
 	p.want("var")
-	ds := VarStmt{}
+	ds := new(VarStmt)
+	ds.Init(p.p)
 	ds.Position = p.p
 	ds.List = append(ds.List, p.wLit())
 	for p.got(",") {
@@ -174,8 +180,9 @@ func (p *parser) varStmt() VarStmt {
 	return ds
 }
 
-func (p *parser) typeStmt() TypeStmt {
-	ds := TypeStmt{}
+func (p *parser) typeStmt() *TypeStmt {
+	ds := new(TypeStmt)
+	ds.Init(p.p)
 	ds.Position = p.p
 	p.want("type")
 
@@ -187,8 +194,9 @@ func (p *parser) typeStmt() TypeStmt {
 
 }
 
-func (p *parser) funcStmt() FuncStmt {
-	rt := FuncStmt{}
+func (p *parser) funcStmt() *FuncStmt {
+	rt := new(FuncStmt)
+	rt.Init(p.p)
 	p.want("func")
 	rt.Wl = p.wLit()
 	p.want("(")
@@ -209,8 +217,9 @@ func (p *parser) funcStmt() FuncStmt {
 	return rt
 }
 
-func (p *parser) returnStmt() ReturnStmt {
-	rt := ReturnStmt{}
+func (p *parser) returnStmt() *ReturnStmt {
+	rt := new(ReturnStmt)
+	rt.Init(p.p)
 	p.want("return")
 	if !p.got(";") {
 		rt.E = p.uexpr()
@@ -219,8 +228,9 @@ func (p *parser) returnStmt() ReturnStmt {
 	return rt
 }
 
-func (p *parser) forrStmt() ForrStmt {
-	rt := ForrStmt{}
+func (p *parser) forrStmt() *ForrStmt {
+	rt := new(ForrStmt)
+	rt.Init(p.p)
 	p.want("forr")
 	rt.LH = p.exprList()
 
@@ -234,10 +244,11 @@ func (p *parser) forrStmt() ForrStmt {
 	return rt
 }
 
-func (p *parser) forStmt() ForStmt {
-	rt := ForStmt{}
+func (p *parser) forStmt() *ForStmt {
+	rt := new(ForStmt)
+	rt.Init(p.p)
 	p.want("for")
-	rt.Init = p.stmt()
+	rt.Inits = p.stmt()
 	rt.E = p.uexpr()
 	p.want(";")
 	rt.Loop = p.stmt()
@@ -312,16 +323,18 @@ func (p *parser) exprList() []Expr {
 	return rt
 }
 
-func (p *parser) blockStmt() BlockStmt {
-	rt := BlockStmt{}
+func (p *parser) blockStmt() *BlockStmt {
+	rt := new(BlockStmt)
+	rt.Init(p.p)
 	p.want("{")
 	rt.SList = p.stmtList()
 	p.want("}")
 	return rt
 }
 
-func (p *parser) sKind() SKind {
-	rt := SKind{}
+func (p *parser) sKind() *SKind {
+	rt := new(SKind)
+	rt.Init(p.p)
 	rt.Wl = p.wLit()
 	return rt
 }
@@ -331,17 +344,20 @@ func (p *parser) kind() Kind {
 	case "[":
 		p.want("[")
 		if p.got("]") {
-			rt := SlKind{}
+			rt := new(SlKind)
+			rt.Init(p.p)
 			rt.K = p.kind()
 			return rt
 		}
 		if p.got("map") {
 			p.want("]")
-			rt := MKind{}
+			rt := new(MKind)
+			rt.Init(p.p)
 			rt.K = p.kind()
 			return rt
 		}
-		rt := ArKind{}
+		rt := new(ArKind)
+		rt.Init(p.p)
 		rt.Len = p.uexpr()
 		p.want("]")
 		rt.K = p.kind()
@@ -354,10 +370,10 @@ func (p *parser) kind() Kind {
 	return nil
 }
 
-func (p *parser) assignStmt(LHSa []Expr) AssignStmt {
+func (p *parser) assignStmt(LHSa []Expr) *AssignStmt {
 
-	rt := AssignStmt{}
-	rt.Position = p.p
+	rt := new(AssignStmt)
+	rt.Init(p.p)
 	rt.Op = p.tok
 	p.next()
 	rt.LHSa = LHSa
@@ -389,7 +405,8 @@ func (p *parser) pexpr(prec int) Expr {
 			return p.trinaryExpr(rt)
 		}
 
-		t := BinaryExpr{}
+		t := new(BinaryExpr)
+		t.Init(p.p)
 		t.op = p.tok
 		t.LHS = rt
 		prec := tokenMap[p.tok]
@@ -419,7 +436,8 @@ func (p *parser) uexpr() Expr {
 }
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
-	rt := TrinaryExpr{}
+	rt := new(TrinaryExpr)
+	rt.Init(p.p)
 	rt.LHS = lhs
 	p.want("?")
 	rt.MS = p.uexpr()
@@ -443,7 +461,8 @@ func (p *parser) binaryExpr(lhs Expr) Expr {
 
 func (p *parser) indexExpr(lhs Expr) Expr {
 	p.want("[")
-	rt := IndexExpr{}
+	rt := new(IndexExpr)
+	rt.Init(p.p)
 	rt.X = lhs
 	if p.got("]") {
 		return rt
@@ -474,7 +493,8 @@ func (p *parser) indexExpr(lhs Expr) Expr {
 
 func (p *parser) callExpr(lhs Expr) Expr {
 	p.want("(")
-	rt := CallExpr{}
+	rt := new(CallExpr)
+	rt.Init(p.p)
 	rt.ID = lhs
 	if p.got(")") {
 		return rt
@@ -488,8 +508,9 @@ func (p *parser) callExpr(lhs Expr) Expr {
 	return rt
 }
 
-func (p *parser) iLit() ILit {
-	il := ILit{}
+func (p *parser) iLit() *ILit {
+	il := new(ILit)
+	il.Init(p.p)
 	il.Position = p.p
 	if p.tok != "literal" {
 		p.err("")
@@ -499,9 +520,9 @@ func (p *parser) iLit() ILit {
 	return il
 
 }
-func (p *parser) wLit() WLit {
-	wl := WLit{}
-	wl.Position = p.p
+func (p *parser) wLit() *WLit {
+	wl := new(WLit)
+	wl.Init(p.p)
 	if p.tok != "name" {
 		p.err("")
 	}
@@ -511,15 +532,15 @@ func (p *parser) wLit() WLit {
 }
 
 func (p *parser) varExpr() Expr {
-	rt := VarExpr{}
-	rt.Position = p.p
+	rt := new(VarExpr)
+	rt.Init(p.p)
 	rt.Wl = p.wLit()
 	return rt
 }
 
 func (p *parser) numberExpr() Expr {
-	ne := NumberExpr{}
-	ne.Position = p.p
+	ne := new(NumberExpr)
+	ne.Init(p.p)
 
 	ne.Il = p.iLit()
 	return ne

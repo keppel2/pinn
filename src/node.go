@@ -4,6 +4,7 @@ import "text/scanner"
 
 type Node interface {
 	Gpos() scanner.Position
+	Init(scanner.Position)
 	aNode()
 }
 
@@ -11,8 +12,9 @@ type node struct {
 	scanner.Position
 }
 
-func (n node) Gpos() scanner.Position { return n.Position }
-func (node) aNode()                   {}
+func (n node) Gpos() scanner.Position   { return n.Position }
+func (n *node) Init(s scanner.Position) { n.Position = s }
+func (node) aNode()                     {}
 
 type Stmt interface {
 	Node
@@ -39,10 +41,10 @@ type ReturnStmt struct {
 }
 
 type ForStmt struct {
-	Init Stmt
-	E    Expr
-	Loop Stmt
-	B    BlockStmt
+	Inits Stmt
+	E     Expr
+	Loop  Stmt
+	B     *BlockStmt
 	stmt
 }
 
@@ -50,7 +52,7 @@ type ForrStmt struct {
 	LH []Expr
 	Op string
 	RH Expr
-	B  BlockStmt
+	B  *BlockStmt
 	stmt
 }
 
@@ -75,12 +77,12 @@ type IfStmt struct {
 
 type WhileStmt struct {
 	Cond Expr
-	B    BlockStmt
+	B    *BlockStmt
 	stmt
 }
 
 type LoopStmt struct {
-	B BlockStmt
+	B *BlockStmt
 	stmt
 }
 
@@ -185,33 +187,33 @@ type ArKind struct {
 }
 
 type SKind struct {
-	Wl WLit
+	Wl *WLit
 	kind
 }
 
 type VarStmt struct {
-	List []WLit
+	List []*WLit
 	Kind
 	stmt
 }
 
 type Field struct {
-	List []WLit
+	List []*WLit
 	Kind
 	Dots bool
 	node
 }
 
 type TypeStmt struct {
-	Wl WLit
+	Wl *WLit
 	stmt
 	Kind
 }
 
 type FuncStmt struct {
-	Wl    WLit
-	PList []Field
+	Wl    *WLit
+	PList []*Field
 	K     Kind
-	B     BlockStmt
+	B     *BlockStmt
 	stmt
 }
