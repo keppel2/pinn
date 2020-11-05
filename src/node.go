@@ -45,6 +45,10 @@ type BreakStmt struct {
 	stmt
 }
 
+type ContinueStmt struct {
+	stmt
+}
+
 type ReturnStmt struct {
 	E Expr
 	stmt
