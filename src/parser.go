@@ -106,11 +106,12 @@ func (p *parser) operand() Expr {
 }
 
 func (p *parser) arrayExpr(d bool) *ArrayExpr {
-	rt := ArrayExpr{}
+	rt := new(ArrayExpr)
+	rt.Init(p.p)
 	rt.EL = p.exprList()
 	p.want("]")
 	rt.Dots = d
-	return &rt
+	return rt
 }
 
 func (p *parser) fileA() *File {
@@ -406,8 +407,9 @@ func (p *parser) assignStmt(LHSa []Expr) *AssignStmt {
 
 }
 
-func (p *parser) exprStmt(LHS Expr) ExprStmt {
-	es := ExprStmt{}
+func (p *parser) exprStmt(LHS Expr) *ExprStmt {
+	es := new(ExprStmt)
+	es.node.Init(p.p)
 	es.Expr = LHS
 	p.want(";")
 	return es
