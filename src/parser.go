@@ -182,7 +182,7 @@ func (p *parser) varStmt() *VarStmt {
 
 func (p *parser) typeStmt() *TypeStmt {
 	ds := new(TypeStmt)
-	ds.Init(p.p)
+	ds.node.Init(p.p)
 	ds.Position = p.p
 	p.want("type")
 
@@ -232,7 +232,6 @@ func (p *parser) continueStmt() *ContinueStmt {
 	p.want(";")
 	return rt
 }
-
 
 func (p *parser) returnStmt() *ReturnStmt {
 	rt := new(ReturnStmt)
