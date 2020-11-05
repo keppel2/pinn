@@ -20,6 +20,9 @@ func main() {
 	//	fmt.Println(os.Args)
 
 	//	g()
+	n := new(File)
+	p2 := new(parser)
+	n.Init(p2.p)
 	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
 	ssrc := string(src)
 	//	tok(ssrc)

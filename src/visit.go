@@ -23,7 +23,7 @@ func pnode(n Node) {
 	ilevel++
 }
 
-func visitVarStmt(n VarStmt) {
+func visitVarStmt(n *VarStmt) {
 	for _, vd := range n.List {
 		prn("var: ", vd.Value)
 	}
@@ -31,7 +31,7 @@ func visitVarStmt(n VarStmt) {
 	visitKind(n.Kind)
 }
 
-func visitField(n Field) {
+func visitField(n *Field) {
 	for _, vd := range n.List {
 		prn("fvar: ", vd.Value)
 	}
@@ -39,12 +39,12 @@ func visitField(n Field) {
 	visitKind(n.Kind)
 }
 
-func visitTypeStmt(n TypeStmt) {
+func visitTypeStmt(n *TypeStmt) {
 	prn("type: ", n.Wl.Value)
 	visitKind(n.Kind)
 }
 
-func visitForrStmt(n ForrStmt) {
+func visitForrStmt(n *ForrStmt) {
 	for _, e := range n.LH {
 		visitExpr(e)
 	}
@@ -53,13 +53,13 @@ func visitForrStmt(n ForrStmt) {
 	visitBlockStmt(n.B)
 
 }
-func visitReturnStmt(n ReturnStmt) {
+func visitReturnStmt(n *ReturnStmt) {
 	if n.E != nil {
 		visitExpr(n.E)
 	}
 }
 
-func visitFuncStmt(n FuncStmt) {
+func visitFuncStmt(n *FuncStmt) {
 	prn("fid: ", n.Wl.Value)
 	for _, vd := range n.PList {
 		visitField(vd)
@@ -76,57 +76,57 @@ func visitKind(n Kind) {
 	pnode(n)
 	defer iminus()
 	switch t := n.(type) {
-	case MKind:
+	case *MKind:
 		visitMKind(t)
-	case SlKind:
+	case *SlKind:
 		visitSlKind(t)
-	case ArKind:
+	case *ArKind:
 		visitArKind(t)
-	case SKind:
+	case *SKind:
 		visitSKind(t)
 	}
 }
-func visitMKind(n MKind) {
+func visitMKind(n *MKind) {
 	visitKind(n.K)
 }
 
-func visitSlKind(n SlKind) {
+func visitSlKind(n *SlKind) {
 	visitKind(n.K)
 }
-func visitArKind(n ArKind) {
+func visitArKind(n *ArKind) {
 	visitExpr(n.Len)
 	visitKind(n.K)
 }
-func visitSKind(n SKind) {
+func visitSKind(n *SKind) {
 	prn("Skind", n.Wl.Value)
 }
 
-func visitBinaryExpr(n BinaryExpr) {
+func visitBinaryExpr(n *BinaryExpr) {
 	visitExpr(n.LHS)
 	prn("Op", n.op, ".")
 	visitExpr(n.RHS)
 }
-func visitTrinaryExpr(n TrinaryExpr) {
+func visitTrinaryExpr(n *TrinaryExpr) {
 	visitExpr(n.LHS)
 	visitExpr(n.MS)
 	visitExpr(n.RHS)
 }
 
-func visitCallExpr(n CallExpr) {
+func visitCallExpr(n *CallExpr) {
 	visitExpr(n.ID)
 	for _, v := range n.Params {
 		visitExpr(v)
 	}
 }
 
-func visitUnaryExpr(n UnaryExpr) {
+func visitUnaryExpr(n *UnaryExpr) {
 	if n.E != nil {
 		visitExpr(n.E)
 	}
 	prn("Uop", n.op)
 }
 
-func visitIndexExpr(n IndexExpr) {
+func visitIndexExpr(n *IndexExpr) {
 	visitExpr(n.X)
 	visitExpr(n.E)
 	/*
@@ -141,7 +141,7 @@ func visitIndexExpr(n IndexExpr) {
 	*/
 }
 
-func visitArrayExpr(n ArrayExpr) {
+func visitArrayExpr(n *ArrayExpr) {
 	for _, e := range n.EL {
 		visitExpr(e)
 	}
@@ -151,34 +151,34 @@ func visitExpr(n Expr) {
 	pnode(n)
 	defer iminus()
 	switch t := n.(type) {
-	case TrinaryExpr:
+	case *TrinaryExpr:
 		visitTrinaryExpr(t)
-	case NumberExpr:
+	case *NumberExpr:
 		prn("Number", t.Il.Value)
-	case VarExpr:
+	case *VarExpr:
 		prn("Var", t.Wl.Value)
-	case IndexExpr:
+	case *IndexExpr:
 		visitIndexExpr(t)
-	case BinaryExpr:
+	case *BinaryExpr:
 		visitBinaryExpr(t)
-	case CallExpr:
+	case *CallExpr:
 		visitCallExpr(t)
-	case UnaryExpr:
+	case *UnaryExpr:
 		visitUnaryExpr(t)
-	case ArrayExpr:
+	case *ArrayExpr:
 		visitArrayExpr(t)
 	}
 
 }
-func visitWhileStmt(n WhileStmt) {
+func visitWhileStmt(n *WhileStmt) {
 	visitExpr(n.Cond)
 	visitBlockStmt(n.B)
 }
 
-func visitLoopStmt(n LoopStmt) {
+func visitLoopStmt(n *LoopStmt) {
 	visitBlockStmt(n.B)
 }
-func visitIfStmt(n IfStmt) {
+func visitIfStmt(n *IfStmt) {
 	visitExpr(n.Cond)
 	visitStmt(n.Then)
 	if n.Else != nil {
@@ -186,11 +186,11 @@ func visitIfStmt(n IfStmt) {
 	}
 }
 
-func visitExprStmt(e ExprStmt) {
+func visitExprStmt(e *ExprStmt) {
 	visitExpr(e.Expr)
 }
 
-func visitAssignStmt(a AssignStmt) {
+func visitAssignStmt(a *AssignStmt) {
 	for _, e := range a.LHSa {
 		visitExpr(e)
 	}
@@ -200,7 +200,7 @@ func visitAssignStmt(a AssignStmt) {
 	}
 }
 
-func visitBlockStmt(t BlockStmt) {
+func visitBlockStmt(t *BlockStmt) {
 	for _, s := range t.SList {
 		visitStmt(s)
 	}
@@ -210,32 +210,32 @@ func visitStmt(s Stmt) {
 	pnode(s)
 	defer iminus()
 	switch t := s.(type) {
-	case ForrStmt:
+	case *ForrStmt:
 		visitForrStmt(t)
-	case BlockStmt:
+	case *BlockStmt:
 		visitBlockStmt(t)
-	case VarStmt:
+	case *VarStmt:
 		visitVarStmt(t)
-	case TypeStmt:
+	case *TypeStmt:
 		visitTypeStmt(t)
-	case FuncStmt:
+	case *FuncStmt:
 		visitFuncStmt(t)
-	case ExprStmt:
+	case *ExprStmt:
 		visitExprStmt(t)
-	case AssignStmt:
+	case *AssignStmt:
 		visitAssignStmt(t)
-	case IfStmt:
+	case *IfStmt:
 		visitIfStmt(t)
-	case WhileStmt:
+	case *WhileStmt:
 		visitWhileStmt(t)
-	case LoopStmt:
+	case *LoopStmt:
 		visitLoopStmt(t)
-	case ReturnStmt:
+	case *ReturnStmt:
 		visitReturnStmt(t)
 	}
 }
 
-func visitFile(f File) {
+func visitFile(f *File) {
 	pnode(f)
 	defer iminus()
 	for _, s := range f.SList {

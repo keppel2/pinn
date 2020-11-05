@@ -113,9 +113,9 @@ func (p *parser) arrayExpr(d bool) *ArrayExpr {
 	return &rt
 }
 
-func (p *parser) fileA() File {
-	f := File{}
-	f.Position = p.p
+func (p *parser) fileA() *File {
+	f := new(File)
+	f.Init(p.p)
 	p.next()
 	f.SList = p.stmtList()
 
@@ -167,7 +167,7 @@ func (p *parser) field() *Field {
 func (p *parser) varStmt() *VarStmt {
 	p.want("var")
 	ds := new(VarStmt)
-	ds.Init(p.p)
+	ds.node.Init(p.p)
 	ds.Position = p.p
 	ds.List = append(ds.List, p.wLit())
 	for p.got(",") {

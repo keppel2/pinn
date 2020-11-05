@@ -1,6 +1,9 @@
 package main
 
 import "text/scanner"
+import "fmt"
+
+var _fmt = fmt.Print
 
 type Node interface {
 	Gpos() scanner.Position
@@ -12,9 +15,12 @@ type node struct {
 	scanner.Position
 }
 
-func (n node) Gpos() scanner.Position   { return n.Position }
-func (n *node) Init(s scanner.Position) { n.Position = s }
-func (node) aNode()                     {}
+func (n node) Gpos() scanner.Position { return n.Position }
+func (n *node) Init(s scanner.Position) {
+
+	n.Position = s
+}
+func (node) aNode() {}
 
 type Stmt interface {
 	Node
@@ -115,12 +121,12 @@ type ILit struct {
 }
 
 type NumberExpr struct {
-	Il ILit
+	Il *ILit
 	expr
 }
 
 type VarExpr struct {
-	Wl WLit
+	Wl *WLit
 	expr
 }
 
