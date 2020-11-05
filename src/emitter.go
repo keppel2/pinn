@@ -12,8 +12,10 @@ type emitter struct {
 	rMap    map[string]int
 	creg    int
 	cbranch int
-	lstack  []string
+	lstack  []int
 }
+
+func emit() {}
 
 func (e *emitter) init() {
 	e.rMap = make(map[string]int)
@@ -21,23 +23,27 @@ func (e *emitter) init() {
 	e.cbranch = 1
 }
 
-func (e *emitter) clab() string {
-	rt := fmt.Sprintf("ifb%v", e.cbranch)
+func (e *emitter) clab() int {
+	rt := e.cbranch
 	e.cbranch++
 	return rt
 }
 
-func (e *emitter) pushloop(s string) {
+func makeBranch(i int) string {
+	return fmt.Sprintf("gb%v", i)
+}
+
+func (e *emitter) pushloop(s int) {
 	e.lstack = append(e.lstack, s)
 }
 
-func (e *emitter) poploop() string {
+func (e *emitter) poploop() int {
 	rt := e.lstack[len(e.lstack)-1]
 	e.lstack = e.lstack[0 : len(e.lstack)-1]
 	return rt
 }
 
-func (e *emitter) peekloop() string {
+func (e *emitter) peekloop() int {
 	return e.lstack[len(e.lstack)-1]
 }
 
@@ -164,23 +170,25 @@ func (e *emitter) emitStmt(s Stmt) string {
 		for _, s := range t.SList {
 			rt += e.emitStmt(s)
 		}
+	case *ContinueStmt:
+		rt += ind + "b" + AM + makeBranch(e.peekloop()-1) + "\n"
 	case *BreakStmt:
-		rt += ind + "b" + AM + e.peekloop() + "\n"
+		rt += ind + "b" + AM + makeBranch(e.peekloop()) + "\n"
 	case *LoopStmt:
 		lab := e.clab()
-		rt += lab + ":\n"
+		rt += makeBranch(lab) + ":\n"
 		lab2 := e.clab()
 		e.pushloop(lab2)
 		rt += e.emitStmt(t.B)
-		rt += ind + "b" + AM + lab + "\n"
-		rt += lab2 + ":\n"
+		rt += ind + "b" + AM + makeBranch(lab) + "\n"
+		rt += makeBranch(lab2) + ":\n"
 		e.poploop()
 
 	case *IfStmt:
 		lab := e.clab()
-		rt += e.binaryExpr(lab, t.Cond.(*BinaryExpr))
+		rt += e.binaryExpr(makeBranch(lab), t.Cond.(*BinaryExpr))
 		rt += e.emitStmt(t.Then)
-		rt += lab + ":\n"
+		rt += makeBranch(lab) + ":\n"
 
 	case *ReturnStmt:
 		rt += ind + "mov" + AM + "w0" + OS

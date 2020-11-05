@@ -16,18 +16,27 @@ a = b % c;
 a = 5 % c * b + 41; 
 a = 13;
 if a > 3 {
-a = 10;
-a = a + 1;
-if a > 5 {
-a = 42;
-}
+  a = 10;
+  a = a + 1;
+  if a > 5 {
+    a = 42;
+  }
 }
 if 2 < 3 {
-a = 101;
+  a = 101;
 }
 loop {
-a = 1024;
-break;
+  a = 1024;
+  break;
 }
+a = 1;
+loop {
+  a = a + 1;
+  if a < 5 {
+    continue;
+  }
+  break;
+}
+  
 
 return a;
