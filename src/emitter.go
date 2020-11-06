@@ -166,6 +166,24 @@ func (e *emitter) emitExpr(dest string, ex Expr) string {
 func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
 	switch t := s.(type) {
+	case *ExprStmt:
+		ce := t.Expr.(*CallExpr)
+		if ce.ID.(*VarExpr).Wl.Value != "assert" {
+			e.err("")
+		}
+		mtr, lh := e.moveToTr(ce.Params[0])
+		rt += mtr
+		rh := e.regOrImm(ce.Params[1])
+		rt += ind + "cmp" + AM + lh + OS + rh + "\n"
+		lab := makeBranch(e.clab())
+		rt += ind + "b.eq" + AM + lab + "\n"
+		rt += ind + "mov" + AM + "w0" +  OS + "1" + "\n"
+		rt += ind + "ret" + "\n"
+		rt += lab + ":\n"
+		
+
+
+
 	case *BlockStmt:
 		for _, s := range t.SList {
 			rt += e.emitStmt(s)

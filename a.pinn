@@ -1,3 +1,4 @@
 var x int;
 x = 42;
 assert(x, 42); // cmp/jmp
+return 0;
