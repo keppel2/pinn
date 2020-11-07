@@ -26,7 +26,6 @@ func emit(i string, ops ...string) string {
 	}
 	rt += "\n"
 	return rt
-
 }
 
 func (e *emitter) init() {
@@ -43,6 +42,10 @@ func (e *emitter) clab() int {
 
 func makeBranch(i int) string {
 	return fmt.Sprintf("gb%v", i)
+}
+
+func makeLabel(i int) string {
+	return fmt.Sprintf("gb%v:\n", i)
 }
 
 func (e *emitter) pushloop(s int) {
@@ -190,11 +193,11 @@ func (e *emitter) emitStmt(s Stmt) string {
 		rt += mtr
 		rh := e.regOrImm(ce.Params[1])
 		rt += emit("cmp", lh, rh)
-		lab := makeBranch(e.clab())
-		rt += emit("b.eq", lab)
+		lab := e.clab()
+		rt += emit("b.eq", makeBranch(lab))
 		rt += emit("mov", "w0", "1")
 		rt += ind + "ret" + "\n"
-		rt += lab + ":\n"
+		rt += makeLabel(lab)
 
 	case *BlockStmt:
 		for _, s := range t.SList {
@@ -206,19 +209,25 @@ func (e *emitter) emitStmt(s Stmt) string {
 		rt += emit("b", makeBranch(e.peekloop()))
 	case *LoopStmt:
 		lab := e.clab()
-		rt += makeBranch(lab) + ":\n"
+		rt += makeLabel(lab)
 		lab2 := e.clab()
 		e.pushloop(lab2)
 		rt += e.emitStmt(t.B)
 		rt += emit("b", makeBranch(lab))
-		rt += makeBranch(lab2) + ":\n"
+		rt += makeLabel(lab2)
 		e.poploop()
+	case *WhileStmt:
+		lab := e.clab()
+		lab2 := e.clab()
+		rt += makeLabel(lab)
+		rt += e.binaryExpr(makeBranch(lab2), t.Cond.(*BinaryExpr))
+		rt += e.emitStmt(t.B)
 
 	case *IfStmt:
 		lab := e.clab()
 		rt += e.binaryExpr(makeBranch(lab), t.Cond.(*BinaryExpr))
 		rt += e.emitStmt(t.Then)
-		rt += makeBranch(lab) + ":\n"
+		rt += makeLabel(lab)
 
 	case *ReturnStmt:
 		rt += emit("mov", "w0", e.regOrImm(t.E))
