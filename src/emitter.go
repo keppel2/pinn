@@ -15,7 +15,19 @@ type emitter struct {
 	lstack  []int
 }
 
-func emit() {}
+func emit(i string, ops ...string) string {
+	rt := ""
+	rt += ind + i + AM
+	if ops != nil {
+		rt += ops[0]
+		for _, s := range ops[1:] {
+			rt += OS + s
+		}
+	}
+	rt += "\n"
+	return rt
+
+}
 
 func (e *emitter) init() {
 	e.rMap = make(map[string]int)
@@ -85,7 +97,7 @@ func (e *emitter) operand(ex Expr) string {
 func (e *emitter) moveToTr(ex Expr) (string, string) {
 	rt := ""
 	if v, ok := ex.(*NumberExpr); ok {
-		rt += ind + "mov" + AM + TR + OS + e.regOrImm(v) + "\n"
+		rt += emit("mov", TR, e.regOrImm(v))
 		return rt, TR
 	}
 	return rt, e.regOrImm(ex)
@@ -97,7 +109,7 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) string {
 		mtr, lh := e.moveToTr(be.LHS)
 		rt += mtr
 		rh := e.regOrImm(be.RHS)
-		rt += ind + "cmp" + AM + lh + OS + rh + "\n"
+		rt += emit("cmp", lh, rh)
 		bi := ""
 		switch be.op {
 		case "==":
@@ -113,13 +125,13 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) string {
 		case ">=":
 			bi = "LT"
 		}
-		rt += ind + "b." + bi + AM + dest + "\n"
+		rt += emit("b."+bi, dest)
 
 		return rt
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		rt += ind + "mov" + AM + dest + OS + e.regOrImm(t) + "\n"
+		rt += emit("mov", dest, e.regOrImm(t))
 	case *BinaryExpr:
 		rt += e.binaryExpr(dest, t)
 	}
@@ -147,21 +159,24 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) string {
 		mtr := ""
 		mtr, rh = e.moveToTr(be.RHS)
 		rt += mtr
-		rt += ind + "udiv" + AM + TR2 + OS + dest + OS + rh + "\n"
-		rt += ind + "msub" + AM + dest + OS + TR2 + OS + rh + OS + dest + "\n"
+		rt += emit("udiv", TR2, dest, rh)
+		rt += emit("msub", dest, TR2, rh, dest)
 		return rt
 	}
-	rt += ind + op + AM + dest + OS + dest + OS + rh + "\n"
+	rt += emit(op, dest, dest, rh)
 	return rt
 }
+
+/*
 func (e *emitter) emitExpr(dest string, ex Expr) string {
 
 	rt := ""
 	return rt
 
-	//switch t := e.(type) {
-	//	}
+	switch t := e.(type) {
+		}
 }
+*/
 
 func (e *emitter) emitStmt(s Stmt) string {
 	rt := ""
@@ -174,31 +189,28 @@ func (e *emitter) emitStmt(s Stmt) string {
 		mtr, lh := e.moveToTr(ce.Params[0])
 		rt += mtr
 		rh := e.regOrImm(ce.Params[1])
-		rt += ind + "cmp" + AM + lh + OS + rh + "\n"
+		rt += emit("cmp", lh, rh)
 		lab := makeBranch(e.clab())
-		rt += ind + "b.eq" + AM + lab + "\n"
-		rt += ind + "mov" + AM + "w0" +  OS + "1" + "\n"
+		rt += emit("b.eq", lab)
+		rt += emit("mov", "w0", "1")
 		rt += ind + "ret" + "\n"
 		rt += lab + ":\n"
-		
-
-
 
 	case *BlockStmt:
 		for _, s := range t.SList {
 			rt += e.emitStmt(s)
 		}
 	case *ContinueStmt:
-		rt += ind + "b" + AM + makeBranch(e.peekloop()-1) + "\n"
+		rt += emit("b", makeBranch(e.peekloop()-1))
 	case *BreakStmt:
-		rt += ind + "b" + AM + makeBranch(e.peekloop()) + "\n"
+		rt += emit("b", makeBranch(e.peekloop()))
 	case *LoopStmt:
 		lab := e.clab()
 		rt += makeBranch(lab) + ":\n"
 		lab2 := e.clab()
 		e.pushloop(lab2)
 		rt += e.emitStmt(t.B)
-		rt += ind + "b" + AM + makeBranch(lab) + "\n"
+		rt += emit("b", makeBranch(lab))
 		rt += makeBranch(lab2) + ":\n"
 		e.poploop()
 
@@ -209,23 +221,21 @@ func (e *emitter) emitStmt(s Stmt) string {
 		rt += makeBranch(lab) + ":\n"
 
 	case *ReturnStmt:
-		rt += ind + "mov" + AM + "w0" + OS
-		rt += e.regOrImm(t.E) + "\n"
+		rt += emit("mov", "w0", e.regOrImm(t.E))
 	case *AssignStmt:
 		lh := e.operand(t.LHSa[0].(*VarExpr))
 		rh := ""
 		switch t2 := t.RHSa[0].(type) {
 		case *NumberExpr, *VarExpr:
 			rh += e.operand(t2)
-			rt += ind + "mov" + AM + lh + OS + rh + "\n"
+			rt += emit("mov", lh, rh)
+
 			return rt
 		case *BinaryExpr:
 
 			rt += e.binaryExpr(lh, t2)
-			//			rt = "  add " + lh + ", " + e.emitExpr(lh, t2.LHS) + ", " + e.emitExpr(lh, t2.RHS) + "\n"
 			return rt
 		}
-		//rh := e.emitExpr(t.RHSa[0])
 
 	case *VarStmt:
 		s := t.List[0].Value
