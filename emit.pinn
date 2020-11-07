@@ -49,6 +49,38 @@ loop {
   break;
 }
 assert(a, 5);
-  
+
+a = 12;
+while a > 8 {
+a = a - 1;
+}
+assert(a, 8);
+
+a = 4;
+while a < 8 {
+  a = a + 1;
+  if a == 6 {
+    break;
+  }
+}
+assert(a, 6);
+
+a = 10;
+while a < 15 {
+  a = a + 1;
+  continue;
+  a = 25;
+}
+assert(a, 15);
+ 
+
+loop {
+  loop {
+    break;
+  }
+  a = 42;
+  break;
+}
+assert(a, 42);
 
 return 0;

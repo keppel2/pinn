@@ -218,10 +218,13 @@ func (e *emitter) emitStmt(s Stmt) string {
 		e.poploop()
 	case *WhileStmt:
 		lab := e.clab()
-		lab2 := e.clab()
 		rt += makeLabel(lab)
+		lab2 := e.clab()
+		e.pushloop(lab2)
 		rt += e.binaryExpr(makeBranch(lab2), t.Cond.(*BinaryExpr))
 		rt += e.emitStmt(t.B)
+		rt += emit("b", makeBranch(lab))
+		rt += makeLabel(lab2)
 
 	case *IfStmt:
 		lab := e.clab()
