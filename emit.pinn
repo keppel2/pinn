@@ -83,4 +83,11 @@ loop {
 }
 assert(a, 42);
 
+if a == 23 {
+a = 101;
+} else {
+a = 202;
+}
+assert(a, 202);
+
 return 0;

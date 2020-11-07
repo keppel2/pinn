@@ -227,9 +227,18 @@ func (e *emitter) emitStmt(s Stmt) string {
 		rt += makeLabel(lab2)
 
 	case *IfStmt:
-		lab := e.clab()
-		rt += e.binaryExpr(makeBranch(lab), t.Cond.(*BinaryExpr))
-		rt += e.emitStmt(t.Then)
+    lab := e.clab()
+    if t.Else == nil {
+		  rt += e.binaryExpr(makeBranch(lab), t.Cond.(*BinaryExpr))
+		  rt += e.emitStmt(t.Then)
+    } else {
+      lab2 := e.clab()
+		  rt += e.binaryExpr(makeBranch(lab2), t.Cond.(*BinaryExpr))
+      rt += e.emitStmt(t.Then)
+      rt += emit("b", makeBranch(lab))
+      rt += makeLabel(lab2)
+      rt += e.emitStmt(t.Else)
+    }
 		rt += makeLabel(lab)
 
 	case *ReturnStmt:
