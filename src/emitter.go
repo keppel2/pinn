@@ -170,6 +170,14 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) string {
 	return rt
 }
 
+func (e *emitter) emitFunc(f *FuncDecl) string {
+	rt := ""
+	rt += f.Wl.Value + ":\n"
+	rt += e.emitStmt(f.B)
+	rt += emit("ret")
+	return rt
+}
+
 /*
 func (e *emitter) emitExpr(dest string, ex Expr) string {
 
@@ -186,18 +194,22 @@ func (e *emitter) emitStmt(s Stmt) string {
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)
-		if ce.ID.(*VarExpr).Wl.Value != "assert" {
-			e.err("")
+		if ce.ID.(*VarExpr).Wl.Value == "assert" {
+			mtr, lh := e.moveToTr(ce.Params[0])
+			rt += mtr
+			rh := e.regOrImm(ce.Params[1])
+			rt += emit("cmp", lh, rh)
+			lab := e.clab()
+			rt += emit("b.eq", makeBranch(lab))
+			rt += emit("mov", "w0", "1")
+			rt += ind + "ret" + "\n"
+			rt += makeLabel(lab)
+
+		} else {
+			rt += emit("mov", "x23", "lr")
+			rt += emit("bl", ce.ID.(*VarExpr).Wl.Value)
+			rt += emit("mov", "lr", "x23")
 		}
-		mtr, lh := e.moveToTr(ce.Params[0])
-		rt += mtr
-		rh := e.regOrImm(ce.Params[1])
-		rt += emit("cmp", lh, rh)
-		lab := e.clab()
-		rt += emit("b.eq", makeBranch(lab))
-		rt += emit("mov", "w0", "1")
-		rt += ind + "ret" + "\n"
-		rt += makeLabel(lab)
 
 	case *BlockStmt:
 		for _, s := range t.SList {
@@ -227,18 +239,18 @@ func (e *emitter) emitStmt(s Stmt) string {
 		rt += makeLabel(lab2)
 
 	case *IfStmt:
-    lab := e.clab()
-    if t.Else == nil {
-		  rt += e.binaryExpr(makeBranch(lab), t.Cond.(*BinaryExpr))
-		  rt += e.emitStmt(t.Then)
-    } else {
-      lab2 := e.clab()
-		  rt += e.binaryExpr(makeBranch(lab2), t.Cond.(*BinaryExpr))
-      rt += e.emitStmt(t.Then)
-      rt += emit("b", makeBranch(lab))
-      rt += makeLabel(lab2)
-      rt += e.emitStmt(t.Else)
-    }
+		lab := e.clab()
+		if t.Else == nil {
+			rt += e.binaryExpr(makeBranch(lab), t.Cond.(*BinaryExpr))
+			rt += e.emitStmt(t.Then)
+		} else {
+			lab2 := e.clab()
+			rt += e.binaryExpr(makeBranch(lab2), t.Cond.(*BinaryExpr))
+			rt += e.emitStmt(t.Then)
+			rt += emit("b", makeBranch(lab))
+			rt += makeLabel(lab2)
+			rt += e.emitStmt(t.Else)
+		}
 		rt += makeLabel(lab)
 
 	case *ReturnStmt:
@@ -276,5 +288,8 @@ main:
 		rt += e.emitStmt(s)
 	}
 	rt += ind + "ret\n"
+	for _, s := range f.FList {
+		rt += e.emitFunc(s)
+	}
 	return rt
 }

@@ -1,8 +1,10 @@
+func f() {
+var x int;
+x = 101;
+}
+
 var a int;
 a = 42;
-if a == 101 {
-a = 1;
-} else {
-a = 2;
-}
+f();
+assert(3, 4);
 return 0;

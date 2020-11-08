@@ -33,6 +33,7 @@ func (stmt) aStmt() {}
 
 type File struct {
 	SList []Stmt
+	FList []*FuncDecl
 	node
 }
 
@@ -224,10 +225,10 @@ type TypeStmt struct {
 	Kind
 }
 
-type FuncStmt struct {
+type FuncDecl struct {
 	Wl    *WLit
 	PList []*Field
 	K     Kind
 	B     *BlockStmt
-	stmt
+	node
 }

@@ -118,8 +118,14 @@ func (p *parser) fileA() *File {
 	f := new(File)
 	f.Init(p.p)
 	p.next()
-	f.SList = p.stmtList()
 
+	for p.tok != "EOF" {
+		if p.tok == "func" {
+			f.FList = append(f.FList, p.funcDecl())
+		} else {
+			f.SList = append(f.SList, p.stmt())
+		}
+	}
 	return f
 }
 
@@ -195,8 +201,8 @@ func (p *parser) typeStmt() *TypeStmt {
 
 }
 
-func (p *parser) funcStmt() *FuncStmt {
-	rt := new(FuncStmt)
+func (p *parser) funcDecl() *FuncDecl {
+	rt := new(FuncDecl)
 	rt.Init(p.p)
 	p.want("func")
 	rt.Wl = p.wLit()
@@ -304,8 +310,6 @@ func (p *parser) stmt() Stmt {
 		rt = p.varStmt()
 	case "type":
 		rt = p.typeStmt()
-	case "func":
-		rt = p.funcStmt()
 	case "if":
 		rt = p.ifStmt()
 	case "while":
@@ -328,7 +332,7 @@ func (p *parser) stmt() Stmt {
 
 func (p *parser) stmtList() []Stmt {
 	rt := make([]Stmt, 0)
-	for p.tok != "EOF" && p.tok != "}" {
+	for p.tok != "}" {
 		rt = append(rt, p.stmt())
 	}
 	return rt

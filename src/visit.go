@@ -59,8 +59,10 @@ func visitReturnStmt(n *ReturnStmt) {
 	}
 }
 
-func visitFuncStmt(n *FuncStmt) {
+func visitFuncDecl(n *FuncDecl) {
 	prn("fid: ", n.Wl.Value)
+	ilevel++
+	defer iminus()
 	for _, vd := range n.PList {
 		visitField(vd)
 	}
@@ -218,8 +220,6 @@ func visitStmt(s Stmt) {
 		visitVarStmt(t)
 	case *TypeStmt:
 		visitTypeStmt(t)
-	case *FuncStmt:
-		visitFuncStmt(t)
 	case *ExprStmt:
 		visitExprStmt(t)
 	case *AssignStmt:
@@ -238,6 +238,9 @@ func visitStmt(s Stmt) {
 func visitFile(f *File) {
 	pnode(f)
 	defer iminus()
+	for _, d := range f.FList {
+		visitFuncDecl(d)
+	}
 	for _, s := range f.SList {
 		visitStmt(s)
 	}
