@@ -1,6 +1,10 @@
 var a int;
 a = 2;
 assert(a, 2);
+a = a + 1;
+assert(a, 3);
+a = a - 1;
+assert(a, 2);
 var b int;
 b = 3;
 assert(b, 3);
@@ -25,6 +29,9 @@ c = a % 2;
 assert(c, 0);
 
 a = 5;
+if a <= 2 {
+  bad();
+}
 if 10 < a {
   bad();
 }

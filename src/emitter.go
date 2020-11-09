@@ -122,7 +122,7 @@ func (e *emitter) moveToTr(ex Expr) string {
 }
 
 func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
-	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == ">" {
+	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		lh := e.moveToTr(be.LHS)
 		rh := e.regOrImm(be.RHS)
 		e.emit("cmp", lh, rh)
