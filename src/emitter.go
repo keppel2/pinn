@@ -2,8 +2,9 @@ package main
 
 import "fmt"
 
-const TR = "w29"
-const TR2 = "w28"
+const RP = "w"
+const TR = RP + "29"
+const TR2 = RP + "28"
 const TRL = "x27"
 const TMAIN = "x26"
 const BP = ".br"
@@ -89,7 +90,7 @@ func (e *emitter) regOrImm(ex Expr) string {
 		if !ok {
 			e.err("")
 		}
-		rt = "w" + fmt.Sprint(i)
+		rt = RP + fmt.Sprint(i)
 	default:
 		e.err("")
 	}
@@ -146,13 +147,13 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) {
 		e.binaryExpr(dest, t)
   case *CallExpr:
     e.emitCall(t)
-    e.emit("mov", dest, "w0")
+    e.emit("mov", dest, RP + "0")
 	}
 	op := ""
 	rh := ""
   if t, ok := be.RHS.(*CallExpr); ok {
     e.emitCall(t)
-    rh = "w0"
+    rh = RP + "0"
   }
 	switch be.op {
 	case "+":
@@ -209,7 +210,7 @@ func (e *emitter) emitExpr(dest string, ex Expr){
 */
 
 func (e *emitter) assignToReg(r int, ex Expr) {
-	lh := "w" + fmt.Sprint(r)
+	lh := RP + fmt.Sprint(r)
 	switch t2 := ex.(type) {
 	case *NumberExpr, *VarExpr:
 		rh := e.operand(t2)
@@ -218,7 +219,7 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 		e.binaryExpr(lh, t2)
   case *CallExpr:
     e.emitCall(t2)
-    e.emit("mov", lh, "w0")
+    e.emit("mov", lh, RP + "0")
   
     default:
     e.err("")
@@ -249,7 +250,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("cmp", lh, rh)
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
-			e.emit("mov", "w0", "1")
+			e.emit("mov", RP + "0", "1")
 			e.emit("mov", "lr", TMAIN)
 			e.emit("ret")
 			e.makeLabel(lab)
@@ -321,7 +322,7 @@ main:
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-  e.emit("mov", "w0", "wzr")
+  e.emit("mov", RP + "0", RP + "zr")
 	e.emit("ret")
 	for _, s := range f.FList {
 		e.emitFunc(s)
