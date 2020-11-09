@@ -7,6 +7,7 @@ const OS = ", "
 const AM = " "
 const TR = "w29"
 const TR2 = "w28"
+const TRL = "x27"
 
 type emitter struct {
 	src     string
@@ -191,9 +192,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.makeLabel(lab)
 
 		} else {
-			e.emit("mov", "x23", "lr")
+			e.emit("mov", TRL, "lr")
 			e.emit("bl", ce.ID.(*VarExpr).Wl.Value)
-			e.emit("mov", "lr", "x23")
+			e.emit("mov", "lr", TRL)
 		}
 
 	case *BlockStmt:
