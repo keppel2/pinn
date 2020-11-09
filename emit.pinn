@@ -90,4 +90,15 @@ a = 202;
 }
 assert(a, 202);
 
+f(42);
+a = g();
+assert(a, 101);
 return 0;
+
+func f(a int) {
+assert(a, 42);
+}
+func g() int {
+  return 101;
+}
+

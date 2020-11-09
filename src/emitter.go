@@ -7,6 +7,7 @@ const TR2 = "w28"
 const TRL = "x27"
 const TMAIN = "x26"
 const BP = ".br"
+const FP = ".f"
 
 type emitter struct {
 	src     string
@@ -143,9 +144,16 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) {
 		e.emit("mov", dest, e.regOrImm(t))
 	case *BinaryExpr:
 		e.binaryExpr(dest, t)
+  case *CallExpr:
+    e.emitCall(t)
+    e.emit("mov", dest, "w0")
 	}
 	op := ""
 	rh := ""
+  if t, ok := be.RHS.(*CallExpr); ok {
+    e.emitCall(t)
+    rh = "w0"
+  }
 	switch be.op {
 	case "+":
 		op = "add"
@@ -154,16 +162,21 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) {
 		if op == "" {
 			op = "sub"
 		}
-		rh = e.regOrImm(be.RHS)
+		if rh == "" { rh = e.regOrImm(be.RHS)
+    }
 	case "*", "/":
 		if be.op == "*" {
 			op = "mul"
 		} else {
 			op = "udiv"
 		}
+    if rh == "" {
 		rh = e.moveToTr(be.RHS)
+    }
 	case "%":
+  if rh == "" {
 		rh = e.moveToTr(be.RHS)
+    }
 		e.emit("udiv", TR2, dest, rh)
 		e.emit("msub", dest, TR2, rh, dest)
 		return
@@ -172,7 +185,7 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) {
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
-	e.src += f.Wl.Value + ":\n"
+	e.src += FP + f.Wl.Value + ":\n"
 	reg := 0
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
@@ -203,8 +216,25 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 		e.emit("mov", lh, rh)
 	case *BinaryExpr:
 		e.binaryExpr(lh, t2)
-
+  case *CallExpr:
+    e.emitCall(t2)
+    e.emit("mov", lh, "w0")
+  
+    default:
+    e.err("")
 	}
+
+}
+
+func (e *emitter) emitCall(ce *CallExpr) {
+		ID := ce.ID.(*VarExpr).Wl.Value
+  	for k, v := range ce.Params {
+			e.assignToReg(k, v)
+		}
+	e.emit("mov", TRL, "lr")
+			e.emit("bl", FP + ID)
+			e.emit("mov", "lr", TRL)
+
 
 }
 
@@ -224,12 +254,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("ret")
 			e.makeLabel(lab)
 		} else {
-			for k, v := range ce.Params {
-				e.assignToReg(k, v)
-			}
-			e.emit("mov", TRL, "lr")
-			e.emit("bl", ce.ID.(*VarExpr).Wl.Value)
-			e.emit("mov", "lr", TRL)
+      e.emitCall(ce)
 		}
 
 	case *BlockStmt:
@@ -275,7 +300,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.makeLabel(lab)
 
 	case *ReturnStmt:
-		e.emit("mov", "w0", e.regOrImm(t.E))
+    e.assignToReg(0, t.E)
 	case *AssignStmt:
 		lhi := e.rMap[t.LHSa[0].(*VarExpr).Wl.Value]
 		e.assignToReg(lhi, t.RHSa[0])
@@ -296,6 +321,7 @@ main:
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
+  e.emit("mov", "w0", "wzr")
 	e.emit("ret")
 	for _, s := range f.FList {
 		e.emitFunc(s)
