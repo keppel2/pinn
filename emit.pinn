@@ -28,6 +28,9 @@ a = 5;
 if 10 < a {
   bad();
 }
+if a > 20 {
+  bad();
+}
 if a > 3 {
   a = 10;
   if a > 7 {
@@ -96,6 +99,14 @@ assert(a, 202);
 f(42);
 a = g();
 assert(a, 101);
+
+/*
+if g() < 42 {
+bad();
+}
+*/
+
+
 return 0;
 
 func f(a int) {

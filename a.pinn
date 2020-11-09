@@ -1,19 +1,2 @@
-/*
-func fact (a int) int {
-if a <= 1 {
-  return 1;
-}
-return a * fact(a - 1);
-}
-
-var z int;
-z = fact(3);
-assert(z, 6);
-return 0;
-*/
-func f ( a int) {
-assert(a, 3);
-}
-var v int;
-v = 2;
-f(v + 1);
+var a int;
+a = 1 + 2 + 3;
