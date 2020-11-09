@@ -142,13 +142,18 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) {
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		e.emit("mov", dest, e.regOrImm(t))
+    rh := e.operand(t)
+		e.emit("mov", dest, rh)
 	case *BinaryExpr:
 		e.binaryExpr(dest, t)
   case *CallExpr:
     e.emitCall(t)
     e.emit("mov", dest, RP + "0")
 	}
+
+
+
+
 	op := ""
 	rh := ""
   if t, ok := be.RHS.(*CallExpr); ok {
@@ -254,7 +259,12 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("mov", "lr", TMAIN)
 			e.emit("ret")
 			e.makeLabel(lab)
-		} else {
+		} else if ID == "bad" {
+      e.emit("mov", RP + "0", "1")
+			e.emit("mov", "lr", TMAIN)
+			e.emit("ret")
+
+    } else {
       e.emitCall(ce)
 		}
 

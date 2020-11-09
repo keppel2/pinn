@@ -25,6 +25,9 @@ c = a % 2;
 assert(c, 0);
 
 a = 5;
+if 10 < a {
+  bad();
+}
 if a > 3 {
   a = 10;
   if a > 7 {
@@ -33,7 +36,7 @@ if a > 3 {
 }
 assert(a, 42);
 if 3 < 1 {
-  assert(0, 1);
+  bad();
 }
 loop {
   a = 1024;
