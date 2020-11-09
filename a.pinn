@@ -1,2 +1,7 @@
-var a int;
-a = 1 + 2 + 3;
+func f (a int) int {
+  return 2 * a;
+}
+var x int;
+x = 3;
+x = f(x - 1) + 1;
+assert(x, 5);
