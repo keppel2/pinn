@@ -2,12 +2,10 @@ package main
 
 import "fmt"
 
-const ind = "  "
-const OS = ", "
-const AM = " "
 const TR = "w29"
 const TR2 = "w28"
 const TRL = "x27"
+const TMAIN = "x26"
 const BP = ".br"
 
 type emitter struct {
@@ -19,6 +17,9 @@ type emitter struct {
 }
 
 func (e *emitter) emit(i string, ops ...string) {
+	const ind = "  "
+	const OS = ", "
+	const AM = " "
 	e.src += ind + i + AM
 	if ops != nil {
 		e.src += ops[0]
@@ -219,7 +220,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			e.emit("mov", "w0", "1")
-			e.src += ind + "ret" + "\n"
+			e.emit("mov", "lr", TMAIN)
+			e.emit("ret")
 			e.makeLabel(lab)
 		} else {
 			for k, v := range ce.Params {
@@ -290,10 +292,11 @@ func (e *emitter) emitF(f *File) {
 .global main
 main:
 `
+	e.emit("mov", TMAIN, "lr")
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-	e.src += ind + "ret\n"
+	e.emit("ret")
 	for _, s := range f.FList {
 		e.emitFunc(s)
 	}

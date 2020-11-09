@@ -1,6 +1,5 @@
-func f(a, b int) {
-if a == 44 {
-loop {}
+func f() {
+assert(0, 1);
 }
-}
-f(42, 44);
+f();
+return 0;
