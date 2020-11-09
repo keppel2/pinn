@@ -1,10 +1,6 @@
-func f() {
-var x int;
-x = 101;
+func f(a, b int) {
+if a == 44 {
+loop {}
 }
-
-var a int;
-a = 42;
-f();
-assert(3, 4);
-return 0;
+}
+f(42, 44);

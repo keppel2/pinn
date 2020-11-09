@@ -8,6 +8,7 @@ const AM = " "
 const TR = "w29"
 const TR2 = "w28"
 const TRL = "x27"
+const BP = ".br"
 
 type emitter struct {
 	src     string
@@ -34,6 +35,15 @@ func (e *emitter) init() {
 	e.cbranch = 1
 }
 
+func (e *emitter) varAt(i int) string {
+	for k, v := range e.rMap {
+		if v == i {
+			return k
+		}
+	}
+	return ""
+}
+
 func (e *emitter) clab() int {
 	rt := e.cbranch
 	e.cbranch++
@@ -41,11 +51,11 @@ func (e *emitter) clab() int {
 }
 
 func makeBranch(i int) string {
-	return fmt.Sprintf("gb%v", i)
+	return fmt.Sprintf("%v%v", BP, i)
 }
 
 func (e *emitter) makeLabel(i int) {
-	e.src += fmt.Sprintf("gb%v:\n", i)
+	e.src += fmt.Sprintf("%v%v:\n", BP, i)
 }
 
 func (e *emitter) pushloop(s int) {
@@ -162,6 +172,13 @@ func (e *emitter) binaryExpr(dest string, be *BinaryExpr) {
 
 func (e *emitter) emitFunc(f *FuncDecl) {
 	e.src += f.Wl.Value + ":\n"
+	reg := 0
+	for _, vd := range f.PList {
+		for _, vd2 := range vd.List {
+			e.rMap[vd2.Value] = reg
+			reg++
+		}
+	}
 	e.emitStmt(f.B)
 	e.emit("ret")
 }
@@ -178,15 +195,15 @@ func (e *emitter) emitExpr(dest string, ex Expr){
 */
 
 func (e *emitter) assignToReg(r int, ex Expr) {
-  lh := "w" + fmt.Sprint(r)
-  switch t2 := ex.(type) {
-  		case *NumberExpr, *VarExpr:
-			rh := e.operand(t2)
-			e.emit("mov", lh, rh)
-		case *BinaryExpr:
-			e.binaryExpr(lh, t2)
+	lh := "w" + fmt.Sprint(r)
+	switch t2 := ex.(type) {
+	case *NumberExpr, *VarExpr:
+		rh := e.operand(t2)
+		e.emit("mov", lh, rh)
+	case *BinaryExpr:
+		e.binaryExpr(lh, t2)
 
-  }
+	}
 
 }
 
@@ -194,7 +211,8 @@ func (e *emitter) emitStmt(s Stmt) {
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)
-		if ce.ID.(*VarExpr).Wl.Value == "assert" {
+		ID := ce.ID.(*VarExpr).Wl.Value
+		if ID == "assert" {
 			lh := e.moveToTr(ce.Params[0])
 			rh := e.regOrImm(ce.Params[1])
 			e.emit("cmp", lh, rh)
@@ -204,8 +222,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.src += ind + "ret" + "\n"
 			e.makeLabel(lab)
 		} else {
-//      for _, v := range ce.Params {
- //     }
+			for k, v := range ce.Params {
+				e.assignToReg(k, v)
+			}
 			e.emit("mov", TRL, "lr")
 			e.emit("bl", ce.ID.(*VarExpr).Wl.Value)
 			e.emit("mov", "lr", TRL)
@@ -257,7 +276,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.emit("mov", "w0", e.regOrImm(t.E))
 	case *AssignStmt:
 		lhi := e.rMap[t.LHSa[0].(*VarExpr).Wl.Value]
-    e.assignToReg(lhi, t.RHSa[0])
+		e.assignToReg(lhi, t.RHSa[0])
 	case *VarStmt:
 		s := t.List[0].Value
 		e.rMap[s] = e.creg
