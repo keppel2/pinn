@@ -3,16 +3,19 @@ package main
 import "fmt"
 
 const RP = "w"
-const TR = RP + "29"
-const TR2 = RP + "28"
-const TRL = "x27"
-const TMAIN = "x26"
+const TR = 29
+const TR2 = 28
+const TRL = 27
+const TMAIN = 26
+const RMAX = TMAIN - 1
 const BP = ".br"
 const FP = ".f"
+const RB = 8
 
 type emitter struct {
 	src     string
 	rMap    map[string]int
+	rAlloc  [RMAX]string
 	creg    int
 	cbranch int
 	lstack  []int
@@ -34,7 +37,7 @@ func (e *emitter) emit(i string, ops ...string) {
 
 func (e *emitter) init() {
 	e.rMap = make(map[string]int)
-	e.creg = 8
+	e.creg = RB
 	e.cbranch = 1
 }
 
@@ -55,6 +58,10 @@ func (e *emitter) clab() int {
 
 func makeReg(i int) string {
 	return fmt.Sprintf("%v%v", RP, i)
+}
+
+func makeXReg(i int) string {
+	return fmt.Sprintf("x%v", i)
 }
 
 func makeBranch(i int) string {
@@ -115,8 +122,8 @@ func (e *emitter) operand(ex Expr) string {
 
 func (e *emitter) moveToTr(ex Expr) string {
 	if v, ok := ex.(*NumberExpr); ok {
-		e.emit("mov", TR, e.regOrImm(v))
-		return TR
+		e.emit("mov", makeReg(TR), e.regOrImm(v))
+		return makeReg(TR)
 	}
 	return e.regOrImm(ex)
 }
@@ -185,8 +192,8 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 		if rh == "" {
 			rh = e.moveToTr(be.RHS)
 		}
-		e.emit("udiv", TR2, makeReg(dest), rh)
-		e.emit("msub", makeReg(dest), TR2, rh, makeReg(dest))
+		e.emit("udiv", makeReg(TR2), makeReg(dest), rh)
+		e.emit("msub", makeReg(dest), makeReg(TR2), rh, makeReg(dest))
 		return
 	}
 	e.emit(op, makeReg(dest), makeReg(dest), rh)
@@ -238,9 +245,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	for k, v := range ce.Params {
 		e.assignToReg(k+1, v)
 	}
-	e.emit("mov", TRL, "lr")
+	e.emit("mov", makeXReg(TRL), "lr")
 	e.emit("bl", FP+ID)
-	e.emit("mov", "lr", TRL)
+	e.emit("mov", "lr", makeXReg(TRL))
 
 }
 
@@ -256,12 +263,12 @@ func (e *emitter) emitStmt(s Stmt) {
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			e.emit("mov", RP+"0", "1")
-			e.emit("mov", "lr", TMAIN)
+			e.emit("mov", "lr", makeXReg(TMAIN))
 			e.emit("ret")
 			e.makeLabel(lab)
 		} else if ID == "bad" {
 			e.emit("mov", RP+"0", "1")
-			e.emit("mov", "lr", TMAIN)
+			e.emit("mov", "lr", makeXReg(TMAIN))
 			e.emit("ret")
 
 		} else {
@@ -328,7 +335,7 @@ func (e *emitter) emitF(f *File) {
 .global main
 main:
 `
-	e.emit("mov", TMAIN, "lr")
+	e.emit("mov", makeXReg(TMAIN), "lr")
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
