@@ -2,6 +2,7 @@ package main
 
 import "math/rand"
 import "fmt"
+import "reflect"
 
 const RP = "w"
 
@@ -20,7 +21,7 @@ const TBP = 25
 const RMAX = 24
 const BP = ".br"
 const FP = ".f"
-const RB = 23
+const RB = 8
 
 type emitter struct {
 	src     string
@@ -29,6 +30,7 @@ type emitter struct {
 	cbranch int
 	moff    int
 	lstack  []int
+  st Stmt
 }
 
 func (e *emitter) findReg() int {
@@ -73,7 +75,7 @@ func (e *emitter) emit(i string, ops ...string) {
 			e.src += OS + s
 		}
 	}
-	e.src += "//" + fmt.Sprint(e.rMap, e.rAlloc) + "\n"
+	e.src += "//" + fmt.Sprint(e.rMap, e.rAlloc, e.st, reflect.TypeOf(e.st)) + "\n"
 }
 
 func (e *emitter) init() {
@@ -133,15 +135,19 @@ func (e *emitter) err(msg string) {
 	panic(fmt.Sprintln(msg, e.rMap, e.rAlloc, e.src))
 }
 
-func (e *emitter) fillReg(s string) int {
-	moff := e.rMap[s]
-	if moff >= 0 {
-		return moff
-	}
+func (e *emitter) fillReg(s string, load bool) int {
+  moff, ok := e.rMap[s]
+  if ok && moff >= 0 {
+  return moff
+  }
+
 	k := e.findReg()
 	e.rMap[s] = k
 	e.rAlloc[k] = s
+  if ok && load {
 	e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(moff)))
+  }
+
 	return k
 
 }
@@ -152,7 +158,7 @@ func (e *emitter) regOrImm(ex Expr) string {
 	case *NumberExpr:
 		rt = "#" + t.Il.Value
 	case *VarExpr:
-		i := e.fillReg(t.Wl.Value)
+		i := e.fillReg(t.Wl.Value, true)
 		rt = RP + fmt.Sprint(i)
 	default:
 		e.err("")
@@ -304,6 +310,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 }
 
 func (e *emitter) emitStmt(s Stmt) {
+  e.st = s
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)
@@ -373,11 +380,11 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.assignToReg(0, t.E)
 		e.emit("ret")
 	case *AssignStmt:
-		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value)
+		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value, false)
 		e.assignToReg(lhi, t.RHSa[0])
 	case *VarStmt:
-		s := t.List[0].Value
-		e.newVar(s)
+//		s := t.List[0].Value
+//		e.newVar(s)
 	}
 
 }
