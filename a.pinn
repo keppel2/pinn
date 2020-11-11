@@ -1,2 +1,8 @@
-var x int;
-var y int;
+var a int;
+a = 2;
+var b int;
+b = 3;
+var c int;
+c = a * b;
+assert(c, 6);
+

@@ -4,12 +4,20 @@ import "math/rand"
 import "fmt"
 
 const RP = "w"
+
+func bw() int {
+	if RP == "w" {
+		return 4
+	}
+	return 8
+}
+
 const TR = 29
 const TR2 = 28
 const TRL = 27
 const TMAIN = 26
 const TBP = 25
-const RMAX = TBP - 1
+const RMAX = 24
 const BP = ".br"
 const FP = ".f"
 const RB = 23
@@ -23,17 +31,24 @@ type emitter struct {
 	lstack  []int
 }
 
-
-func (e *emitter) getReg(s string) int {
+func (e *emitter) findReg() int {
 	for k, v := range e.rAlloc[RB:] {
 		if v == "" {
-			k2 := k + RB
-			e.rAlloc[k2] = s
-			e.rMap[s] = k2
-			return k2
+			return k + RB
 		}
 	}
 	return e.freeReg()
+}
+
+func moffOff(a int) int {
+	return (-1 - a) * bw()
+}
+
+func (e *emitter) newVar(s string) int {
+	i := e.findReg()
+	e.rMap[s] = i
+	e.rAlloc[i] = s
+	return i
 }
 
 func (e *emitter) freeReg() int {
@@ -42,7 +57,7 @@ func (e *emitter) freeReg() int {
 	s := e.rAlloc[k]
 	e.rAlloc[k] = ""
 	e.rMap[s] = e.moff
-	e.emit("str", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", (-1-e.moff)*4))
+	e.emit("str", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(e.moff)))
 	e.moff--
 	return k
 }
@@ -58,14 +73,14 @@ func (e *emitter) emit(i string, ops ...string) {
 			e.src += OS + s
 		}
 	}
-	e.src += "\n"
-	e.moff = -1
+	e.src += "//" + fmt.Sprint(e.rMap, e.rAlloc) + "\n"
 }
 
 func (e *emitter) init() {
 	rand.Seed(42)
 	e.rMap = make(map[string]int)
 	e.cbranch = 1
+	e.moff = -1
 }
 
 func (e *emitter) varAt(i int) string {
@@ -119,20 +134,15 @@ func (e *emitter) err(msg string) {
 }
 
 func (e *emitter) fillReg(s string) int {
-  moff := e.rMap[s]
-  if moff >= 0 {
-    return moff
-  }
-  for k, v := range e.rAlloc[RB:] {
-    if v == "" {
-      e.emit("ldr", makeReg(k), "[" + makeXReg(TBP), fmt.Sprintf("%v]", (-1 - moff) * 4))
-      return k
-    }
-  }
-  k := e.freeReg()
-      e.emit("ldr", makeReg(k), "[" + makeXReg(TBP), fmt.Sprintf("%v]", (-1 - moff) * 4))
-      return k
-
+	moff := e.rMap[s]
+	if moff >= 0 {
+		return moff
+	}
+	k := e.findReg()
+	e.rMap[s] = k
+	e.rAlloc[k] = s
+	e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(moff)))
+	return k
 
 }
 
@@ -361,12 +371,13 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	case *ReturnStmt:
 		e.assignToReg(0, t.E)
+		e.emit("ret")
 	case *AssignStmt:
 		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value)
 		e.assignToReg(lhi, t.RHSa[0])
 	case *VarStmt:
 		s := t.List[0].Value
-		e.getReg(s)
+		e.newVar(s)
 	}
 
 }
@@ -381,7 +392,6 @@ main:
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-	e.freeReg()
 	e.emit("mov", RP+"0", RP+"zr")
 	e.emit("ret")
 	for _, s := range f.FList {
