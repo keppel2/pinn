@@ -1,5 +1,6 @@
 package main
 
+import "math/rand"
 import "fmt"
 
 const RP = "w"
@@ -7,18 +8,43 @@ const TR = 29
 const TR2 = 28
 const TRL = 27
 const TMAIN = 26
-const RMAX = TMAIN - 1
+const TBP = 25
+const RMAX = TBP - 1
 const BP = ".br"
 const FP = ".f"
-const RB = 8
+const RB = 23
 
 type emitter struct {
 	src     string
 	rMap    map[string]int
-	rAlloc  [RMAX]string
-	creg    int
+	rAlloc  [RMAX + 1]string
 	cbranch int
+	moff    int
 	lstack  []int
+}
+
+
+func (e *emitter) getReg(s string) int {
+	for k, v := range e.rAlloc[RB:] {
+		if v == "" {
+			k2 := k + RB
+			e.rAlloc[k2] = s
+			e.rMap[s] = k2
+			return k2
+		}
+	}
+	return e.freeReg()
+}
+
+func (e *emitter) freeReg() int {
+	k := rand.Intn(RMAX + 1 - RB)
+	k += RB
+	s := e.rAlloc[k]
+	e.rAlloc[k] = ""
+	e.rMap[s] = e.moff
+	e.emit("str", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", (-1-e.moff)*4))
+	e.moff--
+	return k
 }
 
 func (e *emitter) emit(i string, ops ...string) {
@@ -33,11 +59,12 @@ func (e *emitter) emit(i string, ops ...string) {
 		}
 	}
 	e.src += "\n"
+	e.moff = -1
 }
 
 func (e *emitter) init() {
+	rand.Seed(42)
 	e.rMap = make(map[string]int)
-	e.creg = RB
 	e.cbranch = 1
 }
 
@@ -88,7 +115,25 @@ func (e *emitter) peekloop() int {
 
 func (e *emitter) err(msg string) {
 
-	panic(fmt.Sprintln(msg, e.rMap, e.creg, e.src))
+	panic(fmt.Sprintln(msg, e.rMap, e.rAlloc, e.src))
+}
+
+func (e *emitter) fillReg(s string) int {
+  moff := e.rMap[s]
+  if moff >= 0 {
+    return moff
+  }
+  for k, v := range e.rAlloc[RB:] {
+    if v == "" {
+      e.emit("ldr", makeReg(k), "[" + makeXReg(TBP), fmt.Sprintf("%v]", (-1 - moff) * 4))
+      return k
+    }
+  }
+  k := e.freeReg()
+      e.emit("ldr", makeReg(k), "[" + makeXReg(TBP), fmt.Sprintf("%v]", (-1 - moff) * 4))
+      return k
+
+
 }
 
 func (e *emitter) regOrImm(ex Expr) string {
@@ -97,10 +142,7 @@ func (e *emitter) regOrImm(ex Expr) string {
 	case *NumberExpr:
 		rt = "#" + t.Il.Value
 	case *VarExpr:
-		i, ok := e.rMap[t.Wl.Value]
-		if !ok {
-			e.err("")
-		}
+		i := e.fillReg(t.Wl.Value)
 		rt = RP + fmt.Sprint(i)
 	default:
 		e.err("")
@@ -320,12 +362,11 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *ReturnStmt:
 		e.assignToReg(0, t.E)
 	case *AssignStmt:
-		lhi := e.rMap[t.LHSa[0].(*VarExpr).Wl.Value]
+		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value)
 		e.assignToReg(lhi, t.RHSa[0])
 	case *VarStmt:
 		s := t.List[0].Value
-		e.rMap[s] = e.creg
-		e.creg++
+		e.getReg(s)
 	}
 
 }
@@ -336,9 +377,11 @@ func (e *emitter) emitF(f *File) {
 main:
 `
 	e.emit("mov", makeXReg(TMAIN), "lr")
+	e.emit("mov", makeXReg(TBP), "sp")
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
+	e.freeReg()
 	e.emit("mov", RP+"0", RP+"zr")
 	e.emit("ret")
 	for _, s := range f.FList {

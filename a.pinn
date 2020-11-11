@@ -1,3 +1,2 @@
 var x int;
-x = 24;
-assert(x, 24);
+var y int;
