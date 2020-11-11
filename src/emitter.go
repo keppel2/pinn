@@ -4,7 +4,7 @@ import "math/rand"
 import "fmt"
 import "reflect"
 
-const RP = "w"
+const RP = "x"
 
 func bw() int {
 	if RP == "w" {
@@ -395,6 +395,7 @@ func (e *emitter) emitF(f *File) {
 main:
 `
 	e.emit("mov", makeXReg(TMAIN), "lr")
+  e.emit("sub", "sp", "sp", "0x10000")
 	e.emit("mov", makeXReg(TBP), "sp")
 	for _, s := range f.SList {
 		e.emitStmt(s)

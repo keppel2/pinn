@@ -118,6 +118,18 @@ bad();
 }
 */
 
+var d int;
+var e int;
+var f int;
+a = 1;
+b = 2;
+c = 3;
+d = a + b + c;
+assert(d, 6);
+e = a + b + c + d;
+assert(e, 12);
+f = a + b + c + d + e;
+assert(f, 24);
 
 return 0;
 
