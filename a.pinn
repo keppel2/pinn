@@ -1,8 +1,9 @@
-var a int;
-a = 2;
-var b int;
-b = 3;
-var c int;
-c = a * b;
-assert(c, 6);
+func f() int {
+  return 2;
+}
 
+func g() int {
+  return f();
+}
+
+g();
