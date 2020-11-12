@@ -108,8 +108,8 @@ a = 202;
 assert(a, 202);
 
 
-f(42);
-a = g();
+f1(142);
+a = g1();
 assert(a, 101);
 
 /*
@@ -130,13 +130,22 @@ e = a + b + c + d;
 assert(e, 12);
 f = a + b + c + d + e;
 assert(f, 24);
+f = g2();
+assert(f, 202);
 
 return 0;
 
-func f(a int) {
+func f1(a int) {
 assert(a, 42);
 }
-func g() int {
-  return 101;
+func g1() int {
+return 101;
 }
 
+
+func f2() int {
+return 202;
+}
+func g2() int {
+return f2();
+}
