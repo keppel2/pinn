@@ -16,7 +16,6 @@ func bw() int {
 const (
 	TR = 29 - iota
 	TR2
-	TRL
 	TMAIN
 	TBP
 	TSP
@@ -54,6 +53,14 @@ func (e *emitter) newVar(s string) int {
 	e.rMap[s] = i
 	e.rAlloc[i] = s
 	return i
+}
+
+func (e *emitter) push(s string) {
+	e.emit("str", s, "["+makeReg(TSP), "-8]!")
+}
+
+func (e *emitter) pop(s string) {
+	e.emit("ldr", s, "["+makeReg(TSP)+"]", "8")
 }
 
 func (e *emitter) freeReg() int {
@@ -306,9 +313,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	for k, v := range ce.Params {
 		e.assignToReg(k+1, v)
 	}
-	e.emit("mov", makeXReg(TRL), "lr")
+	e.push("lr")
 	e.emit("bl", FP+ID)
-	e.emit("mov", "lr", makeXReg(TRL))
+	e.pop("lr")
 
 }
 
@@ -334,31 +341,28 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("ret")
 
 		} else if ID == "print" {
-      e.assignToReg(TR2, ce.Params[0])
-      e.emit("mov", makeReg(1), "0")
-      e.emit("sub", makeReg(TSP), makeReg(TSP), makeReg(16))
-      for i := 0; i < 16; i++ {
-      e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
-      e.emit("lsr", makeReg(TR2), makeReg(TR2), "4")
-      e.emit("add", makeReg(TR), makeReg(TR), "'0'")
-      e.emit("lsl", makeReg(1), makeReg(1), "8")
-      e.emit("add", makeReg(1), makeReg(1), makeReg(TR))
-      if i == 7 {
-      e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
+			e.assignToReg(TR2, ce.Params[0])
+			e.emit("mov", makeReg(1), "0")
+			e.emit("sub", makeReg(TSP), makeReg(TSP), makeReg(16))
+			for i := 0; i < 16; i++ {
+				e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
+				e.emit("lsr", makeReg(TR2), makeReg(TR2), "4")
+				e.emit("add", makeReg(TR), makeReg(TR), "'0'")
+				e.emit("lsl", makeReg(1), makeReg(1), "8")
+				e.emit("add", makeReg(1), makeReg(1), makeReg(TR))
+				if i == 7 {
+					e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
 
-      e.emit("mov", makeReg(1), "0")
-      }
-      }
-            e.emit("str", makeReg(1), fmt.Sprintf("[%v]", makeReg(TSP)))
+					e.emit("mov", makeReg(1), "0")
+				}
+			}
+			e.emit("str", makeReg(1), fmt.Sprintf("[%v]", makeReg(TSP)))
 
-
-
-
-      e.emit("mov", makeReg(1), makeReg(TSP))
-      e.emit("mov", makeReg(2), "16")
-      e.emit("mov", makeReg(8), "64")
-      e.emit("svc", "0")
-    } else {
+			e.emit("mov", makeReg(1), makeReg(TSP))
+			e.emit("mov", makeReg(2), "16")
+			e.emit("mov", makeReg(8), "64")
+			e.emit("svc", "0")
+		} else {
 			e.emitCall(ce)
 		}
 
