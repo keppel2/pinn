@@ -13,12 +13,15 @@ func bw() int {
 	return 8
 }
 
-const TR = 29
-const TR2 = 28
-const TRL = 27
-const TMAIN = 26
-const TBP = 25
-const RMAX = 24
+const (
+	TR = 29 - iota
+	TR2
+	TRL
+	TMAIN
+	TBP
+	TSP
+	RMAX
+)
 const BP = ".br"
 const FP = ".f"
 const RB = 8
@@ -30,7 +33,7 @@ type emitter struct {
 	cbranch int
 	moff    int
 	lstack  []int
-  st Stmt
+	st      Stmt
 }
 
 func (e *emitter) findReg() int {
@@ -136,17 +139,17 @@ func (e *emitter) err(msg string) {
 }
 
 func (e *emitter) fillReg(s string, load bool) int {
-  moff, ok := e.rMap[s]
-  if ok && moff >= 0 {
-  return moff
-  }
+	moff, ok := e.rMap[s]
+	if ok && moff >= 0 {
+		return moff
+	}
 
 	k := e.findReg()
 	e.rMap[s] = k
 	e.rAlloc[k] = s
-  if ok && load {
-	e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(moff)))
-  }
+	if ok && load {
+		e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(moff)))
+	}
 
 	return k
 
@@ -310,7 +313,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 }
 
 func (e *emitter) emitStmt(s Stmt) {
-  e.st = s
+	e.st = s
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)
@@ -330,7 +333,32 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("mov", "lr", makeXReg(TMAIN))
 			e.emit("ret")
 
-		} else {
+		} else if ID == "print" {
+      e.assignToReg(TR2, ce.Params[0])
+      e.emit("mov", makeReg(1), "0")
+      e.emit("sub", makeReg(TSP), makeReg(TSP), makeReg(16))
+      for i := 0; i < 16; i++ {
+      e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
+      e.emit("lsr", makeReg(TR2), makeReg(TR2), "4")
+      e.emit("add", makeReg(TR), makeReg(TR), "'0'")
+      e.emit("lsl", makeReg(1), makeReg(1), "8")
+      e.emit("add", makeReg(1), makeReg(1), makeReg(TR))
+      if i == 7 {
+      e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
+
+      e.emit("mov", makeReg(1), "0")
+      }
+      }
+            e.emit("str", makeReg(1), fmt.Sprintf("[%v]", makeReg(TSP)))
+
+
+
+
+      e.emit("mov", makeReg(1), makeReg(TSP))
+      e.emit("mov", makeReg(2), "16")
+      e.emit("mov", makeReg(8), "64")
+      e.emit("svc", "0")
+    } else {
 			e.emitCall(ce)
 		}
 
@@ -383,8 +411,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value, false)
 		e.assignToReg(lhi, t.RHSa[0])
 	case *VarStmt:
-//		s := t.List[0].Value
-//		e.newVar(s)
+		//		s := t.List[0].Value
+		//		e.newVar(s)
 	}
 
 }
@@ -395,7 +423,8 @@ func (e *emitter) emitF(f *File) {
 main:
 `
 	e.emit("mov", makeXReg(TMAIN), "lr")
-  e.emit("sub", "sp", "sp", "0x10000")
+	e.emit("mov", makeXReg(TSP), "sp")
+	e.emit("sub", "sp", "sp", "0x10000")
 	e.emit("mov", makeXReg(TBP), "sp")
 	for _, s := range f.SList {
 		e.emitStmt(s)

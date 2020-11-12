@@ -1,9 +1,12 @@
-func f() int {
-  return 2;
-}
-
-func g() int {
-  return f();
-}
-
-g();
+v = 0x12;
+v = v * 0x100;
+v = v + 0x34;
+v = v * 0x100;
+v = v + 0x56;
+v = v * 0x100;
+v = v + 0x78;
+v = v * 0x100;
+v = v + 0x19;
+v = v * 0x100;
+v = v + 0x28;
+print(v);
