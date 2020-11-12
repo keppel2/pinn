@@ -63,6 +63,17 @@ func (e *emitter) push(s string) {
 func (e *emitter) pop(s string) {
 	e.emit("ldr", s, "["+makeReg(TSP)+"]", "8")
 }
+func (e *emitter) popP() {
+	for i := RB - 10; i >= 0; i-- {
+		e.pop(makeReg(i))
+	}
+}
+
+func (e *emitter) pushP() {
+	for i := 0; i < RB; i++ {
+		e.push(makeReg(i))
+	}
+}
 
 func (e *emitter) freeReg() int {
 	k := rand.Intn(RMAX + 1 - RB)
@@ -274,6 +285,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
 			e.rMap[vd2.Value] = reg
+			e.rAlloc[reg] = vd2.Value
 			reg++
 		}
 	}
@@ -312,11 +324,15 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 func (e *emitter) emitCall(ce *CallExpr) {
 	ID := ce.ID.(*VarExpr).Wl.Value
 	for k, v := range ce.Params {
+		e.push(makeReg(k + 1))
 		e.assignToReg(k+1, v)
 	}
 	e.push("lr")
 	e.emit("bl", FP+ID)
 	e.pop("lr")
+	for k, _ := range ce.Params {
+		e.pop(makeReg(k + 1))
+	}
 
 }
 
@@ -343,6 +359,8 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		} else if ID == "print" {
 			e.assignToReg(TR2, ce.Params[0])
+			e.pushP()
+			e.emit("mov", makeReg(0), "1")
 			e.emit("mov", makeReg(1), "0")
 			e.emit("sub", makeReg(TSP), makeReg(TSP), makeReg(16))
 			for i := 0; i < 16; i++ {
@@ -363,6 +381,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("mov", makeReg(2), "16")
 			e.emit("mov", makeReg(8), "64")
 			e.emit("svc", "0")
+			e.popP()
 		} else {
 			e.emitCall(ce)
 		}
@@ -410,7 +429,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.makeLabel(lab)
 
 	case *ReturnStmt:
-		e.assignToReg(0, t.E)
+		if t.E != nil {
+			e.assignToReg(0, t.E)
+		}
 		e.emit("ret")
 	case *AssignStmt:
 		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value, false)

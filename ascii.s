@@ -1,10 +1,6 @@
-.data
-msg:
-   .ascii "arm64"
-.text
 .global main
 main:
-  sub sp, sp, 16
+  sub sp, sp, 0x100
   mov x23, sp
   mov x9, 0
   mov x18, 0
@@ -23,7 +19,11 @@ main:
 //  mov x9, 0x41
   str x9, [x23]
   mov x1, x23
-  mov x2, 2
+  mov x2, 3
   mov x8, 64
+  mov x0, 1
+  svc 0
+  mov x0, 1
+  svc 0
   svc 0
   ret
