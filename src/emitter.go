@@ -23,7 +23,8 @@ const (
 )
 const BP = ".br"
 const FP = ".f"
-const RB = 8
+
+var RB = 8
 
 type emitter struct {
 	src     string

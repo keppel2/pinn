@@ -30,8 +30,12 @@ func main() {
 	p.init(strings.NewReader(ssrc))
 	f := p.fileA()
 	if len(os.Args) > 2 {
+		if os.Args[2] == "rp" {
+			RB = RMAX - 2
+		} else {
 
-		visitFile(f)
+			visitFile(f)
+		}
 	}
 	e := emitter{}
 	e.init()
