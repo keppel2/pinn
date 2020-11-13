@@ -24,7 +24,7 @@ const (
 const BP = ".br"
 const FP = ".f"
 
-var RB = 8
+var RB = 9
 
 type emitter struct {
 	src     string
@@ -323,6 +323,7 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 
 func (e *emitter) emitCall(ce *CallExpr) {
 	ID := ce.ID.(*VarExpr).Wl.Value
+	// e.pushP()
 	for k, v := range ce.Params {
 		e.push(makeReg(k + 1))
 		e.assignToReg(k+1, v)
@@ -333,6 +334,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	for k, _ := range ce.Params {
 		e.pop(makeReg(k + 1))
 	}
+	//  e.popP()
 
 }
 
@@ -381,7 +383,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("mov", makeReg(2), "16")
 			e.emit("mov", makeReg(8), "64")
 			e.emit("svc", "0")
-      e.emit("add", makeReg(TSP), makeReg(TSP), "16")
+			e.emit("add", makeReg(TSP), makeReg(TSP), "16")
 			e.popP()
 		} else {
 			e.emitCall(ce)
@@ -450,7 +452,7 @@ func (e *emitter) emitF(f *File) {
 main:
 `
 	e.emit("mov", makeXReg(TMAIN), "lr")
-  e.emit("sub", "sp", "sp", "0x100")
+	e.emit("sub", "sp", "sp", "0x100")
 	e.emit("mov", makeXReg(TSP), "sp")
 	e.emit("sub", "sp", "sp", "0x10000")
 	e.emit("mov", makeXReg(TBP), "sp")

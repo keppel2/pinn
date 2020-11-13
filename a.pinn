@@ -1,5 +1,4 @@
-
-f();
-func f() {
-print(3);
-}
+x = 2;
+print(x);
+print(x);
+return x;
