@@ -64,7 +64,7 @@ func (e *emitter) pop(s string) {
 	e.emit("ldr", s, "["+makeReg(TSP)+"]", "8")
 }
 func (e *emitter) popP() {
-	for i := RB - 10; i >= 0; i-- {
+	for i := RB - 1; i >= 0; i-- {
 		e.pop(makeReg(i))
 	}
 }
@@ -362,7 +362,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.pushP()
 			e.emit("mov", makeReg(0), "1")
 			e.emit("mov", makeReg(1), "0")
-			e.emit("sub", makeReg(TSP), makeReg(TSP), makeReg(16))
+			e.emit("sub", makeReg(TSP), makeReg(TSP), "16")
 			for i := 0; i < 16; i++ {
 				e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
 				e.emit("lsr", makeReg(TR2), makeReg(TR2), "4")
@@ -381,6 +381,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("mov", makeReg(2), "16")
 			e.emit("mov", makeReg(8), "64")
 			e.emit("svc", "0")
+      e.emit("add", makeReg(TSP), makeReg(TSP), "16")
 			e.popP()
 		} else {
 			e.emitCall(ce)
@@ -449,6 +450,7 @@ func (e *emitter) emitF(f *File) {
 main:
 `
 	e.emit("mov", makeXReg(TMAIN), "lr")
+  e.emit("sub", "sp", "sp", "0x100")
 	e.emit("mov", makeXReg(TSP), "sp")
 	e.emit("sub", "sp", "sp", "0x10000")
 	e.emit("mov", makeXReg(TBP), "sp")

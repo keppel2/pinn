@@ -1,13 +1,5 @@
-func f(a int) {
-print(a);
-return;
-if a == 1 {
-return;
+
+f();
+func f() {
+print(3);
 }
-f(a - 1);
-return;
-}
-
-f(1);
-
-
