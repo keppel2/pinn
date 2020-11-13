@@ -31,7 +31,7 @@ func main() {
 	f := p.fileA()
 	if len(os.Args) > 2 {
 		if os.Args[2] == "rp" {
-			RB = RMAX - 2
+			RB = RMAX - 3
 		} else {
 
 			visitFile(f)
