@@ -33,7 +33,8 @@ type emitter struct {
 	cbranch int
 	moff    int
 	lstack  []int
-	st      Stmt
+	lst     Node
+	st      Node
 }
 
 func (e *emitter) findReg() int {
@@ -160,15 +161,15 @@ func (e *emitter) print(a int) {
 	e.pushP()
 	e.emit("mov", makeReg(0), "1")
 	e.emit("mov", makeReg(1), "0")
-  e.emit("mov", makeReg(TR2), makeReg(a))
+	e.emit("mov", makeReg(TR2), makeReg(a))
 	e.emit("sub", makeReg(TSP), makeReg(TSP), "16")
 	for i := 0; i < 16; i++ {
 		e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
-    e.emit("cmp", makeReg(TR), "10")
-    lab := e.clab()
-    e.emit("b.lt", makeBranch(lab))
-    e.emit("add", makeReg(TR), makeReg(TR), "('a' - ':')")
-    e.makeLabel(lab)
+		e.emit("cmp", makeReg(TR), "10")
+		lab := e.clab()
+		e.emit("b.lt", makeBranch(lab))
+		e.emit("add", makeReg(TR), makeReg(TR), "('a' - ':')")
+		e.makeLabel(lab)
 		e.emit("lsr", makeReg(TR2), makeReg(TR2), "4")
 		e.emit("add", makeReg(TR), makeReg(TR), "'0'")
 		e.emit("lsl", makeReg(1), makeReg(1), "8")
@@ -234,6 +235,7 @@ func (e *emitter) operand(ex Expr) string {
 }
 
 func (e *emitter) moveToTr(ex Expr) string {
+	e.st = ex
 	if v, ok := ex.(*NumberExpr); ok {
 		e.emit("mov", makeReg(TR), e.regOrImm(v))
 		return makeReg(TR)
@@ -242,6 +244,9 @@ func (e *emitter) moveToTr(ex Expr) string {
 }
 
 func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
+	e.lst = e.st
+	e.st = be
+	defer func() { e.st = e.lst }()
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		lh := e.moveToTr(be.LHS)
 		rh := e.regOrImm(be.RHS)
@@ -355,6 +360,7 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 }
 
 func (e *emitter) emitCall(ce *CallExpr) {
+	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
 	// e.pushP()
 	for k, v := range ce.Params {
