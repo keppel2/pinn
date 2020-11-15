@@ -17,6 +17,8 @@ const (
 	TR = 29 - iota
 	TR2
 	TR3
+	TR4
+	TR5
 	TMAIN
 	TBP
 	TSP
@@ -376,9 +378,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		ce := t.Expr.(*CallExpr)
 		ID := ce.ID.(*VarExpr).Wl.Value
 		if ID == "assert" {
-			lh := e.moveToTr(ce.Params[0])
-			rh := e.regOrImm(ce.Params[1])
-			e.emit("cmp", lh, rh)
+			e.assignToReg(TR4, ce.Params[0])
+			e.assignToReg(TR5, ce.Params[1])
+			e.emit("cmp", makeReg(TR4), makeReg(TR5))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			e.emit("mov", RP+"0", "1")
@@ -457,14 +459,14 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		lab := e.clab()
 		lab2 := e.clab()
-    lab3 := e.clab()
-    e.pushloop(lab, lab2)
-    e.emit("b", makeBranch(lab3))
+		lab3 := e.clab()
+		e.pushloop(lab, lab2)
+		e.emit("b", makeBranch(lab3))
 		e.makeLabel(lab)
 		if t.Loop != nil {
 			e.emitStmt(t.Loop)
 		}
-    e.makeLabel(lab3)
+		e.makeLabel(lab3)
 
 		if t.E != nil {
 			e.binaryExpr(lab2, t.E.(*BinaryExpr))
