@@ -67,6 +67,6 @@ forr a, b  := range 24 { 25; }
 forr a := range 10 { 101; }
 forr z = range 23 {}
 forr z, s := range 2233 {}
-for a := 10; a < 20; a++; {
+for a := 10; a < 20; a++ {
 f(42);
 }

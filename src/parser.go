@@ -274,7 +274,7 @@ func (p *parser) forStmt() *ForStmt {
 	rt.Inits = p.stmt()
 	rt.E = p.uexpr()
 	p.want(";")
-	rt.Loop = p.stmt()
+	rt.Loop = p.assignOrExprStmt()
 	rt.B = p.blockStmt()
 	return rt
 }
@@ -319,6 +319,7 @@ func (p *parser) stmt() Stmt {
 
 	case "literal", "name": //, "-", "+":
 		rt = p.assignOrExprStmt()
+    p.want(";")
 	case "{":
 		rt = p.blockStmt()
 	case ";":
@@ -406,7 +407,6 @@ func (p *parser) assignStmt(LHSa []Expr) *AssignStmt {
 	} else {
 		rt.RHSa = p.exprList()
 	}
-	p.want(";")
 	return rt
 
 }
@@ -415,7 +415,6 @@ func (p *parser) exprStmt(LHS Expr) *ExprStmt {
 	es := new(ExprStmt)
 	es.node.Init(p.p)
 	es.Expr = LHS
-	p.want(";")
 	return es
 }
 
