@@ -33,8 +33,8 @@ func main() {
 		if os.Args[2] == "rp" {
 			RB = RMAX - 3
 		} else if os.Args[2] == "parse" {
-      return
-    }else {
+			return
+		} else {
 
 			visitFile(f)
 		}

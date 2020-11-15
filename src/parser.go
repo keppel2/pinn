@@ -271,10 +271,16 @@ func (p *parser) forStmt() *ForStmt {
 	rt := new(ForStmt)
 	rt.Init(p.p)
 	p.want("for")
-	rt.Inits = p.stmt()
-	rt.E = p.uexpr()
-	p.want(";")
-	rt.Loop = p.assignOrExprStmt()
+	if !p.got(";") {
+		rt.Inits = p.stmt()
+	}
+	if !p.got(";") {
+		rt.E = p.uexpr()
+		p.want(";")
+	}
+	if p.tok != "{" {
+		rt.Loop = p.assignOrExprStmt()
+	}
 	rt.B = p.blockStmt()
 	return rt
 }
@@ -319,7 +325,7 @@ func (p *parser) stmt() Stmt {
 
 	case "literal", "name": //, "-", "+":
 		rt = p.assignOrExprStmt()
-    p.want(";")
+		p.want(";")
 	case "{":
 		rt = p.blockStmt()
 	case ";":

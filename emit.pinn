@@ -144,6 +144,12 @@ return f2();
 a = fact(4);
 assert(a, 24);
 
+b = 0;
+for a = 5; a < 7; a = a + 1 {
+b = b + a;
+}
+assert(b, 11);
+
 func fact(fa int) int {
   if fa == 1 {
     return 1;

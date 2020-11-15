@@ -43,6 +43,18 @@ func visitTypeStmt(n *TypeStmt) {
 	prn("type: ", n.Wl.Value)
 	visitKind(n.Kind)
 }
+func visitForStmt(n *ForStmt) {
+	if n.Inits != nil {
+		visitStmt(n.Inits)
+	}
+	if n.E != nil {
+		visitExpr(n.E)
+	}
+	if n.Loop != nil {
+		visitStmt(n.Loop)
+	}
+	visitBlockStmt(n.B)
+}
 
 func visitForrStmt(n *ForrStmt) {
 	for _, e := range n.LH {
@@ -212,6 +224,8 @@ func visitStmt(s Stmt) {
 	pnode(s)
 	defer iminus()
 	switch t := s.(type) {
+	case *ForStmt:
+		visitForStmt(t)
 	case *ForrStmt:
 		visitForrStmt(t)
 	case *BlockStmt:

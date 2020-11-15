@@ -70,3 +70,7 @@ forr z, s := range 2233 {}
 for a := 10; a < 20; a++ {
 f(42);
 }
+for ; ; {}
+for d = 10 ; ; {}
+for ; d < 10 ; {}
+for ; ; d++ {}

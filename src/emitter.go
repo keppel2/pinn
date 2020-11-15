@@ -450,6 +450,28 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *VarStmt:
 		//		s := t.List[0].Value
 		//		e.newVar(s)
+	case *ForStmt:
+		if t.Inits != nil {
+			e.emitStmt(t.Inits)
+		}
+
+		lab := e.clab()
+		lab2 := e.clab()
+		e.makeLabel(lab2)
+		if t.E != nil {
+			e.binaryExpr(lab, t.E.(*BinaryExpr))
+		}
+		e.emitStmt(t.B)
+		if t.Loop != nil {
+			e.emitStmt(t.Loop)
+		}
+		e.emit("b", makeBranch(lab2))
+
+		e.makeLabel(lab)
+
+	default:
+		e.err("")
+
 	}
 
 }
