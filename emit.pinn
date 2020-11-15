@@ -110,12 +110,6 @@ f1(42);
 a = g1();
 assert(a, 101);
 
-/*
-if g() < 42 {
-bad();
-}
-*/
-
 var d int;
 var e int;
 var f int;
@@ -146,3 +140,14 @@ return 202;
 func g2() int {
 return f2();
 }
+
+a = fact(4);
+assert(a, 24);
+
+func fact(fa int) int {
+  if fa == 1 {
+    return 1;
+  }
+  return fact(fa - 1) * fa;
+}
+

@@ -16,6 +16,7 @@ func bw() int {
 const (
 	TR = 29 - iota
 	TR2
+	TR3
 	TMAIN
 	TBP
 	TSP
@@ -331,17 +332,6 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.emit("ret")
 }
 
-/*
-func (e *emitter) emitExpr(dest string, ex Expr){
-
-	rt := ""
-	return rt
-
-	switch t := e.(type) {
-		}
-}
-*/
-
 func (e *emitter) assignToReg(r int, ex Expr) {
 	switch t2 := ex.(type) {
 	case *NumberExpr, *VarExpr:
@@ -363,6 +353,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
 	// e.pushP()
+	e.push(makeReg(TR3))
 	for k, v := range ce.Params {
 		e.push(makeReg(k + 1))
 		e.assignToReg(k+1, v)
@@ -373,6 +364,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	for k, _ := range ce.Params {
 		e.pop(makeReg(k + 1))
 	}
+	e.pop(makeReg(TR3))
 	//  e.popP()
 
 }
@@ -448,8 +440,9 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	case *ReturnStmt:
 		if t.E != nil {
-			e.assignToReg(0, t.E)
+			e.assignToReg(TR3, t.E)
 		}
+		e.emit("mov", makeReg(0), makeReg(TR3))
 		e.emit("ret")
 	case *AssignStmt:
 		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value, false)
