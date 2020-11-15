@@ -33,7 +33,7 @@ type emitter struct {
 	rAlloc  [RMAX + 1]string
 	cbranch int
 	moff    int
-	lstack  []int
+	lstack  [][2]int
 	lst     Node
 	st      Node
 }
@@ -140,17 +140,17 @@ func (e *emitter) makeLabel(i int) {
 	e.src += fmt.Sprintf("%v%v:\n", BP, i)
 }
 
-func (e *emitter) pushloop(s int) {
-	e.lstack = append(e.lstack, s)
+func (e *emitter) pushloop(a, b int) {
+	e.lstack = append(e.lstack, [2]int{a, b})
 }
 
-func (e *emitter) poploop() int {
+func (e *emitter) poploop() [2]int {
 	rt := e.lstack[len(e.lstack)-1]
 	e.lstack = e.lstack[0 : len(e.lstack)-1]
 	return rt
 }
 
-func (e *emitter) peekloop() int {
+func (e *emitter) peekloop() [2]int {
 	return e.lstack[len(e.lstack)-1]
 }
 
@@ -401,14 +401,14 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emitStmt(s)
 		}
 	case *ContinueStmt:
-		e.emit("b", makeBranch(e.peekloop()-1))
+		e.emit("b", makeBranch(e.peekloop()[0]))
 	case *BreakStmt:
-		e.emit("b", makeBranch(e.peekloop()))
+		e.emit("b", makeBranch(e.peekloop()[1]))
 	case *LoopStmt:
 		lab := e.clab()
 		e.makeLabel(lab)
 		lab2 := e.clab()
-		e.pushloop(lab2)
+		e.pushloop(lab, lab2)
 		e.emitStmt(t.B)
 		e.emit("b", makeBranch(lab))
 		e.makeLabel(lab2)
@@ -417,7 +417,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		lab := e.clab()
 		e.makeLabel(lab)
 		lab2 := e.clab()
-		e.pushloop(lab2)
+		e.pushloop(lab, lab2)
 		e.binaryExpr(lab2, t.Cond.(*BinaryExpr))
 		e.emitStmt(t.B)
 		e.emit("b", makeBranch(lab))
@@ -457,17 +457,22 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		lab := e.clab()
 		lab2 := e.clab()
-		e.makeLabel(lab2)
-		if t.E != nil {
-			e.binaryExpr(lab, t.E.(*BinaryExpr))
-		}
-		e.emitStmt(t.B)
+    lab3 := e.clab()
+    e.pushloop(lab, lab2)
+    e.emit("b", makeBranch(lab3))
+		e.makeLabel(lab)
 		if t.Loop != nil {
 			e.emitStmt(t.Loop)
 		}
-		e.emit("b", makeBranch(lab2))
+    e.makeLabel(lab3)
 
-		e.makeLabel(lab)
+		if t.E != nil {
+			e.binaryExpr(lab2, t.E.(*BinaryExpr))
+		}
+		e.emitStmt(t.B)
+		e.emit("b", makeBranch(lab))
+
+		e.makeLabel(lab2)
 
 	default:
 		e.err("")

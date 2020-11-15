@@ -146,9 +146,14 @@ assert(a, 24);
 
 b = 0;
 for a = 5; a < 7; a = a + 1 {
-b = b + a;
+  b = b + a;
 }
 assert(b, 11);
+
+for a = 2; a < 7; a = a + 1 {
+  break;
+}
+assert(a, 2);
 
 func fact(fa int) int {
   if fa == 1 {
