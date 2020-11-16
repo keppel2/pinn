@@ -1,0 +1,70 @@
+//heap sort
+func left(i int) int {
+    return 2 * i;
+}
+func right(i int) int {
+    return 2 * i + 1;
+}
+
+//heap := [-1, 16, 4, 10, 14, 7, 9, 3, 2, 8, 1];
+var heap [4]int;
+heap[0] = 0 -1;
+heap[1] = 4;
+heap[2] = 7;
+heap[3] = 2;
+heap[4] = 1;
+var hsize int;
+hsize = 4;
+
+
+
+func build_max() {
+    for x = hsize / 2; x >= 1; x = x - 1 {
+        max_heap(x);
+    }
+}
+
+func max_heap(i int) {
+    l = left(i);
+    r = right(i);
+    largest = i;
+    if l <= hsize {
+      if heap[l] > heap[i] {
+        largest = l;
+      }
+    }
+    if r <= hsize {
+      if heap[r] > heap[largest] {
+        largest = r;
+      }
+    }
+    if largest != i {
+        temp = heap[i];
+        heap[i] = heap[largest];
+        heap[largest] = temp;
+        max_heap(largest);
+    }
+}
+
+func heapsort() {
+   for z = hsize; z >= 2; z = z - 1 {
+      temp = heap[1];
+      heap[1] = heap[z];
+      heap[z] = temp;
+      hsize = hsize - 1;
+      max_heap(1);
+      
+   }
+}
+
+build_max();
+print(heap[1]);
+print(heap[2]);
+print(heap[3]);
+heapsort();
+print(3);
+print(7);
+print(heap[1]);
+print(heap[2]);
+print(heap[3]);
+print(heap[4]);

@@ -119,6 +119,10 @@ func (e *emitter) freeReg() int {
 	return k
 }
 
+func (e emitter) dString() string {
+  return fmt.Sprint(e.rMap, e.rAlloc, e.st, reflect.TypeOf(e.st)) 
+}
+
 func (e *emitter) emit(i string, ops ...string) {
 	const ind = "  "
 	const OS = ", "
@@ -130,7 +134,7 @@ func (e *emitter) emit(i string, ops ...string) {
 			e.src += OS + s
 		}
 	}
-	e.src += "//" + fmt.Sprint(e.rMap, e.rAlloc, e.st, reflect.TypeOf(e.st)) + "\n"
+	e.src += "//" + e.dString() + "\n"
 }
 
 func (e *emitter) init() {
@@ -189,14 +193,14 @@ func (e *emitter) peekloop() [2]int {
 
 func (e *emitter) err(msg string) {
 
-	panic(fmt.Sprintln(msg, e.rMap, e.rAlloc, e.src))
+	panic(fmt.Sprintln(msg, e.dString(), e.src))
 }
 func (e *emitter) print(a int) {
 	e.pushP()
 	e.emit("mov", makeReg(0), "1")
 	e.emit("mov", makeReg(1), "0")
 	e.emit("mov", makeReg(TR2), makeReg(a))
-	e.emit("sub", makeReg(TSP), makeReg(TSP), "16")
+	e.emit("sub", makeReg(TSP), makeReg(TSP), "24")
 	for i := 0; i < 16; i++ {
 		e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
 		e.emit("cmp", makeReg(TR), "10")
@@ -209,18 +213,21 @@ func (e *emitter) print(a int) {
 		e.emit("lsl", makeReg(1), makeReg(1), "8")
 		e.emit("add", makeReg(1), makeReg(1), makeReg(TR))
 		if i == 7 {
-			e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
+			e.emit("str", makeReg(1), fmt.Sprintf("[%v, 16]", makeReg(TSP)))
 
 			e.emit("mov", makeReg(1), "0")
 		}
 	}
-	e.emit("str", makeReg(1), fmt.Sprintf("[%v]", makeReg(TSP)))
+	e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
+  e.emit("mov", makeReg(TR), "','")
+	e.emit("str", makeReg(TR), fmt.Sprintf("[%v]", makeReg(TSP)))
+
 
 	e.emit("mov", makeReg(1), makeReg(TSP))
-	e.emit("mov", makeReg(2), "16")
+	e.emit("mov", makeReg(2), "24")
 	e.emit("mov", makeReg(8), "64")
 	e.emit("svc", "0")
-	e.emit("add", makeReg(TSP), makeReg(TSP), "16")
+	e.emit("add", makeReg(TSP), makeReg(TSP), "24")
 	e.popP()
 
 }
@@ -285,9 +292,9 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	e.st = be
 	defer func() { e.st = e.lst }()
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-		lh := e.moveToTr(be.LHS)
-		rh := e.regOrImm(be.RHS)
-		e.emit("cmp", lh, rh)
+    e.assignToReg(TR3, be.LHS)
+    e.assignToReg(TR4, be.RHS)
+		e.emit("cmp", makeReg(TR3), makeReg(TR4))
 		bi := ""
 		switch be.op {
 		case "==":
