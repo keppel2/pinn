@@ -502,18 +502,23 @@ func (e *emitter) emitStmt(s Stmt) {
 		switch t2 := lh.(type) {
 		case *VarExpr:
 			lhi := e.fillReg(t2.Wl.Value, false)
+			if t.Op == "++" {
+				e.emit("add", makeReg(lhi), makeReg(lhi), "#1")
+				return
+			} else if t.Op == "--" {
+				e.emit("sub", makeReg(lhi), makeReg(lhi), "#1")
+				return
+			}
 			e.assignToReg(lhi, t.RHSa[0])
 		case *IndexExpr:
+
 			e.assignToReg(TR5, t.RHSa[0])
 			v := t2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 			e.assignToReg(TR4, t2.E)
 			e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
 			e.emit("lsl", makeReg(TR4), makeReg(TR4), "#3")
-			//			x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
 			e.emit("str", makeReg(TR5), "["+makeXReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
-
-			// v2 := t2.E.
 		}
 
 	case *VarStmt:

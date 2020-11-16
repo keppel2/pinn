@@ -4,10 +4,13 @@ func f(a, b int) int {
 
 assert(f(1, 2), 3);
 
-if 1 < 2 {
-  if 11 < 2 {
-    print(2);
-  }
+if 10 + 11 > 12 {
 } else {
-  print(3);
+  bad();
 }
+x = 10;
+x++;
+assert(x, 11);
+x--;
+x--;
+assert(x, 9);
