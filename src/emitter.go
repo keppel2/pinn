@@ -3,6 +3,7 @@ package main
 import "math/rand"
 import "fmt"
 import "reflect"
+import "strconv"
 
 const RP = "x"
 
@@ -39,6 +40,7 @@ const (
 type mloc struct {
 	Mlt int
 	i   int
+	len int
 }
 
 type emitter struct {
@@ -70,14 +72,22 @@ func moffOff(a int) int {
 	return a * bw()
 }
 
-/*
-func (e *emitter) newVar(s string) int {
-	i := e.findReg()
-	e.rMap[s] = i
-	e.rAlloc[i] = s
-	return i
+func (e *emitter) newVar(s string, k Kind) {
+  switch t := k.(type) {
+  case *SKind:
+//    e.fillReg(s, false)
+  case *ArKind:
+    ml := mloc{}
+    ml.init(MLheap, e.moff)
+    x, _ := strconv.Atoi(t.Len.(*NumberExpr).Il.Value)
+    ml.len = x
+    e.moff += x
+    e.rMap[s] = ml
+
+
+    
+  }
 }
-*/
 
 func (e *emitter) push(s string) {
 	e.emit("str", s, "["+makeReg(TSP), "-8]!")
@@ -107,7 +117,7 @@ func (e *emitter) freeReg() int {
 	ml.init(MLreg, e.moff)
 	e.rMap[s] = ml
 	e.emit("str", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(e.moff)))
-	e.moff--
+	e.moff++
 	return k
 }
 
@@ -129,7 +139,7 @@ func (e *emitter) init() {
 	rand.Seed(42)
 	e.rMap = make(map[string]mloc)
 	e.cbranch = 1
-	e.moff = -1
+//	e.moff = -1
 }
 
 /*
@@ -372,6 +382,11 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 	case *CallExpr:
 		e.emitCall(t2)
 		e.emit("mov", makeReg(r), makeReg(0))
+  case *IndexExpr:
+    v := t2.X.(*VarExpr).Wl.Value
+    x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
+    ml := e.rMap[v]
+    e.emit("ldr", makeReg(r), "[" + makeXReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i + x)))
 
 	default:
 		e.err("")
@@ -475,11 +490,26 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.emit("mov", makeReg(0), makeReg(TR3))
 		e.emit("ret")
 	case *AssignStmt:
-		lhi := e.fillReg(t.LHSa[0].(*VarExpr).Wl.Value, false)
-		e.assignToReg(lhi, t.RHSa[0])
+    lh  := t.LHSa[0]
+    switch t2 := lh.(type) {
+    case *VarExpr:
+      lhi := e.fillReg(t2.Wl.Value, false)
+      e.assignToReg(lhi, t.RHSa[0])
+    case *IndexExpr:
+      e.assignToReg(TR5, t.RHSa[0])
+      v := t2.X.(*VarExpr).Wl.Value
+      x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
+      ml := e.rMap[v]
+      e.emit("str", makeReg(TR5), "[" + makeXReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i + x)))
+
+
+     // v2 := t2.E.
+     }
+      
 	case *VarStmt:
-		//		s := t.List[0].Value
-		//		e.newVar(s)
+		for _, v := range t.List {
+			e.newVar(v.Value, t.Kind)
+		}
 	case *ForStmt:
 		if t.Inits != nil {
 			e.emitStmt(t.Inits)
