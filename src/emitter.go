@@ -120,7 +120,7 @@ func (e *emitter) freeReg() int {
 }
 
 func (e emitter) dString() string {
-  return fmt.Sprint(e.rMap, e.rAlloc, e.st, reflect.TypeOf(e.st)) 
+	return fmt.Sprint(e.rMap, e.rAlloc, e.st, reflect.TypeOf(e.st))
 }
 
 func (e *emitter) emit(i string, ops ...string) {
@@ -219,9 +219,8 @@ func (e *emitter) print(a int) {
 		}
 	}
 	e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
-  e.emit("mov", makeReg(TR), "','")
+	e.emit("mov", makeReg(TR), "','")
 	e.emit("str", makeReg(TR), fmt.Sprintf("[%v]", makeReg(TSP)))
-
 
 	e.emit("mov", makeReg(1), makeReg(TSP))
 	e.emit("mov", makeReg(2), "24")
@@ -292,8 +291,8 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	e.st = be
 	defer func() { e.st = e.lst }()
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-    e.assignToReg(TR3, be.LHS)
-    e.assignToReg(TR4, be.RHS)
+		e.assignToReg(TR3, be.LHS)
+		e.assignToReg(TR4, be.RHS)
 		e.emit("cmp", makeReg(TR3), makeReg(TR4))
 		bi := ""
 		switch be.op {

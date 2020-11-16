@@ -1,0 +1,13 @@
+func f(a, b int) int {
+  return a + b;
+}
+
+assert(f(1, 2), 3);
+
+if 1 < 2 {
+  if 11 < 2 {
+    print(2);
+  }
+} else {
+  print(3);
+}
