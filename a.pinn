@@ -1,4 +1,6 @@
 var x [7]int;
 x[2] = 42;
-y = x[2];
+z = 1;
+y = x[1 + z];
+
 return y;

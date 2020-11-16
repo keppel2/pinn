@@ -382,9 +382,13 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 		e.emit("mov", makeReg(r), makeReg(0))
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
-		x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
 		ml := e.rMap[v]
-		e.emit("ldr", makeReg(r), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i+x)))
+		e.assignToReg(TR4, t2.E)
+		e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
+		e.emit("lsl", makeReg(TR4), makeReg(TR4), "#3")
+
+		//		x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
+		e.emit("ldr", makeReg(r), "["+makeXReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
 
 	default:
 		e.err("")
@@ -496,9 +500,12 @@ func (e *emitter) emitStmt(s Stmt) {
 		case *IndexExpr:
 			e.assignToReg(TR5, t.RHSa[0])
 			v := t2.X.(*VarExpr).Wl.Value
-			x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
 			ml := e.rMap[v]
-			e.emit("str", makeReg(TR5), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i+x)))
+			e.assignToReg(TR4, t2.E)
+			e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
+			e.emit("lsl", makeReg(TR4), makeReg(TR4), "#3")
+			//			x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
+			e.emit("str", makeReg(TR5), "["+makeXReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
 
 			// v2 := t2.E.
 		}
