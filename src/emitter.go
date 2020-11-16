@@ -29,15 +29,32 @@ const FP = ".f"
 
 var RB = 9
 
+const (
+	MLinvalid = iota
+	MLreg
+	MLstack
+	MLheap
+)
+
+type mloc struct {
+	Mlt int
+	i   int
+}
+
 type emitter struct {
 	src     string
-	rMap    map[string]int
+	rMap    map[string]mloc
 	rAlloc  [RMAX + 1]string
 	cbranch int
 	moff    int
 	lstack  [][2]int
 	lst     Node
 	st      Node
+}
+
+func (m *mloc) init(mlt int, a int) {
+	m.Mlt = mlt
+	m.i = a
 }
 
 func (e *emitter) findReg() int {
@@ -50,15 +67,17 @@ func (e *emitter) findReg() int {
 }
 
 func moffOff(a int) int {
-	return (-1 - a) * bw()
+	return a * bw()
 }
 
+/*
 func (e *emitter) newVar(s string) int {
 	i := e.findReg()
 	e.rMap[s] = i
 	e.rAlloc[i] = s
 	return i
 }
+*/
 
 func (e *emitter) push(s string) {
 	e.emit("str", s, "["+makeReg(TSP), "-8]!")
@@ -84,7 +103,9 @@ func (e *emitter) freeReg() int {
 	k += RB
 	s := e.rAlloc[k]
 	e.rAlloc[k] = ""
-	e.rMap[s] = e.moff
+	ml := mloc{}
+	ml.init(MLreg, e.moff)
+	e.rMap[s] = ml
 	e.emit("str", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(e.moff)))
 	e.moff--
 	return k
@@ -106,11 +127,12 @@ func (e *emitter) emit(i string, ops ...string) {
 
 func (e *emitter) init() {
 	rand.Seed(42)
-	e.rMap = make(map[string]int)
+	e.rMap = make(map[string]mloc)
 	e.cbranch = 1
 	e.moff = -1
 }
 
+/*
 func (e *emitter) varAt(i int) string {
 	for k, v := range e.rMap {
 		if v == i {
@@ -119,6 +141,7 @@ func (e *emitter) varAt(i int) string {
 	}
 	return ""
 }
+*/
 
 func (e *emitter) clab() int {
 	rt := e.cbranch
@@ -195,16 +218,19 @@ func (e *emitter) print(a int) {
 }
 
 func (e *emitter) fillReg(s string, load bool) int {
-	moff, ok := e.rMap[s]
-	if ok && moff >= 0 {
-		return moff
+	ml, ok := e.rMap[s]
+	if ok && ml.Mlt == MLreg {
+		return ml.i
 	}
 
 	k := e.findReg()
-	e.rMap[s] = k
-	e.rAlloc[k] = s
+	ml = mloc{}
+	ml.init(MLreg, k)
+	ml.i = k
+	e.rMap[s] = ml
+	e.rAlloc[ml.i] = s
 	if ok && load {
-		e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(moff)))
+		e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i)))
 	}
 
 	return k
@@ -325,7 +351,9 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	reg := 1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
-			e.rMap[vd2.Value] = reg
+			ml := mloc{}
+			ml.init(MLreg, reg)
+			e.rMap[vd2.Value] = ml
 			e.rAlloc[reg] = vd2.Value
 			reg++
 		}
