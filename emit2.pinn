@@ -14,3 +14,10 @@ assert(x, 11);
 x--;
 x--;
 assert(x, 9);
+
+var ar[5]int;
+ar[2] = 42;
+ar[5] = 101;
+assert(ar[2], 42);
+x = 3;
+assert(ar[2 + x], 101);
