@@ -40,7 +40,7 @@ type mloc struct {
 
 type emitter struct {
 	src     string
-	rMap    map[string]mloc
+	rMap    map[string]*mloc
 	rAlloc  [RMAX + 1]string
 	cbranch int
 	moff    int
@@ -71,7 +71,7 @@ func (e *emitter) newVar(s string, k Kind) {
 	switch t := k.(type) {
 	case *SKind:
 	case *ArKind:
-		ml := mloc{}
+		ml := new(mloc)
 		ml.init(MLheap, e.moff)
 		ml.len = e.atoi(t.Len.(*NumberExpr).Il.Value)
 		e.moff += ml.len
@@ -115,7 +115,6 @@ func (e *emitter) freeReg() int {
 	ml.Mlt = MLheap
 	ml.i = moffOff(e.moff)
 	e.moff++
-	e.rMap[s] = ml
 	e.emit("str", makeReg(k), offSet(makeReg(TBP), makeConst(ml.i)))
 	return k
 }
@@ -139,7 +138,7 @@ func (e *emitter) emit(i string, ops ...string) {
 
 func (e *emitter) init() {
 	rand.Seed(42)
-	e.rMap = make(map[string]mloc)
+	e.rMap = make(map[string]*mloc)
 	e.cbranch = 1
 	//	e.moff = -1
 }
@@ -255,7 +254,7 @@ func (e *emitter) fillReg(s string, load bool) int {
 	k := e.findReg()
 	off := -1
 	if !ok {
-		ml = mloc{}
+		ml = new(mloc)
 		ml.init(MLreg, k)
 	} else {
 		ml.Mlt = MLreg
@@ -359,7 +358,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	reg := 1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
-			ml := mloc{}
+			ml := new(mloc)
 			ml.init(MLreg, reg)
 			e.rMap[vd2.Value] = ml
 			e.rAlloc[reg] = vd2.Value
