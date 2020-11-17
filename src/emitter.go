@@ -10,11 +10,12 @@ const RP = "x"
 const OS = ", "
 
 const (
-	TR = 29 - iota
+	TR1 = 29 - iota
 	TR2
 	TR3
 	TR4
 	TR5
+	TRV
 	TMAIN
 	TBP
 	TSP
@@ -214,16 +215,16 @@ func (e *emitter) print(a int) {
 	e.emit("mov", makeReg(TR2), makeReg(a))
 	e.emit("sub", makeReg(TSP), makeReg(TSP), makeConst(24))
 	for i := 0; i < 16; i++ {
-		e.emit("and", makeReg(TR), makeReg(TR2), makeConst(0xf))
-		e.emit("cmp", makeReg(TR), makeConst(10))
+		e.emit("and", makeReg(TR1), makeReg(TR2), makeConst(0xf))
+		e.emit("cmp", makeReg(TR1), makeConst(10))
 		lab := e.clab()
 		e.emit("b.lt", makeBranch(lab))
-		e.emit("add", makeReg(TR), makeReg(TR), "('a' - ':')")
+		e.emit("add", makeReg(TR1), makeReg(TR1), "('a' - ':')")
 		e.makeLabel(lab)
 		e.emit("lsr", makeReg(TR2), makeReg(TR2), makeConst(4))
-		e.emit("add", makeReg(TR), makeReg(TR), "'0'")
+		e.emit("add", makeReg(TR1), makeReg(TR1), "'0'")
 		e.emit("lsl", makeReg(1), makeReg(1), makeConst(8))
-		e.emit("add", makeReg(1), makeReg(1), makeReg(TR))
+		e.emit("add", makeReg(1), makeReg(1), makeReg(TR1))
 		if i == 7 {
 			e.emit("str", makeReg(1), offSet(makeReg(TSP), makeConst(16)))
 
@@ -231,8 +232,8 @@ func (e *emitter) print(a int) {
 		}
 	}
 	e.emit("str", makeReg(1), offSet(makeReg(TSP), makeConst(8)))
-	e.emit("mov", makeReg(TR), "','")
-	e.emit("str", makeReg(TR), fmt.Sprintf("[%v]", makeReg(TSP)))
+	e.emit("mov", makeReg(TR1), "','")
+	e.emit("str", makeReg(TR1), fmt.Sprintf("[%v]", makeReg(TSP)))
 
 	e.emit("mov", makeReg(1), makeReg(TSP))
 	e.emit("mov", makeReg(2), makeConst(24))
@@ -275,8 +276,8 @@ func (e *emitter) regLoad(ex Expr) int {
 	rt := -1
 	switch t := ex.(type) {
 	case *NumberExpr:
-		e.emit("mov", makeReg(TR), makeConst(e.atoi(t.Il.Value)))
-		rt = TR
+		e.emit("mov", makeReg(TR1), makeConst(e.atoi(t.Il.Value)))
+		rt = TR1
 	case *VarExpr:
 		i := e.fillReg(t.Wl.Value, true)
 		rt = i
@@ -398,7 +399,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
 	// e.pushP()
-	e.push(makeReg(TR3))
+	e.push(makeReg(TRV))
 	for k, v := range ce.Params {
 		e.push(makeReg(k + 1))
 		e.assignToReg(k+1, v)
@@ -409,7 +410,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	for k, _ := range ce.Params {
 		e.pop(makeReg(k + 1))
 	}
-	e.pop(makeReg(TR3))
+	e.pop(makeReg(TRV))
 	//  e.popP()
 
 }
@@ -485,9 +486,9 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	case *ReturnStmt:
 		if t.E != nil {
-			e.assignToReg(TR3, t.E)
+			e.assignToReg(TRV, t.E)
 		}
-		e.emit("mov", makeReg(0), makeReg(TR3))
+		e.emit("mov", makeReg(0), makeReg(TRV))
 		e.emit("ret")
 	case *AssignStmt:
 		lh := t.LHSa[0]
