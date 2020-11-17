@@ -18,12 +18,18 @@ func f2() {
 
 func main() {
 	//	fmt.Println(os.Args)
+	if len(os.Args) <= 1 {
+		os.Exit(1)
+	}
 
 	//	g()
 	n := new(File)
 	p2 := new(parser)
 	n.Init(p2.p)
-	src, _ := ioutil.ReadFile(os.Args[1] + ".pinn")
+	src, err := ioutil.ReadFile(os.Args[1] + ".pinn")
+	if err != nil {
+		panic(err)
+	}
 	ssrc := string(src)
 	//	tok(ssrc)
 	p := new(parser)

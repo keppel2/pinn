@@ -520,8 +520,17 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 			e.assignToReg(lhi, t.RHSa[0])
 		case *IndexExpr:
+			if t.Op == "++" || t.Op == "--" {
+				e.assignToReg(TR5, t2)
+				if t.Op == "++" {
+					e.emit("add", makeReg(TR5), makeReg(TR5), makeConst(1))
+				} else {
+					e.emit("sub", makeReg(TR5), makeReg(TR5), makeConst(1))
+				}
+			} else {
+				e.assignToReg(TR5, t.RHSa[0])
+			}
 
-			e.assignToReg(TR5, t.RHSa[0])
 			v := t2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 			e.assignToReg(TR4, t2.E)
