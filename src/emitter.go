@@ -261,39 +261,20 @@ func (e *emitter) fillReg(s string, load bool) int {
 
 }
 
-func (e *emitter) regOrImm(ex Expr) string {
-	rt := ""
+func (e *emitter) regLoad(ex Expr) int {
+	rt := -1
 	switch t := ex.(type) {
 	case *NumberExpr:
-		rt = makeConst(e.atoi(t.Il.Value))
+		e.emit("mov", makeReg(TR), makeConst(e.atoi(t.Il.Value)))
+		rt = TR
 	case *VarExpr:
 		i := e.fillReg(t.Wl.Value, true)
-		rt = RP + fmt.Sprint(i)
+		rt = i
 	default:
 		e.err("")
 	}
 	return rt
 
-}
-
-func (e *emitter) operand(ex Expr) string {
-	rt := ""
-	switch t := ex.(type) {
-	case *NumberExpr, *VarExpr:
-		rt += e.regOrImm(t)
-	default:
-		e.err("")
-	}
-	return rt
-}
-
-func (e *emitter) moveToTr(ex Expr) string {
-	e.st = ex
-	if v, ok := ex.(*NumberExpr); ok {
-		e.emit("mov", makeReg(TR), e.regOrImm(v))
-		return makeReg(TR)
-	}
-	return e.regOrImm(ex)
 }
 
 func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
@@ -324,20 +305,21 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		rh := e.operand(t)
-		e.emit("mov", makeReg(dest), rh)
+		movr := e.regLoad(t)
+		e.emit("mov", makeReg(dest), makeReg(movr))
 	case *BinaryExpr:
 		e.binaryExpr(dest, t)
 	case *CallExpr:
 		e.emitCall(t)
 		e.emit("mov", makeReg(dest), makeReg(0))
 	}
-
 	op := ""
-	rh := ""
+	rh := -1
 	if t, ok := be.RHS.(*CallExpr); ok {
 		e.emitCall(t)
-		rh = makeReg(0)
+		rh = 0
+	} else {
+		rh = e.regLoad(be.RHS)
 	}
 	switch be.op {
 	case "+":
@@ -347,27 +329,18 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 		if op == "" {
 			op = "sub"
 		}
-		if rh == "" {
-			rh = e.regOrImm(be.RHS)
-		}
 	case "*", "/":
 		if be.op == "*" {
 			op = "mul"
 		} else {
 			op = "udiv"
 		}
-		if rh == "" {
-			rh = e.moveToTr(be.RHS)
-		}
 	case "%":
-		if rh == "" {
-			rh = e.moveToTr(be.RHS)
-		}
-		e.emit("udiv", makeReg(TR2), makeReg(dest), rh)
-		e.emit("msub", makeReg(dest), makeReg(TR2), rh, makeReg(dest))
+		e.emit("udiv", makeReg(TR2), makeReg(dest), makeReg(rh))
+		e.emit("msub", makeReg(dest), makeReg(TR2), makeReg(rh), makeReg(dest))
 		return
 	}
-	e.emit(op, makeReg(dest), makeReg(dest), rh)
+	e.emit(op, makeReg(dest), makeReg(dest), makeReg(rh))
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -389,8 +362,8 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 func (e *emitter) assignToReg(r int, ex Expr) {
 	switch t2 := ex.(type) {
 	case *NumberExpr, *VarExpr:
-		rh := e.operand(t2)
-		e.emit("mov", makeReg(r), rh)
+		rh := e.regLoad(t2)
+		e.emit("mov", makeReg(r), makeReg(rh))
 	case *BinaryExpr:
 		e.binaryExpr(r, t2)
 	case *CallExpr:
