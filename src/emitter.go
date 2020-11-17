@@ -7,10 +7,9 @@ import "strconv"
 
 const RP = "x"
 
+const OS = ", "
+
 func bw() int {
-	if RP == "w" {
-		return 4
-	}
 	return 8
 }
 
@@ -79,9 +78,8 @@ func (e *emitter) newVar(s string, k Kind) {
 	case *ArKind:
 		ml := mloc{}
 		ml.init(MLheap, e.moff)
-		x, _ := strconv.Atoi(t.Len.(*NumberExpr).Il.Value)
-		ml.len = x
-		e.moff += x
+		ml.len = e.atoi(t.Len.(*NumberExpr).Il.Value)
+		e.moff += ml.len
 		e.rMap[s] = ml
 
 	}
@@ -106,6 +104,10 @@ func (e *emitter) pushP() {
 	}
 }
 
+func offSet(a, b string) string {
+	return fmt.Sprintf("[%v%v%v]", a, OS, b)
+}
+
 func (e *emitter) freeReg() int {
 	k := rand.Intn(RMAX + 1 - RB)
 	k += RB
@@ -114,7 +116,7 @@ func (e *emitter) freeReg() int {
 	ml := mloc{}
 	ml.init(MLreg, e.moff)
 	e.rMap[s] = ml
-	e.emit("str", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(e.moff)))
+	e.emit("str", makeReg(k), "["+makeReg(TBP), fmt.Sprintf("%v]", moffOff(e.moff)))
 	e.moff++
 	return k
 }
@@ -125,7 +127,6 @@ func (e emitter) dString() string {
 
 func (e *emitter) emit(i string, ops ...string) {
 	const ind = "  "
-	const OS = ", "
 	const AM = " "
 	e.src += ind + i + AM
 	if ops != nil {
@@ -165,8 +166,17 @@ func makeReg(i int) string {
 	return fmt.Sprintf("%v%v", RP, i)
 }
 
-func makeXReg(i int) string {
-	return fmt.Sprintf("x%v", i)
+func (e *emitter) atoi(s string) int {
+	x, err := strconv.Atoi(s)
+	if err != nil {
+		e.err(err.Error())
+	}
+	return x
+
+}
+
+func makeConst(i int) string {
+	return fmt.Sprintf("#%v", i)
 }
 
 func makeBranch(i int) string {
@@ -197,36 +207,36 @@ func (e *emitter) err(msg string) {
 }
 func (e *emitter) print(a int) {
 	e.pushP()
-	e.emit("mov", makeReg(0), "1")
-	e.emit("mov", makeReg(1), "0")
+	e.emit("mov", makeReg(0), makeConst(1))
+	e.emit("mov", makeReg(1), makeConst(0))
 	e.emit("mov", makeReg(TR2), makeReg(a))
-	e.emit("sub", makeReg(TSP), makeReg(TSP), "24")
+	e.emit("sub", makeReg(TSP), makeReg(TSP), makeConst(24))
 	for i := 0; i < 16; i++ {
-		e.emit("and", makeReg(TR), makeReg(TR2), "0xf")
-		e.emit("cmp", makeReg(TR), "10")
+		e.emit("and", makeReg(TR), makeReg(TR2), makeConst(0xf))
+		e.emit("cmp", makeReg(TR), makeConst(10))
 		lab := e.clab()
 		e.emit("b.lt", makeBranch(lab))
 		e.emit("add", makeReg(TR), makeReg(TR), "('a' - ':')")
 		e.makeLabel(lab)
-		e.emit("lsr", makeReg(TR2), makeReg(TR2), "4")
+		e.emit("lsr", makeReg(TR2), makeReg(TR2), makeConst(4))
 		e.emit("add", makeReg(TR), makeReg(TR), "'0'")
-		e.emit("lsl", makeReg(1), makeReg(1), "8")
+		e.emit("lsl", makeReg(1), makeReg(1), makeConst(8))
 		e.emit("add", makeReg(1), makeReg(1), makeReg(TR))
 		if i == 7 {
-			e.emit("str", makeReg(1), fmt.Sprintf("[%v, 16]", makeReg(TSP)))
+			e.emit("str", makeReg(1), offSet(makeReg(TSP), makeConst(16)))
 
-			e.emit("mov", makeReg(1), "0")
+			e.emit("mov", makeReg(1), makeConst(0))
 		}
 	}
-	e.emit("str", makeReg(1), fmt.Sprintf("[%v, 8]", makeReg(TSP)))
+	e.emit("str", makeReg(1), offSet(makeReg(TSP), makeConst(8)))
 	e.emit("mov", makeReg(TR), "','")
 	e.emit("str", makeReg(TR), fmt.Sprintf("[%v]", makeReg(TSP)))
 
 	e.emit("mov", makeReg(1), makeReg(TSP))
-	e.emit("mov", makeReg(2), "24")
-	e.emit("mov", makeReg(8), "64")
-	e.emit("svc", "0")
-	e.emit("add", makeReg(TSP), makeReg(TSP), "24")
+	e.emit("mov", makeReg(2), makeConst(24))
+	e.emit("mov", makeReg(8), makeConst(64))
+	e.emit("svc", makeConst(0))
+	e.emit("add", makeReg(TSP), makeReg(TSP), makeConst(24))
 	e.popP()
 
 }
@@ -244,7 +254,7 @@ func (e *emitter) fillReg(s string, load bool) int {
 	e.rMap[s] = ml
 	e.rAlloc[ml.i] = s
 	if ok && load {
-		e.emit("ldr", makeReg(k), "["+makeXReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i)))
+		e.emit("ldr", makeReg(k), "["+makeReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i)))
 	}
 
 	return k
@@ -255,7 +265,7 @@ func (e *emitter) regOrImm(ex Expr) string {
 	rt := ""
 	switch t := ex.(type) {
 	case *NumberExpr:
-		rt = "#" + t.Il.Value
+		rt = makeConst(e.atoi(t.Il.Value))
 	case *VarExpr:
 		i := e.fillReg(t.Wl.Value, true)
 		rt = RP + fmt.Sprint(i)
@@ -320,14 +330,14 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 		e.binaryExpr(dest, t)
 	case *CallExpr:
 		e.emitCall(t)
-		e.emit("mov", makeReg(dest), RP+"0")
+		e.emit("mov", makeReg(dest), makeReg(0))
 	}
 
 	op := ""
 	rh := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
 		e.emitCall(t)
-		rh = RP + "0"
+		rh = makeReg(0)
 	}
 	switch be.op {
 	case "+":
@@ -391,10 +401,9 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 		ml := e.rMap[v]
 		e.assignToReg(TR4, t2.E)
 		e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
-		e.emit("lsl", makeReg(TR4), makeReg(TR4), "#3")
+		e.emit("lsl", makeReg(TR4), makeReg(TR4), makeConst(3))
 
-		//		x, _ := strconv.Atoi(t2.E.(*NumberExpr).Il.Value)
-		e.emit("ldr", makeReg(r), "["+makeXReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
+		e.emit("ldr", makeReg(r), "["+makeReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
 
 	default:
 		e.err("")
@@ -434,13 +443,13 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("cmp", makeReg(TR4), makeReg(TR5))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
-			e.emit("mov", RP+"0", "1")
-			e.emit("mov", "lr", makeXReg(TMAIN))
+			e.emit("mov", makeReg(0), makeConst(1))
+			e.emit("mov", "lr", makeReg(TMAIN))
 			e.emit("ret")
 			e.makeLabel(lab)
 		} else if ID == "bad" {
-			e.emit("mov", RP+"0", "1")
-			e.emit("mov", "lr", makeXReg(TMAIN))
+			e.emit("mov", makeReg(0), makeConst(1))
+			e.emit("mov", "lr", makeReg(TMAIN))
 			e.emit("ret")
 		} else if ID == "print" {
 			e.assignToReg(TR2, ce.Params[0])
@@ -503,10 +512,10 @@ func (e *emitter) emitStmt(s Stmt) {
 		case *VarExpr:
 			lhi := e.fillReg(t2.Wl.Value, false)
 			if t.Op == "++" {
-				e.emit("add", makeReg(lhi), makeReg(lhi), "#1")
+				e.emit("add", makeReg(lhi), makeReg(lhi), makeConst(1))
 				return
 			} else if t.Op == "--" {
-				e.emit("sub", makeReg(lhi), makeReg(lhi), "#1")
+				e.emit("sub", makeReg(lhi), makeReg(lhi), makeConst(1))
 				return
 			}
 			e.assignToReg(lhi, t.RHSa[0])
@@ -517,8 +526,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.rMap[v]
 			e.assignToReg(TR4, t2.E)
 			e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
-			e.emit("lsl", makeReg(TR4), makeReg(TR4), "#3")
-			e.emit("str", makeReg(TR5), "["+makeXReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
+			e.emit("lsl", makeReg(TR4), makeReg(TR4), makeConst(3))
+			e.emit("str", makeReg(TR5), offSet(makeReg(TBP), makeReg(TR4)))
 		}
 
 	case *VarStmt:
@@ -561,15 +570,15 @@ func (e *emitter) emitF(f *File) {
 .global main
 main:
 `
-	e.emit("mov", makeXReg(TMAIN), "lr")
-	e.emit("sub", "sp", "sp", "0x100")
-	e.emit("mov", makeXReg(TSP), "sp")
-	e.emit("sub", "sp", "sp", "0x10000")
-	e.emit("mov", makeXReg(TBP), "sp")
+	e.emit("mov", makeReg(TMAIN), "lr")
+	e.emit("sub", "sp", "sp", makeConst(0x100))
+	e.emit("mov", makeReg(TSP), "sp")
+	e.emit("sub", "sp", "sp", makeConst(0x10000))
+	e.emit("mov", makeReg(TBP), "sp")
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-	e.emit("mov", RP+"0", RP+"zr")
+	e.emit("mov", makeReg(0), "xzr")
 	e.emit("ret")
 	for _, s := range f.FList {
 		e.emitFunc(s)
