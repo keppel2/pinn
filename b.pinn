@@ -1,13 +1,1 @@
-
-func fact (a int) int {
-  if a <= 2 {
-    return 2;
-  }
-    return a * fact(a - 1);
-}
-
-var x int;
-x = fact(4);
-print(x);
-print(x);
-return x;
+a = b;

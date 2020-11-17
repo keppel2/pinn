@@ -70,7 +70,6 @@ func moffOff(a int) int {
 func (e *emitter) newVar(s string, k Kind) {
 	switch t := k.(type) {
 	case *SKind:
-		//    e.fillReg(s, false)
 	case *ArKind:
 		ml := mloc{}
 		ml.init(MLheap, e.moff)
@@ -109,11 +108,15 @@ func (e *emitter) freeReg() int {
 	k += RB
 	s := e.rAlloc[k]
 	e.rAlloc[k] = ""
-	ml := mloc{}
-	ml.init(MLreg, e.moff)
-	e.rMap[s] = ml
-	e.emit("str", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(e.moff))))
+	ml, ok := e.rMap[s]
+	if !ok {
+		e.err("")
+	}
+	ml.Mlt = MLheap
+	ml.i = moffOff(e.moff)
 	e.moff++
+	e.rMap[s] = ml
+	e.emit("str", makeReg(k), offSet(makeReg(TBP), makeConst(ml.i)))
 	return k
 }
 
@@ -246,15 +249,23 @@ func (e *emitter) fillReg(s string, load bool) int {
 	if ok && ml.Mlt == MLreg {
 		return ml.i
 	}
-
+	if !ok && load {
+		e.err("")
+	}
 	k := e.findReg()
-	ml = mloc{}
-	ml.init(MLreg, k)
-	ml.i = k
+	off := -1
+	if !ok {
+		ml = mloc{}
+		ml.init(MLreg, k)
+	} else {
+		ml.Mlt = MLreg
+		off = ml.i
+		ml.i = k
+	}
 	e.rMap[s] = ml
 	e.rAlloc[ml.i] = s
-	if ok && load {
-		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(ml.i))))
+	if load {
+		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(off)))
 	}
 
 	return k

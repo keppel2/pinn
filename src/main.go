@@ -37,7 +37,7 @@ func main() {
 	f := p.fileA()
 	if len(os.Args) > 2 {
 		if os.Args[2] == "rp" {
-			RB = RMAX - 5
+			RB = RMAX - 2
 		} else if os.Args[2] == "parse" {
 			return
 		} else {
