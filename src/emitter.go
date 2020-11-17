@@ -9,10 +9,6 @@ const RP = "x"
 
 const OS = ", "
 
-func bw() int {
-	return 8
-}
-
 const (
 	TR = 29 - iota
 	TR2
@@ -68,7 +64,7 @@ func (e *emitter) findReg() int {
 }
 
 func moffOff(a int) int {
-	return a * bw()
+	return a * 8
 }
 
 func (e *emitter) newVar(s string, k Kind) {
@@ -116,7 +112,7 @@ func (e *emitter) freeReg() int {
 	ml := mloc{}
 	ml.init(MLreg, e.moff)
 	e.rMap[s] = ml
-	e.emit("str", makeReg(k), "["+makeReg(TBP), fmt.Sprintf("%v]", moffOff(e.moff)))
+	e.emit("str", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(e.moff))))
 	e.moff++
 	return k
 }
@@ -183,8 +179,12 @@ func makeBranch(i int) string {
 	return fmt.Sprintf("%v%v", BP, i)
 }
 
+func (e *emitter) label(s string) {
+	e.src += s + ":\n"
+}
+
 func (e *emitter) makeLabel(i int) {
-	e.src += fmt.Sprintf("%v%v:\n", BP, i)
+	e.label(fmt.Sprintf("%v%v", BP, i))
 }
 
 func (e *emitter) pushloop(a, b int) {
@@ -254,7 +254,7 @@ func (e *emitter) fillReg(s string, load bool) int {
 	e.rMap[s] = ml
 	e.rAlloc[ml.i] = s
 	if ok && load {
-		e.emit("ldr", makeReg(k), "["+makeReg(TBP), fmt.Sprintf("%v]", moffOff(ml.i)))
+		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(ml.i))))
 	}
 
 	return k
@@ -548,10 +548,8 @@ func (e *emitter) emitStmt(s Stmt) {
 }
 
 func (e *emitter) emitF(f *File) {
-	e.src = `
-.global main
-main:
-`
+	e.src = ".global main\n"
+	e.label("main")
 	e.emit("mov", makeReg(TMAIN), "lr")
 	e.emit("sub", "sp", "sp", makeConst(0x100))
 	e.emit("mov", makeReg(TSP), "sp")
