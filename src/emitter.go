@@ -14,7 +14,7 @@ const (
 	TR2
 	TR3
 	TR4
-	TR5
+	//	TR5
 	TRV
 	TMAIN
 	TBP
@@ -423,8 +423,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		ID := ce.ID.(*VarExpr).Wl.Value
 		if ID == "assert" {
 			e.assignToReg(TR4, ce.Params[0])
-			e.assignToReg(TR5, ce.Params[1])
-			e.emit("cmp", makeReg(TR4), makeReg(TR5))
+			e.assignToReg(TR2, ce.Params[1])
+			e.emit("cmp", makeReg(TR4), makeReg(TR2))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			e.emit("mov", makeReg(0), makeConst(1))
@@ -505,14 +505,14 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(lhi, t.RHSa[0])
 		case *IndexExpr:
 			if t.Op == "++" || t.Op == "--" {
-				e.assignToReg(TR5, t2)
+				e.assignToReg(TR2, t2)
 				if t.Op == "++" {
-					e.emit("add", makeReg(TR5), makeReg(TR5), makeConst(1))
+					e.emit("add", makeReg(TR2), makeReg(TR2), makeConst(1))
 				} else {
-					e.emit("sub", makeReg(TR5), makeReg(TR5), makeConst(1))
+					e.emit("sub", makeReg(TR2), makeReg(TR2), makeConst(1))
 				}
 			} else {
-				e.assignToReg(TR5, t.RHSa[0])
+				e.assignToReg(TR2, t.RHSa[0])
 			}
 
 			v := t2.X.(*VarExpr).Wl.Value
@@ -520,7 +520,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(TR4, t2.E)
 			e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
 			e.emit("lsl", makeReg(TR4), makeReg(TR4), makeConst(3))
-			e.emit("str", makeReg(TR5), offSet(makeReg(TBP), makeReg(TR4)))
+			e.emit("str", makeReg(TR2), offSet(makeReg(TBP), makeReg(TR4)))
 		}
 
 	case *VarStmt:
