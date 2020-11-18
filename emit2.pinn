@@ -21,7 +21,6 @@ ar[5] = 101;
 assert(ar[2], 42);
 x = 3;
 assert(ar[2 + x], 101);
-/*
 ar[5]++;
 assert(ar[5], 102);
 ar[2]--;
@@ -31,4 +30,3 @@ a -= 8;
 assert(a, 4);
 a += 2;
 assert(a, 6);
-*/

@@ -519,11 +519,13 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(lhi, t.RHSa[0])
 		case *IndexExpr:
 			if t.Op == "++" || t.Op == "--" {
-				e.assignToReg(TR2, t2)
+				e.assignToReg(TR3, t2)
 				if t.Op == "++" {
-					e.emit("add", makeReg(TR2), makeReg(TR2), makeConst(1))
+					e.constLoad(TR1, 1)
+					e.doOp(TR3, TR3, TR1, "+")
 				} else {
-					e.emit("sub", makeReg(TR2), makeReg(TR2), makeConst(1))
+					e.constLoad(TR1, 1)
+					e.doOp(TR3, TR3, TR1, "-")
 				}
 			} else {
 				e.assignToReg(TR3, t.RHSa[0])
