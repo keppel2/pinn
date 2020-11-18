@@ -241,7 +241,15 @@ func (e *emitter) print(a int) {
 	e.emit("svc", makeConst(0))
 	e.emit("add", makeReg(TSP), makeReg(TSP), makeConst(24))
 	e.popP()
+}
 
+func (e *emitter) fillTemp(s string, reg int) {
+	ml := e.rMap[s]
+	if ml.Mlt == MLreg {
+		e.emit("mov", makeReg(reg), makeReg(ml.i))
+		return
+	}
+	e.emit("ldr", makeReg(reg), offSet(makeReg(TBP), makeConst(ml.i)))
 }
 
 func (e *emitter) fillReg(s string, load bool) int {
@@ -267,8 +275,18 @@ func (e *emitter) fillReg(s string, load bool) int {
 	if load {
 		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(off)))
 	}
-
 	return k
+}
+
+func (e *emitter) forceLoad(ex Expr, reg int) {
+	switch t := ex.(type) {
+	case *NumberExpr:
+		e.emit("mov", makeReg(reg), makeConst(e.atoi(t.Il.Value)))
+	case *VarExpr:
+		e.fillTemp(t.Wl.Value, reg)
+	default:
+		e.err("")
+	}
 
 }
 
@@ -285,6 +303,33 @@ func (e *emitter) regLoad(ex Expr) int {
 		e.err("")
 	}
 	return rt
+
+}
+
+func (e *emitter) doOp(dest, a, b int, op string) {
+	mn := ""
+	switch op {
+	case "+":
+		mn = "add"
+	case "-":
+		mn = "sub"
+	case "*":
+		mn = "mul"
+	case "/":
+		mn = "udiv"
+	}
+	if mn != "" {
+		e.emit(mn, makeReg(dest), makeReg(a), makeReg(b))
+		return
+	}
+	switch op {
+	case "%":
+		e.emit("udiv", makeReg(dest), makeReg(a), makeReg(b))
+		e.emit("msub", makeReg(dest), makeReg(dest), makeReg(b), makeReg(a))
+		return
+	default:
+		e.err(op)
+	}
 
 }
 
@@ -316,42 +361,21 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		movr := e.regLoad(t)
-		e.emit("mov", makeReg(dest), makeReg(movr))
+		e.forceLoad(t, TR1)
 	case *BinaryExpr:
-		e.binaryExpr(dest, t)
+		e.binaryExpr(TR1, t)
 	case *CallExpr:
 		e.emitCall(t)
-		e.emit("mov", makeReg(dest), makeReg(0))
+		e.emit("mov", makeReg(TR1), makeReg(0))
 	}
-	op := ""
-	rh := -1
+	//	op := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
 		e.emitCall(t)
-		rh = 0
+		e.emit("mov", makeReg(TR2), makeReg(0))
 	} else {
-		rh = e.regLoad(be.RHS)
+		e.forceLoad(be.RHS, TR2)
 	}
-	switch be.op {
-	case "+":
-		op = "add"
-		fallthrough
-	case "-":
-		if op == "" {
-			op = "sub"
-		}
-	case "*", "/":
-		if be.op == "*" {
-			op = "mul"
-		} else {
-			op = "udiv"
-		}
-	case "%":
-		e.emit("udiv", makeReg(TR2), makeReg(dest), makeReg(rh))
-		e.emit("msub", makeReg(dest), makeReg(TR2), makeReg(rh), makeReg(dest))
-		return
-	}
-	e.emit(op, makeReg(dest), makeReg(dest), makeReg(rh))
+	e.doOp(dest, TR1, TR2, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -494,6 +518,12 @@ func (e *emitter) emitStmt(s Stmt) {
 		lh := t.LHSa[0]
 		switch t2 := lh.(type) {
 		case *VarExpr:
+			if t.Op == "+=" {
+				lhi := e.fillReg(t2.Wl.Value, true)
+				e.assignToReg(TR1, t.RHSa[0])
+				e.emit("add", makeReg(lhi), makeReg(lhi), makeReg(TR1))
+				return
+			}
 			lhi := e.fillReg(t2.Wl.Value, false)
 			if t.Op == "++" {
 				e.emit("add", makeReg(lhi), makeReg(lhi), makeConst(1))
