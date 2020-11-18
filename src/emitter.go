@@ -218,11 +218,13 @@ func (e *emitter) err(msg string) {
 
 	panic(fmt.Sprintln(msg, e.dString(), e.src))
 }
-func (e *emitter) print(a int) {
+
+func (e *emitter) emitPrint() {
+	e.label("print")
 	e.pushP()
 	e.constLoad(0, 1)
 	e.constLoad(1, 0)
-	e.mov(TR2, a)
+	//	e.mov(TR2, a)
 	e.emit("sub", makeReg(TSP), makeReg(TSP), makeConst(24))
 	for i := 0; i < 16; i++ {
 		e.emit("and", makeReg(TR1), makeReg(TR2), makeConst(0xf))
@@ -251,6 +253,7 @@ func (e *emitter) print(a int) {
 	e.emit("svc", makeConst(0))
 	e.emit("add", makeReg(TSP), makeReg(TSP), makeConst(24))
 	e.popP()
+	e.emit("ret")
 }
 
 func (e *emitter) fillReg(s string) int {
@@ -451,7 +454,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("ret")
 		} else if ID == "print" {
 			e.assignToReg(TR2, ce.Params[0])
-			e.print(TR2)
+			e.push("lr")
+			e.emit("bl", "print")
+			e.pop("lr")
 		} else {
 			e.emitCall(ce)
 		}
@@ -600,4 +605,5 @@ func (e *emitter) emitF(f *File) {
 	for _, s := range f.FList {
 		e.emitFunc(s)
 	}
+	e.emitPrint()
 }
