@@ -361,21 +361,21 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		e.forceLoad(t, TR1)
+		e.forceLoad(t, TR2)
 	case *BinaryExpr:
-		e.binaryExpr(TR1, t)
+		e.binaryExpr(TR2, t)
 	case *CallExpr:
 		e.emitCall(t)
-		e.emit("mov", makeReg(TR1), makeReg(0))
+		e.emit("mov", makeReg(TR2), makeReg(0))
 	}
 	//	op := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
 		e.emitCall(t)
-		e.emit("mov", makeReg(TR2), makeReg(0))
+		e.emit("mov", makeReg(TR3), makeReg(0))
 	} else {
-		e.forceLoad(be.RHS, TR2)
+		e.forceLoad(be.RHS, TR3)
 	}
-	e.doOp(dest, TR1, TR2, be.op)
+	e.doOp(dest, TR2, TR3, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -447,8 +447,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		ID := ce.ID.(*VarExpr).Wl.Value
 		if ID == "assert" {
 			e.assignToReg(TR2, ce.Params[0])
-			e.assignToReg(TR2, ce.Params[1])
-			e.emit("cmp", makeReg(TR2), makeReg(TR2))
+			e.assignToReg(TR3, ce.Params[1])
+			e.emit("cmp", makeReg(TR2), makeReg(TR3))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			e.emit("mov", makeReg(0), makeConst(1))
@@ -518,10 +518,13 @@ func (e *emitter) emitStmt(s Stmt) {
 		lh := t.LHSa[0]
 		switch t2 := lh.(type) {
 		case *VarExpr:
-			if t.Op == "+=" {
+			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				lhi := e.fillReg(t2.Wl.Value, true)
-				e.assignToReg(TR1, t.RHSa[0])
-				e.emit("add", makeReg(lhi), makeReg(lhi), makeReg(TR1))
+				e.assignToReg(TR2, lh)
+				e.assignToReg(TR3, t.RHSa[0])
+				e.doOp(lhi, TR2, TR3, t.Op[0:1])
+				e.src += "//" + t.Op[0:1] + ".\n"
+
 				return
 			}
 			lhi := e.fillReg(t2.Wl.Value, false)

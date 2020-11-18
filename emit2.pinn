@@ -15,13 +15,21 @@ x--;
 x--;
 assert(x, 9);
 
+/*
 var ar[5]int;
 ar[2] = 42;
 ar[5] = 101;
 assert(ar[2], 42);
+print(x);
 x = 3;
 assert(ar[2 + x], 101);
 ar[5]++;
 assert(ar[5], 102);
 ar[2]--;
 assert(ar[2], 41);
+a = 12;
+a -= 8;
+assert(a, 4);
+a += 2;
+assert(a, 6);
+*/
