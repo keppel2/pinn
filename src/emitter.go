@@ -50,6 +50,10 @@ type emitter struct {
 	st      Node
 }
 
+func (m *mloc) String() string {
+	return fmt.Sprintf("%#v", m)
+}
+
 func (m *mloc) init(mlt int, a int) {
 	m.Mlt = mlt
 	m.i = a
@@ -114,9 +118,9 @@ func (e *emitter) freeReg() int {
 		e.err("")
 	}
 	ml.Mlt = MLheap
-	ml.i = moffOff(e.moff)
+	ml.i = e.moff
 	e.moff++
-	e.emit("str", makeReg(k), offSet(makeReg(TBP), makeConst(ml.i)))
+	e.emit("str", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(ml.i))))
 	return k
 }
 
@@ -243,61 +247,37 @@ func (e *emitter) print(a int) {
 	e.popP()
 }
 
-func (e *emitter) fillTemp(s string, reg int) {
-	ml := e.rMap[s]
-	if ml.Mlt == MLreg {
-		e.emit("mov", makeReg(reg), makeReg(ml.i))
-		return
-	}
-	e.emit("ldr", makeReg(reg), offSet(makeReg(TBP), makeConst(ml.i)))
-}
-
-func (e *emitter) fillReg(s string, load bool) int {
+func (e *emitter) fillReg(s string) int {
 	ml, ok := e.rMap[s]
 	if ok && ml.Mlt == MLreg {
 		return ml.i
 	}
-	if !ok && load {
-		e.err("")
-	}
 	k := e.findReg()
-	off := -1
 	if !ok {
 		ml = new(mloc)
 		ml.init(MLreg, k)
+		e.rMap[s] = ml
 	} else {
+		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(ml.i))))
 		ml.Mlt = MLreg
-		off = ml.i
 		ml.i = k
 	}
-	e.rMap[s] = ml
 	e.rAlloc[ml.i] = s
-	if load {
-		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(off)))
-	}
 	return k
 }
 
-func (e *emitter) forceLoad(ex Expr, reg int) {
-	switch t := ex.(type) {
-	case *NumberExpr:
-		e.emit("mov", makeReg(reg), makeConst(e.atoi(t.Il.Value)))
-	case *VarExpr:
-		e.fillTemp(t.Wl.Value, reg)
-	default:
-		e.err("")
-	}
-
+func (e *emitter) constLoad(reg, a int) {
+	e.emit("mov", makeReg(reg), makeConst(a))
 }
 
 func (e *emitter) regLoad(ex Expr) int {
 	rt := -1
 	switch t := ex.(type) {
 	case *NumberExpr:
-		e.emit("mov", makeReg(TR1), makeConst(e.atoi(t.Il.Value)))
+		e.constLoad(TR1, e.atoi(t.Il.Value))
 		rt = TR1
 	case *VarExpr:
-		i := e.fillReg(t.Wl.Value, true)
+		i := e.fillReg(t.Wl.Value)
 		rt = i
 	default:
 		e.err("")
@@ -361,7 +341,7 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		e.forceLoad(t, TR2)
+		e.assignToReg(TR2, t)
 	case *BinaryExpr:
 		e.binaryExpr(TR2, t)
 	case *CallExpr:
@@ -373,7 +353,7 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 		e.emitCall(t)
 		e.emit("mov", makeReg(TR3), makeReg(0))
 	} else {
-		e.forceLoad(be.RHS, TR3)
+		e.assignToReg(TR3, be.RHS)
 	}
 	e.doOp(dest, TR2, TR3, be.op)
 }
@@ -408,10 +388,10 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
 		e.assignToReg(TR2, t2.E)
-		e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(ml.i))
 		e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(3))
+		e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(moffOff(ml.i)))
 
-		e.emit("ldr", makeReg(r), "["+makeReg(TBP), fmt.Sprintf("%v]", makeReg(TR2)))
+		e.emit("ldr", makeReg(r), offSet(makeReg(TBP), makeReg(TR2)))
 
 	default:
 		e.err("")
@@ -519,20 +499,21 @@ func (e *emitter) emitStmt(s Stmt) {
 		switch t2 := lh.(type) {
 		case *VarExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-				lhi := e.fillReg(t2.Wl.Value, true)
+				lhi := e.fillReg(t2.Wl.Value)
 				e.assignToReg(TR2, lh)
 				e.assignToReg(TR3, t.RHSa[0])
 				e.doOp(lhi, TR2, TR3, t.Op[0:1])
-				e.src += "//" + t.Op[0:1] + ".\n"
 
 				return
 			}
-			lhi := e.fillReg(t2.Wl.Value, false)
+			lhi := e.fillReg(t2.Wl.Value)
 			if t.Op == "++" {
-				e.emit("add", makeReg(lhi), makeReg(lhi), makeConst(1))
+				e.constLoad(TR1, 1)
+				e.doOp(lhi, lhi, TR1, "+")
 				return
 			} else if t.Op == "--" {
-				e.emit("sub", makeReg(lhi), makeReg(lhi), makeConst(1))
+				e.constLoad(TR1, 1)
+				e.doOp(lhi, lhi, TR1, "-")
 				return
 			}
 			e.assignToReg(lhi, t.RHSa[0])
@@ -545,15 +526,15 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.emit("sub", makeReg(TR2), makeReg(TR2), makeConst(1))
 				}
 			} else {
-				e.assignToReg(TR2, t.RHSa[0])
+				e.assignToReg(TR3, t.RHSa[0])
 			}
 
 			v := t2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 			e.assignToReg(TR2, t2.E)
-			e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(ml.i))
 			e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(3))
-			e.emit("str", makeReg(TR2), offSet(makeReg(TBP), makeReg(TR2)))
+			e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(moffOff(ml.i)))
+			e.emit("str", makeReg(TR3), offSet(makeReg(TBP), makeReg(TR2)))
 		}
 
 	case *VarStmt:
