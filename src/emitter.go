@@ -13,7 +13,7 @@ const (
 	TR1 = 29 - iota
 	TR2
 	TR3
-	TR4
+	//	TR2
 	//	TR5
 	TRV
 	TMAIN
@@ -294,8 +294,8 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 	defer func() { e.st = e.lst }()
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR3, be.LHS)
-		e.assignToReg(TR4, be.RHS)
-		e.emit("cmp", makeReg(TR3), makeReg(TR4))
+		e.assignToReg(TR2, be.RHS)
+		e.emit("cmp", makeReg(TR3), makeReg(TR2))
 		bi := ""
 		switch be.op {
 		case "==":
@@ -383,11 +383,11 @@ func (e *emitter) assignToReg(r int, ex Expr) {
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
-		e.assignToReg(TR4, t2.E)
-		e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
-		e.emit("lsl", makeReg(TR4), makeReg(TR4), makeConst(3))
+		e.assignToReg(TR2, t2.E)
+		e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(ml.i))
+		e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(3))
 
-		e.emit("ldr", makeReg(r), "["+makeReg(TBP), fmt.Sprintf("%v]", makeReg(TR4)))
+		e.emit("ldr", makeReg(r), "["+makeReg(TBP), fmt.Sprintf("%v]", makeReg(TR2)))
 
 	default:
 		e.err("")
@@ -422,9 +422,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		ce := t.Expr.(*CallExpr)
 		ID := ce.ID.(*VarExpr).Wl.Value
 		if ID == "assert" {
-			e.assignToReg(TR4, ce.Params[0])
+			e.assignToReg(TR2, ce.Params[0])
 			e.assignToReg(TR2, ce.Params[1])
-			e.emit("cmp", makeReg(TR4), makeReg(TR2))
+			e.emit("cmp", makeReg(TR2), makeReg(TR2))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			e.emit("mov", makeReg(0), makeConst(1))
@@ -517,10 +517,10 @@ func (e *emitter) emitStmt(s Stmt) {
 
 			v := t2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
-			e.assignToReg(TR4, t2.E)
-			e.emit("add", makeReg(TR4), makeReg(TR4), fmt.Sprint(ml.i))
-			e.emit("lsl", makeReg(TR4), makeReg(TR4), makeConst(3))
-			e.emit("str", makeReg(TR2), offSet(makeReg(TBP), makeReg(TR4)))
+			e.assignToReg(TR2, t2.E)
+			e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(ml.i))
+			e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(3))
+			e.emit("str", makeReg(TR2), offSet(makeReg(TBP), makeReg(TR2)))
 		}
 
 	case *VarStmt:
