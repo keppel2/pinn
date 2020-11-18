@@ -222,31 +222,31 @@ func (e *emitter) err(msg string) {
 func (e *emitter) emitPrint() {
 	e.label("print")
 	e.pushP()
-	e.constLoad(0, 1)
-	e.constLoad(1, 0)
-	//	e.mov(TR2, a)
+	//	e.mov(TR3, a)
+
 	e.emit("sub", makeReg(TSP), makeReg(TSP), makeConst(24))
+	e.constLoad(TR2, 0)
 	for i := 0; i < 16; i++ {
-		e.emit("and", makeReg(TR1), makeReg(TR2), makeConst(0xf))
+		e.emit("and", makeReg(TR1), makeReg(TR3), makeConst(0xf))
 		e.emit("cmp", makeReg(TR1), makeConst(10))
 		lab := e.clab()
 		e.emit("b.lt", makeBranch(lab))
 		e.emit("add", makeReg(TR1), makeReg(TR1), "('a' - ':')")
 		e.makeLabel(lab)
-		e.emit("lsr", makeReg(TR2), makeReg(TR2), makeConst(4))
+		e.emit("lsr", makeReg(TR3), makeReg(TR3), makeConst(4))
 		e.emit("add", makeReg(TR1), makeReg(TR1), "'0'")
-		e.emit("lsl", makeReg(1), makeReg(1), makeConst(8))
-		e.emit("add", makeReg(1), makeReg(1), makeReg(TR1))
+		e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(8))
+		e.emit("add", makeReg(TR2), makeReg(TR2), makeReg(TR1))
 		if i == 7 {
-			e.emit("str", makeReg(1), offSet(makeReg(TSP), makeConst(16)))
-
-			e.constLoad(1, 0)
+			e.emit("str", makeReg(TR2), offSet(makeReg(TSP), makeConst(16)))
+			e.constLoad(TR2, 0)
 		}
 	}
-	e.emit("str", makeReg(1), offSet(makeReg(TSP), makeConst(8)))
-	e.emit("mov", makeReg(TR1), "','")
-	e.emit("str", makeReg(TR1), fmt.Sprintf("[%v]", makeReg(TSP)))
+	e.emit("str", makeReg(TR2), offSet(makeReg(TSP), makeConst(8)))
+	e.emit("mov", makeReg(TR2), "','")
+	e.emit("str", makeReg(TR2), fmt.Sprintf("[%v]", makeReg(TSP)))
 
+	e.constLoad(0, 1)
 	e.mov(1, TSP)
 	e.constLoad(2, 24)
 	e.constLoad(8, 64)
@@ -337,17 +337,17 @@ func (e *emitter) binaryExpr(dest int, be *BinaryExpr) {
 		bi := ""
 		switch be.op {
 		case "==":
-			bi = "NE"
+			bi = "ne"
 		case "!=":
-			bi = "EQ"
+			bi = "eq"
 		case "<":
-			bi = "GE"
+			bi = "ge"
 		case "<=":
-			bi = "GT"
+			bi = "gt"
 		case ">":
-			bi = "LE"
+			bi = "le"
 		case ">=":
-			bi = "LT"
+			bi = "lt"
 		}
 		e.emit("b."+bi, makeBranch(dest))
 		return
@@ -453,7 +453,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.mov(LR, TMAIN)
 			e.emit("ret")
 		} else if ID == "print" {
-			e.assignToReg(TR2, ce.Params[0])
+			e.assignToReg(TR3, ce.Params[0])
 			e.push("lr")
 			e.emit("bl", "print")
 			e.pop("lr")
