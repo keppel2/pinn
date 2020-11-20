@@ -64,7 +64,7 @@ type mloc struct {
 type emitter struct {
 	src     string
 	rMap    map[string]*mloc
-	rAlloc  [RMAX + 1]string
+	rAlloc  [LR + 1]string
 	cbranch int
 	moff    int
 	lstack  [][2]int
@@ -297,7 +297,7 @@ func (e *emitter) fillReg(s string) reg {
 		ml.Mlt = MLreg
 		ml.r = k
 	}
-	e.rAlloc[ml.i] = s
+	e.rAlloc[ml.r] = s
 	return k
 }
 
@@ -388,7 +388,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 		e.binaryExpr(TR2, t)
 	case *CallExpr:
 		e.emitCall(t)
-		e.mov(TR2, 0)
+		e.mov(TR2, R0)
 	}
 	//	op := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
