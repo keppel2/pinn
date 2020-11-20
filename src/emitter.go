@@ -11,11 +11,13 @@ const OS = ", "
 
 type reg int
 
+/*
 func (e *emitter) _f() {
 	e.mov(5, TR1)
 }
+*/
 
-func (_ reg) aReg() {}
+func (r reg) aReg() {}
 
 const (
 	LR reg = 30 - iota
@@ -40,12 +42,13 @@ const (
 	R5
 	R6
 	R7
+	R8
 )
 
 const BP = ".br"
 const FP = ".f"
 
-var RB reg = 8
+var RB reg = R8 + 1
 
 const (
 	MLinvalid = iota
@@ -125,7 +128,7 @@ func (e *emitter) popP() {
 }
 
 func (e *emitter) pushP() {
-	for i := R0; i <= R7; i++ {
+	for i := R0; i <= R8; i++ {
 		e.push(makeReg(i))
 	}
 }
@@ -271,10 +274,10 @@ func (e *emitter) emitPrint() {
 	e.emit("mov", makeReg(TR2), "','")
 	e.emit("str", makeReg(TR2), fmt.Sprintf("[%v]", makeReg(TSP)))
 
-	e.mov(0, 1)
-	e.mov(1, TSP)
-	e.mov(2, 24)
-	e.mov(8, 64)
+	e.mov(R0, 1)
+	e.mov(R1, TSP)
+	e.mov(R2, 24)
+	e.mov(R8, 64)
 	e.emit("svc", makeConst(0))
 	e.emit("add", makeReg(TSP), makeReg(TSP), makeConst(24))
 	e.popP()
@@ -301,7 +304,12 @@ func (e *emitter) fillReg(s string) reg {
 	return k
 }
 
-func (e *emitter) mov(a reg, b interface{}) {
+func (e *emitter) mov(a interface{}, b interface{}) {
+	a2, ok := a.(reg)
+	if !ok {
+		e.err("")
+	}
+
 	sa := ""
 	if a2, ok := b.(reg); ok {
 		sa = makeReg(a2)
@@ -309,7 +317,7 @@ func (e *emitter) mov(a reg, b interface{}) {
 		sa = makeConst(b.(int))
 	}
 
-	e.emit("mov", makeReg(a), sa)
+	e.emit("mov", makeReg(a2), sa)
 }
 
 func (e *emitter) regLoad(ex Expr) reg {
@@ -474,12 +482,12 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("cmp", makeReg(TR2), makeReg(TR3))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
-			e.mov(0, 1)
+			e.mov(R0, 1)
 			e.mov(LR, TMAIN)
 			e.emit("ret")
 			e.makeLabel(lab)
 		} else if ID == "bad" {
-			e.mov(0, 1)
+			e.mov(R0, 1)
 			e.mov(LR, TMAIN)
 			e.emit("ret")
 		} else if ID == "print" {
@@ -625,7 +633,6 @@ func (e *emitter) emitStmt(s Stmt) {
 }
 
 func (e *emitter) emitF(f *File) {
-	e._f()
 	e.src = ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
