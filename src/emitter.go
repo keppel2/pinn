@@ -482,7 +482,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("cmp", makeReg(TR2), makeReg(TR3))
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
-			e.mov(R0, 1)
+			ln := e.st.Gpos().Line
+			e.mov(R0, ln)
 			e.mov(LR, TMAIN)
 			e.emit("ret")
 			e.makeLabel(lab)
