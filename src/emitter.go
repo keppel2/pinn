@@ -165,7 +165,7 @@ func (e *emitter) freeReg() reg {
 	ml.Mlt = MLheap
 	ml.i = e.moff
 	e.moff++
-	e.emit("str", makeReg(reg(k)), offSet(makeReg(TBP), makeConst(moffOff(ml.i))))
+	e.str(reg(k), TBP, ml.i)
 	return reg(k)
 }
 
@@ -219,7 +219,7 @@ func (e *emitter) clab() branch {
 	return rt
 }
 
-func makeReg(i reg) string {
+func makeReg(i regi) string {
 
 	if i == LR {
 		return "lr"
@@ -247,7 +247,7 @@ func makeConst(i int) string {
 	return fmt.Sprintf("#%v", i)
 }
 
-func makeBranch(i branch) string {
+func makeBranch(i branchi) string {
 	return fmt.Sprintf("%v%v", BP, i)
 }
 
@@ -297,13 +297,13 @@ func (e *emitter) emitPrint() {
 		e.emitR("lsl", TR2, TR2, 8)
 		e.emitR("add", TR2, TR2, TR1)
 		if i == 7 {
-			e.emit("str", makeReg(TR2), offSet(makeReg(TSP), makeConst(16)))
+			e.str(TR2, TSP, 16)
 			e.mov(TR2, 0)
 		}
 	}
-	e.emit("str", makeReg(TR2), offSet(makeReg(TSP), makeConst(8)))
+	e.str(TR2, TSP, 8)
 	e.mov(TR2, int(','))
-	e.emit("str", makeReg(TR2), fmt.Sprintf("[%v]", makeReg(TSP)))
+	e.str(TR2, TSP)
 
 	e.mov(R0, 1)
 	e.mov(R1, TSP)
@@ -326,7 +326,7 @@ func (e *emitter) fillReg(s string) reg {
 		ml.r = k
 		e.rMap[s] = ml
 	} else {
-		e.emit("ldr", makeReg(k), offSet(makeReg(TBP), makeConst(moffOff(ml.i))))
+		e.ldr(k, TBP, moffOff(ml.i))
 		ml.Mlt = MLreg
 		ml.r = k
 	}
@@ -343,6 +343,22 @@ func makeRC(a regOrConst) string {
 
 func (e *emitter) br(t string, b branchi) {
 	e.emit("b"+t, makeBranch(b.(branch)))
+}
+
+func (e *emitter) str(d regi, base regi, offset ...regOrConst) {
+	if len(offset) == 1 {
+		e.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+	} else {
+		e.emit("str", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
+	}
+}
+
+func (e *emitter) ldr(d regi, base regi, offset ...regOrConst) {
+	if len(offset) == 1 {
+		e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+	} else {
+		e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
+	}
 }
 
 func (e *emitter) mov(a regi, b regOrConst) {
@@ -480,7 +496,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.emitR("lsl", TR2, TR2, 3)
 		e.emitR("add", TR2, TR2, moffOff(ml.i))
 
-		e.emit("ldr", makeReg(r), offSet(makeReg(TBP), makeReg(TR2)))
+		e.ldr(r, TBP, TR2)
 
 	default:
 		e.err("")
@@ -634,7 +650,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(TR2, t2.E)
 			e.emitR("lsl", TR2, TR2, 3)
 			e.emitR("add", TR2, TR2, moffOff(ml.i))
-			e.emit("str", makeReg(TR3), offSet(makeReg(TBP), makeReg(TR2)))
+			e.str(TR3, TBP, TR2)
 		}
 
 	case *VarStmt:
