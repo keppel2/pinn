@@ -9,6 +9,14 @@ const RP = "x"
 
 const OS = ", "
 
+type branch int
+
+func (_ branch) aBranch() {}
+
+type branchi interface {
+	aBranch()
+}
+
 type reg int
 
 type regi interface {
@@ -80,9 +88,9 @@ type emitter struct {
 	src     string
 	rMap    map[string]*mloc
 	rAlloc  [LR + 1]string
-	cbranch int
+	cbranch branch
 	moff    int
-	lstack  [][2]int
+	lstack  [][2]branch
 	lst     Node
 	st      Node
 }
@@ -205,7 +213,7 @@ func (e *emitter) varAt(i int) string {
 }
 */
 
-func (e *emitter) clab() int {
+func (e *emitter) clab() branch {
 	rt := e.cbranch
 	e.cbranch++
 	return rt
@@ -239,7 +247,7 @@ func makeConst(i int) string {
 	return fmt.Sprintf("#%v", i)
 }
 
-func makeBranch(i int) string {
+func makeBranch(i branch) string {
 	return fmt.Sprintf("%v%v", BP, i)
 }
 
@@ -247,21 +255,21 @@ func (e *emitter) label(s string) {
 	e.src += s + ":\n"
 }
 
-func (e *emitter) makeLabel(i int) {
+func (e *emitter) makeLabel(i branchi) {
 	e.label(fmt.Sprintf("%v%v", BP, i))
 }
 
-func (e *emitter) pushloop(a, b int) {
-	e.lstack = append(e.lstack, [2]int{a, b})
+func (e *emitter) pushloop(a, b branch) {
+	e.lstack = append(e.lstack, [2]branch{a, b})
 }
 
-func (e *emitter) poploop() [2]int {
+func (e *emitter) poploop() [2]branch {
 	rt := e.lstack[len(e.lstack)-1]
 	e.lstack = e.lstack[0 : len(e.lstack)-1]
 	return rt
 }
 
-func (e *emitter) peekloop() [2]int {
+func (e *emitter) peekloop() [2]branch {
 	return e.lstack[len(e.lstack)-1]
 }
 
@@ -281,7 +289,7 @@ func (e *emitter) emitPrint() {
 		e.emitR("and", TR1, R1, 0xf)
 		e.emitR("cmp", TR1, 10)
 		lab := e.clab()
-		e.emit("b.lt", makeBranch(lab))
+		e.br(".lt", lab)
 		e.emitR("add", TR1, TR1, int('a'-':'))
 		e.makeLabel(lab)
 		e.emitR("lsr", R1, R1, 4)
@@ -331,6 +339,10 @@ func makeRC(a regOrConst) string {
 		return makeReg(a2)
 	}
 	return makeConst(a.(int))
+}
+
+func (e *emitter) br(t string, b branchi) {
+	e.emit("b"+t, makeBranch(b.(branch)))
 }
 
 func (e *emitter) mov(a regi, b regOrConst) {
@@ -412,7 +424,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 		case ">=":
 			bi = "lt"
 		}
-		e.emit("b."+bi, makeBranch(int(dest)))
+		e.br("."+bi, branch(dest))
 		return
 	}
 	switch t := be.LHS.(type) {
@@ -507,7 +519,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(TR3, ce.Params[1])
 			e.emitR("cmp", TR2, TR3)
 			lab := e.clab()
-			e.emit("b.eq", makeBranch(lab))
+			e.br(".eq", lab)
 			ln := e.st.Gpos().Line
 			e.mov(R0, ln)
 			e.mov(LR, TMAIN)
@@ -532,16 +544,16 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emitStmt(s)
 		}
 	case *ContinueStmt:
-		e.emit("b", makeBranch(e.peekloop()[0]))
+		e.br("", e.peekloop()[0])
 	case *BreakStmt:
-		e.emit("b", makeBranch(e.peekloop()[1]))
+		e.br("", e.peekloop()[1])
 	case *LoopStmt:
 		lab := e.clab()
 		e.makeLabel(lab)
 		lab2 := e.clab()
 		e.pushloop(lab, lab2)
 		e.emitStmt(t.B)
-		e.emit("b", makeBranch(lab))
+		e.br("", lab)
 		e.makeLabel(lab2)
 		e.poploop()
 	case *WhileStmt:
@@ -551,7 +563,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.pushloop(lab, lab2)
 		e.binaryExpr(reg(lab2), t.Cond.(*BinaryExpr))
 		e.emitStmt(t.B)
-		e.emit("b", makeBranch(lab))
+		e.br("", lab)
 		e.makeLabel(lab2)
 
 	case *IfStmt:
@@ -563,7 +575,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			lab2 := e.clab()
 			e.binaryExpr(reg(lab2), t.Cond.(*BinaryExpr))
 			e.emitStmt(t.Then)
-			e.emit("b", makeBranch(lab))
+			e.br("", lab)
 			e.makeLabel(lab2)
 			e.emitStmt(t.Else)
 		}
@@ -638,7 +650,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		lab2 := e.clab()
 		lab3 := e.clab()
 		e.pushloop(lab, lab2)
-		e.emit("b", makeBranch(lab3))
+		e.br("", lab3)
 		e.makeLabel(lab)
 		if t.Loop != nil {
 			e.emitStmt(t.Loop)
@@ -649,7 +661,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.binaryExpr(reg(lab2), t.E.(*BinaryExpr))
 		}
 		e.emitStmt(t.B)
-		e.emit("b", makeBranch(lab))
+		e.br("", lab)
 
 		e.makeLabel(lab2)
 
