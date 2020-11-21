@@ -11,6 +11,10 @@ const OS = ", "
 
 type reg int
 
+type regi interface {
+	aReg()
+}
+
 /*
 func (e *emitter) _f() {
 	e.mov(5, TR1)
@@ -24,8 +28,6 @@ const (
 	TR1
 	TR2
 	TR3
-	//	TR2
-	//	TR5
 	TRV
 	TMAIN
 	TBP
@@ -83,10 +85,6 @@ func (m *mloc) init(mlt int) {
 	m.Mlt = mlt
 }
 
-type di interface {
-	aReg()
-}
-
 func (e *emitter) findReg() reg {
 	for k, v := range e.rAlloc[RB:] {
 		if v == "" {
@@ -114,22 +112,22 @@ func (e *emitter) newVar(s string, k Kind) {
 	}
 }
 
-func (e *emitter) push(s string) {
-	e.emit("str", s, "["+makeReg(TSP), "-8]!")
+func (e *emitter) push(r reg) {
+	e.emit("str", makeReg(r), "["+makeReg(TSP), "-8]!")
 }
 
-func (e *emitter) pop(s string) {
-	e.emit("ldr", s, "["+makeReg(TSP)+"]", "8")
+func (e *emitter) pop(r reg) {
+	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", "8")
 }
 func (e *emitter) popP() {
 	for i := RB - 1; i >= 0; i-- {
-		e.pop(makeReg(reg(i)))
+		e.pop(i)
 	}
 }
 
 func (e *emitter) pushP() {
 	for i := R0; i <= R8; i++ {
-		e.push(makeReg(i))
+		e.push(i)
 	}
 }
 
@@ -304,20 +302,22 @@ func (e *emitter) fillReg(s string) reg {
 	return k
 }
 
-func (e *emitter) mov(a interface{}, b interface{}) {
-	a2, ok := a.(reg)
-	if !ok {
-		e.err("")
-	}
+func (e *emitter) mov(a regi, b interface{}) {
+	/*
+		a2, ok := a.(reg)
+		if !ok {
+			e.err("")
+		}
+	*/
 
-	sa := ""
+	sb := ""
 	if a2, ok := b.(reg); ok {
-		sa = makeReg(a2)
+		sb = makeReg(a2)
 	} else {
-		sa = makeConst(b.(int))
+		sb = makeConst(b.(int))
 	}
 
-	e.emit("mov", makeReg(a2), sa)
+	e.emit("mov", makeReg(a.(reg)), sb)
 }
 
 func (e *emitter) regLoad(ex Expr) reg {
@@ -454,18 +454,18 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
 	// e.pushP()
-	e.push(makeReg(TRV))
+	e.push(TRV)
 	for k, v := range ce.Params {
-		e.push(makeReg(reg(k) + 1))
+		e.push(1 + reg(k))
 		e.assignToReg(reg(k)+1, v)
 	}
-	e.push("lr")
+	e.push(LR)
 	e.emit("bl", FP+ID)
-	e.pop("lr")
+	e.pop(LR)
 	for k, _ := range ce.Params {
-		e.pop(makeReg(reg(k) + 1))
+		e.pop(reg(k) + 1)
 	}
-	e.pop(makeReg(TRV))
+	e.pop(TRV)
 	//  e.popP()
 
 }
@@ -493,9 +493,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emit("ret")
 		} else if ID == "print" {
 			e.assignToReg(TR3, ce.Params[0])
-			e.push("lr")
+			e.push(LR)
 			e.emit("bl", "print")
-			e.pop("lr")
+			e.pop(LR)
 		} else {
 			e.emitCall(ce)
 		}
