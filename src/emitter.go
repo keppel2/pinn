@@ -15,6 +15,11 @@ type regi interface {
 	aReg()
 }
 
+type regOrConst interface {
+}
+
+func ff(a reg) {}
+
 /*
 func (e *emitter) _f() {
 	e.mov(5, TR1)
@@ -33,6 +38,11 @@ const (
 	TBP
 	TSP
 	RMAX
+)
+
+const (
+	SP reg = LR + 1 + iota
+	XZR
 )
 
 const (
@@ -168,6 +178,15 @@ func (e *emitter) emit(i string, ops ...string) {
 	e.src += "//" + e.dString() + "\n"
 }
 
+func (e *emitter) emitR(i string, ops ...regOrConst) {
+	sa := []string{}
+	for _, s := range ops {
+
+		sa = append(sa, makeRC(s))
+	}
+	e.emit(i, sa...)
+}
+
 func (e *emitter) init() {
 	rand.Seed(42)
 	e.rMap = make(map[string]*mloc)
@@ -196,6 +215,12 @@ func makeReg(i reg) string {
 
 	if i == LR {
 		return "lr"
+	}
+	if i == SP {
+		return "sp"
+	}
+	if i == XZR {
+		return "xzr"
 	}
 
 	return fmt.Sprintf("%v%v", RP, i)
@@ -250,34 +275,34 @@ func (e *emitter) emitPrint() {
 	//	e.pushP()
 	//	e.mov(TR3, a)
 
-	e.emit("sub", makeReg(TSP), makeReg(TSP), makeConst(24))
+	e.emitR("sub", TSP, TSP, 24)
 	e.mov(TR2, 0)
 	for i := 0; i < 16; i++ {
-		e.emit("and", makeReg(TR1), makeReg(R1), makeConst(0xf))
-		e.emit("cmp", makeReg(TR1), makeConst(10))
+		e.emitR("and", TR1, R1, 0xf)
+		e.emitR("cmp", TR1, 10)
 		lab := e.clab()
 		e.emit("b.lt", makeBranch(lab))
-		e.emit("add", makeReg(TR1), makeReg(TR1), "('a' - ':')")
+		e.emitR("add", TR1, TR1, int('a'-':'))
 		e.makeLabel(lab)
-		e.emit("lsr", makeReg(R1), makeReg(R1), makeConst(4))
-		e.emit("add", makeReg(TR1), makeReg(TR1), "'0'")
-		e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(8))
-		e.emit("add", makeReg(TR2), makeReg(TR2), makeReg(TR1))
+		e.emitR("lsr", R1, R1, 4)
+		e.emitR("add", TR1, TR1, int('0'))
+		e.emitR("lsl", TR2, TR2, 8)
+		e.emitR("add", TR2, TR2, TR1)
 		if i == 7 {
 			e.emit("str", makeReg(TR2), offSet(makeReg(TSP), makeConst(16)))
 			e.mov(TR2, 0)
 		}
 	}
 	e.emit("str", makeReg(TR2), offSet(makeReg(TSP), makeConst(8)))
-	e.emit("mov", makeReg(TR2), "','")
+	e.mov(TR2, int(','))
 	e.emit("str", makeReg(TR2), fmt.Sprintf("[%v]", makeReg(TSP)))
 
 	e.mov(R0, 1)
 	e.mov(R1, TSP)
 	e.mov(R2, 24)
 	e.mov(R8, 64)
-	e.emit("svc", makeConst(0))
-	e.emit("add", makeReg(TSP), makeReg(TSP), makeConst(24))
+	e.emitR("svc", 0)
+	e.emitR("add", TSP, TSP, 24)
 	e.emit("ret")
 }
 
@@ -301,7 +326,15 @@ func (e *emitter) fillReg(s string) reg {
 	return k
 }
 
-func (e *emitter) mov(a regi, b interface{}) {
+func makeRC(a regOrConst) string {
+	if a2, ok := a.(reg); ok {
+		return makeReg(a2)
+	}
+	return makeConst(a.(int))
+}
+
+func (e *emitter) mov(a regi, b regOrConst) {
+	e.emitR("mov", a, b)
 	/*
 		a2, ok := a.(reg)
 		if !ok {
@@ -309,14 +342,8 @@ func (e *emitter) mov(a regi, b interface{}) {
 		}
 	*/
 
-	sb := ""
-	if a2, ok := b.(reg); ok {
-		sb = makeReg(a2)
-	} else {
-		sb = makeConst(b.(int))
-	}
-
-	e.emit("mov", makeReg(a.(reg)), sb)
+	//	sb := makeRC(b)
+	//	e.emit("mov", makeReg(a.(reg)), sb)//.(reg)), sb)
 }
 
 func (e *emitter) regLoad(ex Expr) reg {
@@ -348,13 +375,13 @@ func (e *emitter) doOp(dest, a, b reg, op string) {
 		mn = "udiv"
 	}
 	if mn != "" {
-		e.emit(mn, makeReg(dest), makeReg(a), makeReg(b))
+		e.emitR(mn, dest, a, b)
 		return
 	}
 	switch op {
 	case "%":
-		e.emit("udiv", makeReg(dest), makeReg(a), makeReg(b))
-		e.emit("msub", makeReg(dest), makeReg(dest), makeReg(b), makeReg(a))
+		e.emitR("udiv", dest, a, b)
+		e.emitR("msub", dest, dest, b, a)
 		return
 	default:
 		e.err(op)
@@ -369,7 +396,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR3, be.LHS)
 		e.assignToReg(TR2, be.RHS)
-		e.emit("cmp", makeReg(TR3), makeReg(TR2))
+		e.emitR("cmp", TR3, TR2)
 		bi := ""
 		switch be.op {
 		case "==":
@@ -438,8 +465,8 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
 		e.assignToReg(TR2, t2.E)
-		e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(3))
-		e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(moffOff(ml.i)))
+		e.emitR("lsl", TR2, TR2, 3)
+		e.emitR("add", TR2, TR2, moffOff(ml.i))
 
 		e.emit("ldr", makeReg(r), offSet(makeReg(TBP), makeReg(TR2)))
 
@@ -478,7 +505,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		if ID == "assert" {
 			e.assignToReg(TR2, ce.Params[0])
 			e.assignToReg(TR3, ce.Params[1])
-			e.emit("cmp", makeReg(TR2), makeReg(TR3))
+			e.emitR("cmp", TR2, TR3)
 			lab := e.clab()
 			e.emit("b.eq", makeBranch(lab))
 			ln := e.st.Gpos().Line
@@ -593,8 +620,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			v := t2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 			e.assignToReg(TR2, t2.E)
-			e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(3))
-			e.emit("add", makeReg(TR2), makeReg(TR2), fmt.Sprint(moffOff(ml.i)))
+			e.emitR("lsl", TR2, TR2, 3)
+			e.emitR("add", TR2, TR2, moffOff(ml.i))
 			e.emit("str", makeReg(TR3), offSet(makeReg(TBP), makeReg(TR2)))
 		}
 
@@ -637,14 +664,14 @@ func (e *emitter) emitF(f *File) {
 	e.src = ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
-	e.emit("sub", "sp", "sp", makeConst(0x100))
-	e.emit("mov", makeReg(TSP), "sp")
-	e.emit("sub", "sp", "sp", makeConst(0x10000))
-	e.emit("mov", makeReg(TBP), "sp")
+	e.emitR("sub", SP, SP, 0x100)
+	e.mov(TSP, SP)
+	e.emitR("sub", SP, SP, 0x10000)
+	e.mov(TBP, SP)
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-	e.emit("mov", makeReg(0), "xzr")
+	e.mov(R0, XZR)
 	e.emit("ret")
 	for _, s := range f.FList {
 		e.emitFunc(s)
