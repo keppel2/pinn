@@ -247,19 +247,19 @@ func (e *emitter) err(msg string) {
 
 func (e *emitter) emitPrint() {
 	e.label("print")
-	e.pushP()
+	//	e.pushP()
 	//	e.mov(TR3, a)
 
 	e.emit("sub", makeReg(TSP), makeReg(TSP), makeConst(24))
 	e.mov(TR2, 0)
 	for i := 0; i < 16; i++ {
-		e.emit("and", makeReg(TR1), makeReg(TR3), makeConst(0xf))
+		e.emit("and", makeReg(TR1), makeReg(R1), makeConst(0xf))
 		e.emit("cmp", makeReg(TR1), makeConst(10))
 		lab := e.clab()
 		e.emit("b.lt", makeBranch(lab))
 		e.emit("add", makeReg(TR1), makeReg(TR1), "('a' - ':')")
 		e.makeLabel(lab)
-		e.emit("lsr", makeReg(TR3), makeReg(TR3), makeConst(4))
+		e.emit("lsr", makeReg(R1), makeReg(R1), makeConst(4))
 		e.emit("add", makeReg(TR1), makeReg(TR1), "'0'")
 		e.emit("lsl", makeReg(TR2), makeReg(TR2), makeConst(8))
 		e.emit("add", makeReg(TR2), makeReg(TR2), makeReg(TR1))
@@ -278,7 +278,6 @@ func (e *emitter) emitPrint() {
 	e.mov(R8, 64)
 	e.emit("svc", makeConst(0))
 	e.emit("add", makeReg(TSP), makeReg(TSP), makeConst(24))
-	e.popP()
 	e.emit("ret")
 }
 
@@ -492,7 +491,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.mov(LR, TMAIN)
 			e.emit("ret")
 		} else if ID == "print" {
-			e.assignToReg(TR3, ce.Params[0])
+
+			e.assignToReg(R1, ce.Params[0])
 			e.push(LR)
 			e.emit("bl", "print")
 			e.pop(LR)
