@@ -335,10 +335,13 @@ func (e *emitter) emitPrint() {
 	e.emit("ret")
 }
 
-func (e *emitter) fillReg(s string) reg {
+func (e *emitter) fillReg(s string, create bool) reg {
 	ml, ok := e.rMap[s]
 	if ok && ml.Mlt == MLreg {
 		return ml.r
+	}
+	if !ok && !create {
+		e.err(s)
 	}
 	k := e.findReg()
 	if !ok {
@@ -410,7 +413,7 @@ func (e *emitter) regLoad(ex Expr) reg {
 		e.mov(TR1, e.atoi(t.Il.Value))
 		rt = TR1
 	case *VarExpr:
-		i := e.fillReg(t.Wl.Value)
+		i := e.fillReg(t.Wl.Value, false)
 		rt = i
 	default:
 		e.err("")
@@ -680,14 +683,14 @@ func (e *emitter) emitStmt(s Stmt) {
 		switch t2 := lh.(type) {
 		case *VarExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-				lhi := e.fillReg(t2.Wl.Value)
+				lhi := e.fillReg(t2.Wl.Value, false)
 				e.assignToReg(TR2, lh)
 				e.assignToReg(TR3, t.RHSa[0])
 				e.doOp(lhi, TR2, TR3, t.Op[0:1])
 
 				return
 			}
-			lhi := e.fillReg(t2.Wl.Value)
+			lhi := e.fillReg(t2.Wl.Value, true)
 			if t.Op == "++" {
 				e.mov(TR1, 1)
 				e.doOp(lhi, lhi, TR1, "+")

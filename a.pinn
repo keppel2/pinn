@@ -1,6 +1,1 @@
-func f() {
-print(2);
-}
-f();
-print(5);
-print(11);
+return b;
