@@ -45,6 +45,8 @@ const (
 	TMAIN
 	TBP
 	TSP
+	TSS
+
 	RMAX
 )
 
@@ -89,8 +91,12 @@ type emitter struct {
 	rMap    map[string]*mloc
 	rAlloc  [LR + 1]string
 	cbranch branch
+	ebranch branch
 	moff    int
 	lstack  [][2]branch
+	curf    string
+	fexitm  map[string]branch
+	fexit   branch
 	lst     Node
 	st      Node
 }
@@ -162,6 +168,10 @@ func (e *emitter) freeReg() reg {
 	if !ok {
 		e.err("")
 	}
+	if ml.Mlt == MLstack {
+		e.str(reg(k), TSS, moffOff(-ml.i))
+		return reg(k)
+	}
 	ml.Mlt = MLheap
 	ml.i = e.moff
 	e.moff++
@@ -198,6 +208,7 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 func (e *emitter) init() {
 	rand.Seed(42)
 	e.rMap = make(map[string]*mloc)
+	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
 	//	e.moff = -1
 }
@@ -330,9 +341,13 @@ func (e *emitter) fillReg(s string) reg {
 		ml.r = k
 		e.rMap[s] = ml
 	} else {
-		e.ldr(k, TBP, moffOff(ml.i))
-		ml.Mlt = MLreg
-		ml.r = k
+		if ml.Mlt == MLheap {
+			e.ldr(k, TBP, moffOff(ml.i))
+			ml.Mlt = MLreg
+			ml.r = k
+		} else {
+			e.ldr(k, TSS, moffOff(-ml.i))
+		}
 	}
 	e.rAlloc[ml.r] = s
 	return k
@@ -472,18 +487,39 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 
 func (e *emitter) emitFunc(f *FuncDecl) {
 	e.src += FP + f.Wl.Value + ":\n"
+	for r := R1; r <= R8; r++ {
+		s := e.rAlloc[r]
+		e.rAlloc[r] = ""
+		e.rMap[s] = nil
+	}
 	reg := R1
+	tssd := 1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
 			ml := new(mloc)
-			ml.init(MLreg)
-			ml.r = reg
+			ml.init(MLstack)
+			e.push(reg)
+			ml.i = tssd
 			e.rMap[vd2.Value] = ml
-			e.rAlloc[reg] = vd2.Value
+			//e.rAlloc[reg] = vd2.Value
+			tssd++
 			reg++
 		}
 	}
+	lab := e.clab()
+	//e.fexitm[f.Wl.Value] = lab
+	e.ebranch = lab
 	e.emitStmt(f.B)
+	e.makeLabel(lab)
+	reg = R1
+	for _, vd := range f.PList {
+		for _, vd2 := range vd.List {
+			e.pop(reg)
+			e.rMap[vd2.Value] = nil
+			//e.rAlloc[reg] = vd2.Value
+			reg++
+		}
+	}
 	e.emit("ret")
 }
 
@@ -522,6 +558,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.assignToReg(reg(k)+1, v)
 	}
 	e.push(LR)
+	e.mov(TSS, SP)
+
+	e.curf = ID
 	e.emit("bl", FP+ID)
 	e.pop(LR)
 	for k, _ := range ce.Params {
@@ -553,7 +592,12 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.mov(R0, 1)
 			e.mov(LR, TMAIN)
 			e.emit("ret")
+		} else if ID == "exit" {
+			e.assignToReg(R0, ce.Params[0])
+			e.mov(LR, TMAIN)
+			e.emit("ret")
 		} else if ID == "print" {
+			didPrint = true
 
 			e.assignToReg(R1, ce.Params[0])
 			e.push(LR)
@@ -610,7 +654,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(TRV, t.E)
 		}
 		e.mov(R0, TRV)
-		e.emit("ret")
+		e.br(e.ebranch)
 	case *AssignStmt:
 		lh := t.LHSa[0]
 		switch t2 := lh.(type) {
@@ -696,21 +740,29 @@ func (e *emitter) emitStmt(s Stmt) {
 
 }
 
+var didPrint = false
+
 func (e *emitter) emitF(f *File) {
 	e.src = ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
 	e.emitR("sub", SP, SP, 0x100)
 	e.mov(TSP, SP)
+	e.mov(TSS, SP)
 	e.emitR("sub", SP, SP, 0x10000)
 	e.mov(TBP, SP)
+	lab := e.clab()
+	e.ebranch = lab
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
 	e.mov(R0, XZR)
+	e.makeLabel(lab)
 	e.emit("ret")
 	for _, s := range f.FList {
 		e.emitFunc(s)
 	}
-	e.emitPrint()
+	if didPrint {
+		e.emitPrint()
+	}
 }
