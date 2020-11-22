@@ -1,4 +1,6 @@
-func f(a int) {
-return a;
+func f() {
+print(2);
 }
-f(42);
+f();
+print(5);
+print(11);

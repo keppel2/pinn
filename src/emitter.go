@@ -36,8 +36,11 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
+var rs []string = []string{"TR1", "TR2", "TR3", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+
 const (
 	LR reg = 30 - iota
+
 	TR1
 	TR2
 	TR3
@@ -233,6 +236,9 @@ func (e *emitter) clab() branch {
 }
 
 func makeReg(i regi) string {
+	if i.(reg) <= TR1 && i.(reg) >= TSS {
+		return rs[TR1-i.(reg)]
+	}
 
 	if i == LR {
 		return "lr"
@@ -509,16 +515,16 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.curf = f.Wl.Value
 	e.label(FP + f.Wl.Value)
 	/*
-		for r := R1; r <= R8; r++ {
-	    if e.rAlloc[r] != "" {
+			for r := R1; r <= R8; r++ {
+		    if e.rAlloc[r] != "" {
 
-			  s := e.rAlloc[r]
-	      b := e.rAllocb[r]
-			  e.rAlloc[r] = ""
+				  s := e.rAlloc[r]
+		      b := e.rAllocb[r]
+				  e.rAlloc[r] = ""
 
-	    e.rAllocb[r] = false
-			e.rMap[s] = nil
-		}
+		    e.rAllocb[r] = false
+				e.rMap[s] = nil
+			}
 	*/
 	reg := R1
 	tssd := 1
@@ -776,7 +782,11 @@ func (e *emitter) emitStmt(s Stmt) {
 var didPrint = false
 
 func (e *emitter) emitF(f *File) {
-	e.src = ".global main\n"
+	for i, r := 0, TR1; r >= TSS; r-- {
+		e.src += "#define " + rs[i] + " " + fmt.Sprintf("%v%v", RP, r) + "\n"
+		i++
+	}
+	e.src += ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
 	e.emitR("sub", SP, SP, 0x100)

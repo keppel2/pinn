@@ -33,3 +33,12 @@ a -= 8;
 assert(a, 4);
 a += 2;
 assert(a, 6);
+
+func g(a, b int) int {
+  a += 1;
+  b *= 2;
+  return a * b;
+}
+
+z = g(1, 3);
+assert(z, 12);
