@@ -1,15 +1,12 @@
-var a int;
 a = 2;
 assert(a, 2);
 a = a + 1;
 assert(a, 3);
 a = a - 1;
 assert(a, 2);
-var b int;
 b = 3;
 assert(b, 3);
 
-var c int;
 c = a + b;
 assert(c, 5);
 c = 1 + 7;
@@ -110,9 +107,6 @@ f1(42);
 a = g1();
 assert(a, 101);
 
-var d int;
-var e int;
-var f int;
 a = 1;
 b = 2;
 c = 3;

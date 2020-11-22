@@ -92,9 +92,7 @@ type mloc struct {
 type emitter struct {
 	src     string
 	rMap    map[string]*mloc
-	lrMap   map[string]*mloc
 	rAlloc  [LR + 1]string
-	rAllocb [LR + 1]bool
 	cbranch branch
 	ebranch branch
 	moff    int
@@ -338,27 +336,9 @@ func (e *emitter) emitPrint() {
 }
 
 func (e *emitter) fillReg(s string) reg {
-	ml, ok := e.lrMap[s]
+	ml, ok := e.rMap[s]
 	if ok && ml.Mlt == MLreg {
 		return ml.r
-	}
-	if !ok {
-		gml, ok := e.rMap[s]
-		if ok && gml.Mlt == MLreg {
-			return gml.r
-		}
-		if ok {
-			/*
-			   if gml.Mlt != MLheap {
-			     e.err("")
-			   }
-			*/
-			gml.Mlt = MLreg
-			gml.r = e.findReg()
-			e.ldr(gml.r, TBP, moffOff(gml.i))
-			return gml.r
-		}
-
 	}
 	k := e.findReg()
 	if !ok {
@@ -514,6 +494,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 func (e *emitter) emitFunc(f *FuncDecl) {
 	e.curf = f.Wl.Value
 	e.label(FP + f.Wl.Value)
+
 	/*
 			for r := R1; r <= R8; r++ {
 		    if e.rAlloc[r] != "" {
