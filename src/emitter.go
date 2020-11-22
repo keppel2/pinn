@@ -89,7 +89,9 @@ type mloc struct {
 type emitter struct {
 	src     string
 	rMap    map[string]*mloc
+	lrMap   map[string]*mloc
 	rAlloc  [LR + 1]string
+	rAllocb [LR + 1]bool
 	cbranch branch
 	ebranch branch
 	moff    int
@@ -330,9 +332,27 @@ func (e *emitter) emitPrint() {
 }
 
 func (e *emitter) fillReg(s string) reg {
-	ml, ok := e.rMap[s]
+	ml, ok := e.lrMap[s]
 	if ok && ml.Mlt == MLreg {
 		return ml.r
+	}
+	if !ok {
+		gml, ok := e.rMap[s]
+		if ok && gml.Mlt == MLreg {
+			return gml.r
+		}
+		if ok {
+			/*
+			   if gml.Mlt != MLheap {
+			     e.err("")
+			   }
+			*/
+			gml.Mlt = MLreg
+			gml.r = e.findReg()
+			e.ldr(gml.r, TBP, moffOff(gml.i))
+			return gml.r
+		}
+
 	}
 	k := e.findReg()
 	if !ok {
@@ -486,22 +506,36 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
-	e.src += FP + f.Wl.Value + ":\n"
-	for r := R1; r <= R8; r++ {
-		s := e.rAlloc[r]
-		e.rAlloc[r] = ""
-		e.rMap[s] = nil
-	}
+	e.curf = f.Wl.Value
+	e.label(FP + f.Wl.Value)
+	/*
+		for r := R1; r <= R8; r++ {
+	    if e.rAlloc[r] != "" {
+
+			  s := e.rAlloc[r]
+	      b := e.rAllocb[r]
+			  e.rAlloc[r] = ""
+
+	    e.rAllocb[r] = false
+			e.rMap[s] = nil
+		}
+	*/
 	reg := R1
 	tssd := 1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
 			ml := new(mloc)
-			ml.init(MLstack)
-			e.push(reg)
-			ml.i = tssd
+			/*
+				ml.init(MLstack)
+				e.push(reg)
+				ml.i = tssd
+				e.rMap[vd2.Value] = ml
+			*/
+			ml.init(MLreg)
+			ml.r = reg
+
+			e.rAlloc[reg] = vd2.Value
 			e.rMap[vd2.Value] = ml
-			//e.rAlloc[reg] = vd2.Value
 			tssd++
 			reg++
 		}
@@ -514,7 +548,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	reg = R1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
-			e.pop(reg)
+			//e.pop(reg)
 			e.rMap[vd2.Value] = nil
 			//e.rAlloc[reg] = vd2.Value
 			reg++
@@ -560,7 +594,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.push(LR)
 	e.mov(TSS, SP)
 
-	e.curf = ID
 	e.emit("bl", FP+ID)
 	e.pop(LR)
 	for k, _ := range ce.Params {
@@ -759,6 +792,7 @@ func (e *emitter) emitF(f *File) {
 	e.mov(R0, XZR)
 	e.makeLabel(lab)
 	e.emit("ret")
+
 	for _, s := range f.FList {
 		e.emitFunc(s)
 	}

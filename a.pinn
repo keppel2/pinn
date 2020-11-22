@@ -1,1 +1,4 @@
-return 12;
+func f(a int) {
+return a;
+}
+f(42);
