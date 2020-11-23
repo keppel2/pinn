@@ -84,6 +84,7 @@ const (
 
 type mloc struct {
 	Mlt int
+	Blt int
 	i   int
 	len int
 	r   reg
@@ -96,6 +97,7 @@ type emitter struct {
 	cbranch branch
 	ebranch branch
 	moff    int
+	soff    int
 	lstack  [][2]branch
 	curf    string
 	fexitm  map[string]branch
@@ -110,6 +112,7 @@ func (m *mloc) String() string {
 
 func (m *mloc) init(mlt int) {
 	m.Mlt = mlt
+	m.Blt = mlt
 	m.i = -1
 }
 
@@ -166,12 +169,34 @@ func offSet(a, b string) string {
 func (e *emitter) toHeap(id string) {
 	ml := e.rMap[id]
 	if ml.Mlt == MLreg {
+		if ml.Blt == MLstack {
+			e.err("")
+		}
 		ml.Mlt = MLheap
+		ml.Blt = MLheap
 		if ml.i == -1 {
 			ml.i = e.moff
 			e.moff++
 		}
 		e.str(ml.r, TBP, moffOff(ml.i))
+		e.rAlloc[ml.r] = ""
+	}
+}
+
+func (e *emitter) toStack(id string) {
+	ml := e.rMap[id]
+	if ml.Mlt == MLreg {
+		if ml.Blt == MLheap {
+			e.err("")
+		}
+		ml.Mlt = MLstack
+		ml.Blt = MLstack
+		if ml.i == -1 {
+			e.push(ml.r)
+			e.soff++
+			ml.i = e.soff
+		}
+		e.str(ml.r, TSS, -moffOff(ml.i))
 		e.rAlloc[ml.r] = ""
 	}
 }
@@ -185,8 +210,8 @@ func (e *emitter) freeReg() reg {
 	if !ok {
 		e.err("")
 	}
-	if ml.Mlt == MLstack {
-		e.str(reg(k), TSS, moffOff(-ml.i))
+	if ml.Blt == MLstack {
+		e.toStack(s)
 		return reg(k)
 	}
 	e.toHeap(s)
@@ -363,12 +388,11 @@ func (e *emitter) fillReg(s string, create bool) reg {
 	} else {
 		if ml.Mlt == MLheap {
 			e.ldr(k, TBP, moffOff(ml.i))
-			ml.Mlt = MLreg
-			ml.r = k
 		} else {
-			e.err("")
-			//e.ldr(k, TSS, moffOff(-ml.i))
+			e.ldr(k, TSS, moffOff(-ml.i))
 		}
+		ml.Mlt = MLreg
+		ml.r = k
 	}
 	e.rAlloc[ml.r] = s
 	return k
@@ -509,6 +533,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 func (e *emitter) emitFunc(f *FuncDecl) {
 	e.curf = f.Wl.Value
 	e.label(FP + f.Wl.Value)
+	e.soff = 0
 
 	/*
 			for r := R1; r <= R8; r++ {
@@ -714,7 +739,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			e.assignToReg(lhi, t.RHSa[0])
-			//e.toHeap(id)
+			e.toStack(id)
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
