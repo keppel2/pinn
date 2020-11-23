@@ -153,6 +153,8 @@ func fact(fa int) int {
   if fa == 1 {
     return 1;
   }
-  return fact(fa - 1) * fa;
+  x = fa;
+  y = fact(fa - 1);
+  return x * y;
 }
 

@@ -580,14 +580,14 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	//	e.emitR("add", TSP, TSP, moffOff(e.soff))
 	reg = R1
 	/*
-		for _, vd := range f.PList {
-			for _, vd2 := range vd.List {
-				//e.pop(reg)
-	//			e.rMap[vd2.Value] = nil
-				//e.rAlloc[reg] = vd2.Value
-				reg++
+			for _, vd := range f.PList {
+				for _, vd2 := range vd.List {
+					//e.pop(reg)
+		//			e.rMap[vd2.Value] = nil
+					//e.rAlloc[reg] = vd2.Value
+					reg++
+				}
 			}
-		}
 	*/
 	e.emit("ret")
 	e.clearL()

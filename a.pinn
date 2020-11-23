@@ -1,10 +1,7 @@
-func fact(fa int) int {
-  if fa == 1 {
-    return 1;
-  }
-  x = fa;
-  y = fact(fa - 1);
-  return x * y;
+func f() {
+print(a);
 }
 
-print(fact(2));
+f();
+a = 5;
+f();
