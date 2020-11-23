@@ -722,9 +722,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			id := t2.Wl.Value
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				lhi := e.fillReg(id, false)
-				e.assignToReg(TR2, lh)
 				e.assignToReg(TR3, t.RHSa[0])
-				e.doOp(lhi, TR2, TR3, t.Op[0:1])
+				e.doOp(lhi, lhi, TR3, t.Op[0:1])
 
 				return
 			}
