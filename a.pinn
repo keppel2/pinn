@@ -1,1 +1,10 @@
-return b;
+a = 1;
+loop {
+print(a);
+  a = a + 1;
+  print(a);
+  if a < 5 {
+    continue;
+  }
+  break;
+}

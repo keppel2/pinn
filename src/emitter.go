@@ -110,6 +110,7 @@ func (m *mloc) String() string {
 
 func (m *mloc) init(mlt int) {
 	m.Mlt = mlt
+	m.i = -1
 }
 
 func (e *emitter) findReg() reg {
@@ -162,6 +163,19 @@ func offSet(a, b string) string {
 	return fmt.Sprintf("[%v%v%v]", a, OS, b)
 }
 
+func (e *emitter) toHeap(id string) {
+	ml := e.rMap[id]
+	if ml.Mlt == MLreg {
+		ml.Mlt = MLheap
+		if ml.i == -1 {
+			ml.i = e.moff
+			e.moff++
+		}
+		e.str(ml.r, TBP, moffOff(ml.i))
+		e.rAlloc[ml.r] = ""
+	}
+}
+
 func (e *emitter) freeReg() reg {
 	k := rand.Intn(int(RMAX + 1 - RB))
 	k += int(RB)
@@ -176,9 +190,11 @@ func (e *emitter) freeReg() reg {
 		return reg(k)
 	}
 	ml.Mlt = MLheap
-	ml.i = e.moff
-	e.moff++
-	e.str(reg(k), TBP, ml.i)
+	if ml.i == -1 {
+		ml.i = e.moff
+		e.moff++
+	}
+	e.str(reg(k), TBP, moffOff(ml.i))
 	return reg(k)
 }
 
@@ -355,7 +371,8 @@ func (e *emitter) fillReg(s string, create bool) reg {
 			ml.Mlt = MLreg
 			ml.r = k
 		} else {
-			e.ldr(k, TSS, moffOff(-ml.i))
+			e.err("")
+			//e.ldr(k, TSS, moffOff(-ml.i))
 		}
 	}
 	e.rAlloc[ml.r] = s
@@ -682,15 +699,16 @@ func (e *emitter) emitStmt(s Stmt) {
 		lh := t.LHSa[0]
 		switch t2 := lh.(type) {
 		case *VarExpr:
+			id := t2.Wl.Value
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-				lhi := e.fillReg(t2.Wl.Value, false)
+				lhi := e.fillReg(id, false)
 				e.assignToReg(TR2, lh)
 				e.assignToReg(TR3, t.RHSa[0])
 				e.doOp(lhi, TR2, TR3, t.Op[0:1])
 
 				return
 			}
-			lhi := e.fillReg(t2.Wl.Value, true)
+			lhi := e.fillReg(id, true)
 			if t.Op == "++" {
 				e.mov(TR1, 1)
 				e.doOp(lhi, lhi, TR1, "+")
@@ -701,6 +719,8 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			e.assignToReg(lhi, t.RHSa[0])
+			e.toHeap(id)
+
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				e.assignToReg(TR3, t2)
