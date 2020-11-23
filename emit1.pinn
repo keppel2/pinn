@@ -120,8 +120,8 @@ f = g2();
 assert(f, 202);
 
 
-func f1(a int) {
-assert(a, 42);
+func f1(aa int) {
+assert(aa, 42);
 }
 func g1() int {
 return 101;

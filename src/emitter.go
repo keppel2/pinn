@@ -74,17 +74,19 @@ const BP = ".br"
 const FP = ".f"
 
 var RB reg = R8 + 1
+var IR reg = -1
 
+/*
 const (
 	MLinvalid = iota
 	MLreg
 	MLstack
 	MLheap
 )
+*/
 
 type mloc struct {
-	Mlt int
-	Blt int
+	fc  bool
 	i   int
 	len int
 	r   reg
@@ -99,7 +101,7 @@ type emitter struct {
 	moff    int
 	soff    int
 	lstack  [][2]branch
-	curf    string
+	fc      bool
 	fexitm  map[string]branch
 	fexit   branch
 	lst     Node
@@ -110,10 +112,10 @@ func (m *mloc) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-func (m *mloc) init(mlt int) {
-	m.Mlt = mlt
-	m.Blt = mlt
+func (m *mloc) init(fc bool) {
 	m.i = -1
+	m.r = IR
+	m.fc = fc
 }
 
 func (e *emitter) findReg() reg {
@@ -134,21 +136,29 @@ func (e *emitter) newVar(s string, k Kind) {
 	case *SKind:
 	case *ArKind:
 		ml := new(mloc)
-		ml.init(MLheap)
-		ml.i = e.moff
+		ml.init(e.fc)
 		ml.len = e.atoi(t.Len.(*NumberExpr).Il.Value)
-		e.moff += ml.len
+		if e.fc {
+			ml.i = e.soff
+			e.soff += ml.len
+			for i := 0; i < ml.len; i++ {
+				e.push(XZR)
+			}
+		} else {
+			ml.i = e.moff
+			e.moff += ml.len
+		}
 		e.rMap[s] = ml
 
 	}
 }
 
 func (e *emitter) push(r reg) {
-	e.emit("str", makeReg(r), "["+makeReg(TSP), "-8]!")
+	e.emit("str", makeReg(r), "["+makeReg(TSP), makeConst(-8)+"]!")
 }
 
 func (e *emitter) pop(r reg) {
-	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", "8")
+	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
 }
 func (e *emitter) popP() {
 	for i := RB - 1; i >= 0; i-- {
@@ -166,38 +176,30 @@ func offSet(a, b string) string {
 	return fmt.Sprintf("[%v%v%v]", a, OS, b)
 }
 
-func (e *emitter) toHeap(id string) {
+func (e *emitter) toStore(id string) {
 	ml := e.rMap[id]
-	if ml.Mlt == MLreg {
-		if ml.Blt == MLstack {
-			e.err("")
-		}
-		ml.Mlt = MLheap
-		ml.Blt = MLheap
+	if ml.r != IR {
 		if ml.i == -1 {
-			ml.i = e.moff
-			e.moff++
+			if ml.fc {
+				ml.i = e.soff
+				e.soff++
+				e.push(ml.r)
+			} else {
+				ml.i = e.moff
+				e.str(ml.r, TBP, moffOff(ml.i))
+				e.moff++
+			}
+		} else {
+			if ml.fc {
+				e.str(ml.r, TSS, -moffOff(ml.i))
+			} else {
+				e.str(ml.r, TBP, moffOff(ml.i))
+			}
 		}
-		e.str(ml.r, TBP, moffOff(ml.i))
 		e.rAlloc[ml.r] = ""
-	}
-}
-
-func (e *emitter) toStack(id string) {
-	ml := e.rMap[id]
-	if ml.Mlt == MLreg {
-		if ml.Blt == MLheap {
-			e.err("")
-		}
-		ml.Mlt = MLstack
-		ml.Blt = MLstack
-		if ml.i == -1 {
-			e.push(ml.r)
-			e.soff++
-			ml.i = e.soff
-		}
-		e.str(ml.r, TSS, -moffOff(ml.i))
-		e.rAlloc[ml.r] = ""
+		ml.r = IR
+	} else {
+		e.err("")
 	}
 }
 
@@ -205,16 +207,7 @@ func (e *emitter) freeReg() reg {
 	k := rand.Intn(int(RMAX + 1 - RB))
 	k += int(RB)
 	s := e.rAlloc[k]
-	e.rAlloc[k] = ""
-	ml, ok := e.rMap[s]
-	if !ok {
-		e.err("")
-	}
-	if ml.Blt == MLstack {
-		e.toStack(s)
-		return reg(k)
-	}
-	e.toHeap(s)
+	e.toStore(s)
 	return reg(k)
 }
 
@@ -373,28 +366,27 @@ func (e *emitter) emitPrint() {
 
 func (e *emitter) fillReg(s string, create bool) reg {
 	ml, ok := e.rMap[s]
-	if ok && ml.Mlt == MLreg {
+	if ok && ml.r != IR {
 		return ml.r
 	}
 	if !ok && !create {
 		e.err(s)
 	}
 	k := e.findReg()
+	e.rAlloc[k] = s
 	if !ok {
 		ml = new(mloc)
-		ml.init(MLreg)
+		ml.init(e.fc)
 		ml.r = k
 		e.rMap[s] = ml
 	} else {
-		if ml.Mlt == MLheap {
-			e.ldr(k, TBP, moffOff(ml.i))
+		if ml.fc {
+			e.ldr(k, TSS, -moffOff(ml.i))
 		} else {
-			e.ldr(k, TSS, moffOff(-ml.i))
+			e.ldr(k, TBP, moffOff(ml.i))
 		}
-		ml.Mlt = MLreg
 		ml.r = k
 	}
-	e.rAlloc[ml.r] = s
 	return k
 }
 
@@ -531,7 +523,6 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
-	e.curf = f.Wl.Value
 	e.label(FP + f.Wl.Value)
 	e.soff = 0
 
@@ -558,9 +549,8 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 				ml.i = tssd
 				e.rMap[vd2.Value] = ml
 			*/
-			ml.init(MLreg)
+			ml.init(true)
 			ml.r = reg
-
 			e.rAlloc[reg] = vd2.Value
 			e.rMap[vd2.Value] = ml
 			tssd++
@@ -572,6 +562,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.ebranch = lab
 	e.emitStmt(f.B)
 	e.makeLabel(lab)
+	e.emitR("add", TSP, TSP, moffOff(e.soff))
 	reg = R1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
@@ -738,7 +729,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			e.assignToReg(lhi, t.RHSa[0])
-			e.toStack(id)
+			e.toStore(id)
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
@@ -825,8 +816,9 @@ func (e *emitter) emitF(f *File) {
 	e.mov(R0, XZR)
 	e.makeLabel(lab)
 	e.emit("ret")
-
+	e.fc = true
 	for _, s := range f.FList {
+
 		e.emitFunc(s)
 	}
 	if didPrint {
