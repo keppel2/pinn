@@ -189,12 +189,7 @@ func (e *emitter) freeReg() reg {
 		e.str(reg(k), TSS, moffOff(-ml.i))
 		return reg(k)
 	}
-	ml.Mlt = MLheap
-	if ml.i == -1 {
-		ml.i = e.moff
-		e.moff++
-	}
-	e.str(reg(k), TBP, moffOff(ml.i))
+	e.toHeap(s)
 	return reg(k)
 }
 
@@ -719,7 +714,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			e.assignToReg(lhi, t.RHSa[0])
-			e.toHeap(id)
+			//e.toHeap(id)
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
