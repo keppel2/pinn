@@ -1,7 +1,10 @@
-func f() {
-print(a);
+func fact(fa int) int {
+  x = fa;
+  if fa == 1 {
+    return 1;
+  }
+  x = fa * fact(fa - 1);
+  return x;
 }
 
-f();
-a = 5;
-f();
+print(fact(3));

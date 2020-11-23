@@ -47,3 +47,17 @@ fl();
 func fl() {
 a = 5;
 }
+
+glob = 10;
+func fg2(fa int) int{
+  glob = fa + 3;
+  return fa - 2;
+}
+func fg() int {
+  assert(glob, 10);
+  x = fg2(glob * 2);
+  return x - 5;
+}
+xx = fg();
+assert(glob, 23);
+assert(xx, 13);
