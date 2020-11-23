@@ -1,9 +1,10 @@
 func fact(fa int) int {
-  lb = fa;
-  if lb == 1 {
+  if fa == 1 {
     return 1;
   }
-  return fact(lb - 1) * lb;
+  x = fa;
+  y = fact(fa - 1);
+  return x * y;
 }
 
-return fact(2);
+print(fact(2));

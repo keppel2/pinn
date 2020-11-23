@@ -131,6 +131,19 @@ func moffOff(a int) int {
 	return a * 8
 }
 
+func (e *emitter) clearL() {
+	for k, v := range e.rAlloc {
+		if rm, ok := e.rMap[v]; ok && rm.fc {
+			e.rAlloc[k] = ""
+		}
+	}
+	for k, v := range e.rMap {
+		if v.fc {
+			delete(e.rMap, k)
+		}
+	}
+}
+
 func (e *emitter) newVar(s string, k Kind) {
 	switch t := k.(type) {
 	case *SKind:
@@ -563,17 +576,21 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.mov(TSS, TSP)
 	e.emitStmt(f.B)
 	e.makeLabel(lab)
-	e.emitR("add", TSP, TSP, moffOff(e.soff))
+	e.mov(TSP, TSS)
+	//	e.emitR("add", TSP, TSP, moffOff(e.soff))
 	reg = R1
-	for _, vd := range f.PList {
-		for _, vd2 := range vd.List {
-			//e.pop(reg)
-			e.rMap[vd2.Value] = nil
-			//e.rAlloc[reg] = vd2.Value
-			reg++
+	/*
+		for _, vd := range f.PList {
+			for _, vd2 := range vd.List {
+				//e.pop(reg)
+	//			e.rMap[vd2.Value] = nil
+				//e.rAlloc[reg] = vd2.Value
+				reg++
+			}
 		}
-	}
+	*/
 	e.emit("ret")
+	e.clearL()
 }
 
 func (e *emitter) assignToReg(r reg, ex Expr) {
