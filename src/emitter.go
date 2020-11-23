@@ -181,8 +181,8 @@ func (e *emitter) toStore(id string) {
 	if ml.r != IR {
 		if ml.i == -1 {
 			if ml.fc {
-				ml.i = e.soff
 				e.soff++
+				ml.i = e.soff
 				e.push(ml.r)
 			} else {
 				ml.i = e.moff
@@ -560,6 +560,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	lab := e.clab()
 	//e.fexitm[f.Wl.Value] = lab
 	e.ebranch = lab
+	e.mov(TSS, TSP)
 	e.emitStmt(f.B)
 	e.makeLabel(lab)
 	e.emitR("add", TSP, TSP, moffOff(e.soff))
@@ -610,9 +611,10 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.assignToReg(reg(k)+1, v)
 	}
 	e.push(LR)
-	e.mov(TSS, SP)
+	e.push(TSS)
 
 	e.emit("bl", FP+ID)
+	e.pop(TSS)
 	e.pop(LR)
 	for k, _ := range ce.Params {
 		e.pop(reg(k) + 1)
@@ -624,6 +626,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
+	e.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)

@@ -1,1 +1,10 @@
-a = b;
+g = 12;
+func f() {
+va = g;
+g = g - 1;
+if g > 0 {
+  f();
+}
+print(va);
+}
+f();

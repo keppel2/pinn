@@ -1,6 +1,9 @@
-func f() {
-b = 2;
-print(2);
+func fact(fa int) int {
+  lb = fa;
+  if lb == 1 {
+    return 1;
+  }
+  return fact(lb - 1) * lb;
 }
-f();
-print(3);
+
+return fact(2);
