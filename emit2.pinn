@@ -65,3 +65,15 @@ assert(xx, 13);
 modx = 3;
 modx %= 2;
 assert(modx, 1);
+
+var arG [2]int;
+arG[0] = 2;
+func argf() {
+var arL [2]int;
+arG[1] = 4;
+arL[0] = 7;
+assert(arL[0], 7);
+}
+assert(arG[0], 2);
+argf();
+assert(arG[1], 4);

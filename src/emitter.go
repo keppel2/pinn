@@ -153,8 +153,8 @@ func (e *emitter) newVar(s string, k Kind) {
 		ml.init(e.fc)
 		ml.len = e.atoi(t.Len.(*NumberExpr).Il.Value)
 		if e.fc {
-			ml.i = e.soff
 			e.soff += ml.len
+			ml.i = e.soff
 			for i := 0; i < ml.len; i++ {
 				e.push(XZR)
 			}
@@ -163,7 +163,6 @@ func (e *emitter) newVar(s string, k Kind) {
 			e.moff += ml.len
 		}
 		e.rMap[s] = ml
-
 	}
 }
 
