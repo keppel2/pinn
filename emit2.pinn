@@ -61,3 +61,7 @@ func fg() int {
 xx = fg();
 assert(glob, 23);
 assert(xx, 13);
+
+modx = 3;
+modx %= 2;
+assert(modx, 1);

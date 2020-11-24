@@ -44,7 +44,7 @@ const (
 	TR1
 	TR2
 	TR3
-	TR4
+	//	TR4
 	TRV
 	TMAIN
 	TBP
@@ -175,9 +175,9 @@ func (e *emitter) pop(r reg) {
 	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
 }
 func (e *emitter) popP() {
-	//  e.pop(TR3)
-	//  e.pop(TR2)
-	// e.pop(TR4)
+	e.pop(TR3)
+	e.pop(TR2)
+	e.pop(TR1)
 	for i := RB - 1; i >= 1; i-- {
 		e.pop(i)
 	}
@@ -187,9 +187,9 @@ func (e *emitter) pushP() {
 	for i := R1; i <= R8; i++ {
 		e.push(i)
 	}
-	//  e.push(TR4)
-	//  e.push(TR2)
-	//  e.push(TR3)
+	e.push(TR1)
+	e.push(TR2)
+	e.push(TR3)
 }
 
 func offSet(a, b string) string {
@@ -743,7 +743,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				lhi := e.fillReg(id, false)
 				e.assignToReg(TR3, t.RHSa[0])
-				e.doOp(lhi, lhi, TR3, t.Op[0:1])
+				e.mov(TR2, lhi)
+				e.doOp(lhi, TR2, TR3, t.Op[0:1])
 
 				return
 			}
