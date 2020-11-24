@@ -193,35 +193,61 @@ func (e *emitter) pushP() {
 	e.push(TR4)
 }
 
+func (e *emitter) setIndex(index reg, m *mloc) {
+	e.emitR("lsl", index, index, 3)
+	if m.fc {
+		e.emitR("sub", index, index, moffOff(m.i))
+	} else {
+		e.emitR("add", index, index, moffOff(m.i))
+	}
+}
+
+func (e *emitter) iStore(dest reg, index reg, m *mloc) {
+	e.setIndex(index, m)
+	if m.fc {
+		e.str(dest, TSS, index)
+	} else {
+		e.str(dest, TBP, index)
+	}
+}
+func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
+	e.setIndex(index, m)
+	if m.fc {
+		e.ldr(dest, TSS, index)
+	} else {
+		e.ldr(dest, TBP, index)
+	}
+}
+
 func offSet(a, b string) string {
 	return fmt.Sprintf("[%v%v%v]", a, OS, b)
 }
 
 func (e *emitter) toStore(id string) {
 	ml := e.rMap[id]
-	if ml.r != IR {
-		if ml.i == -1 {
-			if ml.fc {
-				e.soff++
-				ml.i = e.soff
-				e.push(ml.r)
-			} else {
-				ml.i = e.moff
-				e.str(ml.r, TBP, moffOff(ml.i))
-				e.moff++
-			}
-		} else {
-			if ml.fc {
-				e.str(ml.r, TSS, -moffOff(ml.i))
-			} else {
-				e.str(ml.r, TBP, moffOff(ml.i))
-			}
-		}
-		e.rAlloc[ml.r] = ""
-		ml.r = IR
-	} else {
+	if ml.r == IR {
 		e.err("")
 	}
+	if ml.i == -1 {
+		if ml.fc {
+			e.soff++
+			ml.i = e.soff
+			e.push(ml.r)
+		} else {
+			ml.i = e.moff
+			e.str(ml.r, TBP, moffOff(ml.i))
+			e.moff++
+		}
+	} else {
+
+		if ml.fc {
+			e.str(ml.r, TSS, -moffOff(ml.i))
+		} else {
+			e.str(ml.r, TBP, moffOff(ml.i))
+		}
+	}
+	e.rAlloc[ml.r] = ""
+	ml.r = IR
 }
 
 func (e *emitter) freeReg() reg {
@@ -614,16 +640,8 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
-		e.assignToReg(TR2, t2.E)
-		e.emitR("lsl", TR2, TR2, 3)
-		if ml.fc {
-			e.emitR("sub", TR2, TR2, moffOff(ml.i))
-			e.ldr(r, TSS, TR2)
-		} else {
-			e.emitR("add", TR2, TR2, moffOff(ml.i))
-			e.ldr(r, TBP, TR2)
-		}
-
+		e.assignToReg(TR1, t2.E)
+		e.iLoad(r, TR1, ml)
 	default:
 		e.err("")
 	}
@@ -793,14 +811,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 			e.assignToReg(TR1, lh2.E)
-			e.emitR("lsl", TR1, TR1, 3)
-			if ml.fc {
-				e.emitR("sub", TR1, TR1, moffOff(ml.i))
-				e.str(TR4, TSS, TR1)
-			} else {
-				e.emitR("add", TR1, TR1, moffOff(ml.i))
-				e.str(TR4, TBP, TR1)
-			}
+			e.iStore(TR4, TR1, ml)
 		}
 
 	case *VarStmt:
