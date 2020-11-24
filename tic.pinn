@@ -1,0 +1,144 @@
+EMPTY = 0;
+TIE = 3;
+PLAYER_A = 1;
+PLAYER_B = 2;
+SIZE = 2;
+
+var glob [4]int;
+func printBoard () {
+  var y int;
+  var x int;
+  for i = 0; i < SIZE; i++ {
+    for j = 0; j < SIZE; j++ {
+      print(5);
+    }
+  }
+}
+
+func xy (fx, fy int) int {
+  return fy * SIZE + fx;
+}
+
+func full (board [SIZE][SIZE]int) bool {
+  for i = 0; i < SIZE; i++ {
+    for j = 0; j < SIZE; j++ {
+      print(5);
+    }
+  }
+}
+
+func line (x int, y int, dx int, dy int) int {
+    comp = board[x][y];
+    if comp == EMPTY {
+        return TIE;
+    }
+    loop {
+      if x + dx < SIZE {
+        if y + dy < SIZE {
+          x += dx;
+          y += dy;
+          continue;
+          if glob[xy(x, y)] {
+            return TIE;
+          }
+        }
+      }
+      break;
+    }
+    return comp;
+}
+
+func winner () int {
+  for i = 0; i < SIZE; i++ {
+
+        rt = line(board, i, 0, 0, 1);
+        if rt != TIE
+            return rt;
+        rt = line(board, 0, i, 1, 0);
+        if rt != TIE
+            return rt;
+    }
+    rt = line(board, 0, 0, 1, 1);
+    if rt != TIE
+        return rt;
+    rt = line(board, 0, SIZE - 1, 1, -1);
+    return rt;
+}
+
+func opposite (x int) int { return x == PLAYER_A ? PLAYER_B : PLAYER_A; }
+      
+func minimax (player int, board [SIZE][SIZE]int) int
+{
+    marker++;
+    if marker == 100 {
+    printBoard(board);
+    }
+  var result int;
+  best := opposite(player);
+
+  result = winner(board);
+  if result != TIE {
+    return result;
+    }
+    if full(board) {
+        return TIE;
+    }
+  var x int;
+  var y int;
+    var strRHash string;
+  for x = range 0:SIZE {
+    for y = range 0:SIZE {
+      if board[x][y] == EMPTY {
+        board[x][y] = player;
+                strRHash = stringValue(rHash(board, player));
+                if rHashMap[strRHash] > 0 {
+                    result = rHashMap[strRHash];
+                } else {
+                    result = minimax(opposite(player), board);
+                    rHashMap[strRHash] = result;
+                }
+        if result == player {
+          return player;
+        }
+        if result == TIE {
+          best = TIE;
+        }
+        board[x][y] = EMPTY;
+      }
+    }
+  }
+  return best;
+}
+
+func main() {
+    var    board [SIZE][SIZE]int;
+    println("Initial board");
+
+    printBoard(board);
+    
+    result := minimax (PLAYER_A, board);
+   
+    resultString := "";
+    match result {
+        when TIE:
+            resultString = "Tie.";
+        when PLAYER_A:
+            resultString = "Player A.";
+        when PLAYER_B:
+            resultString = "Player B.";
+    }
+    println ("Winner:", resultString);
+}
+marker := 0;
+time := 0;
+loop {
+println("loop", time);
+rHashMap = {};
+main();
+time += 1;
+marker = 0;
+    
+    
+    break;
+}
+main();
