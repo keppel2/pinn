@@ -126,6 +126,8 @@ assert(aa, 42);
 func g1() int {
 return 101;
 }
+ar = 0 + g1();
+assert(ar, 101);
 
 
 func f2() int {

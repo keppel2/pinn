@@ -1,9 +1,9 @@
 func fact(fa int) int {
-  x = fa;
   if fa == 1 {
     return 1;
   }
-  x = fa * fact(fa - 1);
+  x = fa;
+  x = x * fact(fa - 1);
   return x;
 }
 

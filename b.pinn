@@ -1,3 +1,6 @@
 func f(b int) {
+  return b;
 }
-f(4);
+x = 2;
+x = x * f(2 + 1);
+return x;

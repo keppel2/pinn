@@ -36,7 +36,7 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
 
 const (
 	LR reg = 30 - iota
@@ -44,6 +44,7 @@ const (
 	TR1
 	TR2
 	TR3
+	TR4
 	TRV
 	TMAIN
 	TBP
@@ -174,15 +175,21 @@ func (e *emitter) pop(r reg) {
 	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
 }
 func (e *emitter) popP() {
-	for i := RB - 1; i >= 0; i-- {
+	//  e.pop(TR3)
+	//  e.pop(TR2)
+	// e.pop(TR4)
+	for i := RB - 1; i >= 1; i-- {
 		e.pop(i)
 	}
 }
 
 func (e *emitter) pushP() {
-	for i := R0; i <= R8; i++ {
+	for i := R1; i <= R8; i++ {
 		e.push(i)
 	}
+	//  e.push(TR4)
+	//  e.push(TR2)
+	//  e.push(TR3)
 }
 
 func offSet(a, b string) string {
@@ -528,7 +535,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	//	op := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
 		e.emitCall(t)
-		e.mov(TR3, 0)
+		e.mov(TR3, R0)
 	} else {
 		e.assignToReg(TR3, be.RHS)
 	}
@@ -629,8 +636,10 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 	e.push(LR)
 	e.push(TSS)
+	e.pushP()
 
 	e.emit("bl", FP+ID)
+	e.popP()
 	e.pop(TSS)
 	e.pop(LR)
 	for k, _ := range ce.Params {
