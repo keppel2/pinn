@@ -737,9 +737,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.br(e.ebranch)
 	case *AssignStmt:
 		lh := t.LHSa[0]
-		switch t2 := lh.(type) {
+		switch lh2 := lh.(type) {
 		case *VarExpr:
-			id := t2.Wl.Value
+			id := lh2.Wl.Value
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				lhi := e.fillReg(id, false)
 				e.assignToReg(TR3, t.RHSa[0])
@@ -763,12 +763,12 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-				e.assignToReg(TR3, t2)
+				e.assignToReg(TR3, lh2)
 				e.mov(TR2, TR3)
 				e.assignToReg(TR1, t.RHSa[0])
 				e.doOp(TR3, TR2, TR1, t.Op[0:1])
 			} else if t.Op == "++" || t.Op == "--" {
-				e.assignToReg(TR3, t2)
+				e.assignToReg(TR3, lh2)
 				if t.Op == "++" {
 					e.mov(TR1, 1)
 					e.doOp(TR3, TR3, TR1, "+")
@@ -780,9 +780,9 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.assignToReg(TR3, t.RHSa[0])
 			}
 
-			v := t2.X.(*VarExpr).Wl.Value
+			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
-			e.assignToReg(TR2, t2.E)
+			e.assignToReg(TR2, lh2.E)
 			e.emitR("lsl", TR2, TR2, 3)
 			e.emitR("add", TR2, TR2, moffOff(ml.i))
 			e.str(TR3, TBP, TR2)
