@@ -77,3 +77,10 @@ assert(arL[0], 7);
 assert(arG[0], 2);
 argf();
 assert(arG[1], 4);
+
+gmm = 3;
+func fgmm() {
+gmm--;
+}
+fgmm();
+assert(gmm, 2);

@@ -746,19 +746,24 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.assignToReg(TR3, t.RHSa[0])
 				e.mov(TR2, lhi)
 				e.doOp(lhi, TR2, TR3, t.Op[0:1])
+				e.toStore(id)
 
 				return
 			}
-			lhi := e.fillReg(id, true)
 			if t.Op == "++" {
+				lhi := e.fillReg(id, false)
 				e.mov(TR1, 1)
 				e.doOp(lhi, lhi, TR1, "+")
+				e.toStore(id)
 				return
 			} else if t.Op == "--" {
+				lhi := e.fillReg(id, false)
 				e.mov(TR1, 1)
 				e.doOp(lhi, lhi, TR1, "-")
+				e.toStore(id)
 				return
 			}
+			lhi := e.fillReg(id, true)
 			e.assignToReg(lhi, t.RHSa[0])
 			e.toStore(id)
 

@@ -1,7 +1,7 @@
 g = 3;
-var ar[3]int;
-ar[2] = 5;
+
 func f() {
-print(ar[2]);
+g--;
 }
 f();
+return g;
