@@ -1,6 +1,7 @@
-func f(b int) {
-  return b;
+
+func f() {
+var ar[2]int;
+ar[1] = 42;
+print(ar[1]);
 }
-x = 2;
-x = x * f(2 + 1);
-return x;
+f();

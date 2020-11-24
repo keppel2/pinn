@@ -1,7 +1,11 @@
+var ar [2]int;
 g = 3;
-
 func f() {
+var nar [2]int;
+nar[1] = g;
+x = g;
 g--;
+if g > 0 { f(); }
+assert(nar[1], x);
 }
 f();
-return g;

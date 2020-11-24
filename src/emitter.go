@@ -616,9 +616,13 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		ml := e.rMap[v]
 		e.assignToReg(TR2, t2.E)
 		e.emitR("lsl", TR2, TR2, 3)
-		e.emitR("add", TR2, TR2, moffOff(ml.i))
-
-		e.ldr(r, TBP, TR2)
+		if ml.fc {
+			e.emitR("sub", TR2, TR2, moffOff(ml.i))
+			e.ldr(r, TSS, TR2)
+		} else {
+			e.emitR("add", TR2, TR2, moffOff(ml.i))
+			e.ldr(r, TBP, TR2)
+		}
 
 	default:
 		e.err("")
@@ -790,8 +794,13 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.rMap[v]
 			e.assignToReg(TR1, lh2.E)
 			e.emitR("lsl", TR1, TR1, 3)
-			e.emitR("add", TR1, TR1, moffOff(ml.i))
-			e.str(TR4, TBP, TR1)
+			if ml.fc {
+				e.emitR("sub", TR1, TR1, moffOff(ml.i))
+				e.str(TR4, TSS, TR1)
+			} else {
+				e.emitR("add", TR1, TR1, moffOff(ml.i))
+				e.str(TR4, TBP, TR1)
+			}
 		}
 
 	case *VarStmt:
