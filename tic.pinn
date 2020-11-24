@@ -29,7 +29,7 @@ func xy (fx, fy int) int {
 }
 
 
-func full () bool {
+func full () int {
   i = 0;
   for i = 0; i < SQSIZE; i++ {
     if glob[i] == EMPTY {
@@ -105,15 +105,21 @@ func minimax (player int) int
 
   result = winner();
 
+  print(8);
+  print(result);
+  print(result);
+  print(result);
   if result != TIE {
     return result;
   }
+  print(2);
   if full() == 1 {
+  print(3);
         return TIE;
   }
+  print(11);
   x = 0;
   y = 0;
-  print(8);
   for x = 0; x < SIZE; x++ {
     for y = 0; y < SIZE; y++ {
     if flob[xy(x, y)]  == EMPTY {
