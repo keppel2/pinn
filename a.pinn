@@ -1,10 +1,2 @@
-var ar [2]int;
-g = 3;
-func f() {
-var nar [2]int;
-nar[1] = g;
-g--;
-if g > 0 { f(); }
-print(nar[1]);
-}
-f();
+println();
+print(4);

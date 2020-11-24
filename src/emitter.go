@@ -372,6 +372,17 @@ func (e *emitter) err(msg string) {
 }
 
 func (e *emitter) emitPrint() {
+	e.label("println")
+	e.mov(TR1, int('\n'))
+	e.push(TR1)
+	e.mov(R0, 1)
+	e.mov(R1, TSP)
+	e.mov(R2, 1)
+	e.mov(R8, 64)
+	e.emitR("svc", 0)
+	e.pop(TR1)
+	e.emit("ret")
+
 	e.label("print")
 
 	e.emitR("sub", TSP, TSP, 17)
@@ -705,6 +716,11 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.assignToReg(R1, ce.Params[0])
 			e.push(LR)
 			e.emit("bl", "print")
+			e.pop(LR)
+		} else if ID == "println" {
+			didPrint = true
+			e.push(LR)
+			e.emit("bl", "println")
 			e.pop(LR)
 		} else {
 			e.emitCall(ce)
