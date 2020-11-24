@@ -1,2 +1,5 @@
-println();
-print(4);
+func f(a int) {
+print(2);
+print(a);
+}
+f(5);

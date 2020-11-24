@@ -134,13 +134,14 @@ func moffOff(a int) int {
 
 func (e *emitter) clearL() {
 	for k, v := range e.rAlloc {
-		if rm, ok := e.rMap[v]; ok && rm.fc {
-			e.rAlloc[k] = ""
-		}
+		_ = v
+		e.rAlloc[k] = ""
 	}
 	for k, v := range e.rMap {
 		if v.fc {
 			delete(e.rMap, k)
+		} else {
+			v.r = IR
 		}
 	}
 }
@@ -713,10 +714,12 @@ func (e *emitter) emitStmt(s Stmt) {
 		} else if ID == "print" {
 			didPrint = true
 
+			e.push(R1)
 			e.assignToReg(R1, ce.Params[0])
 			e.push(LR)
 			e.emit("bl", "print")
 			e.pop(LR)
+			e.pop(R1)
 		} else if ID == "println" {
 			didPrint = true
 			e.push(LR)
@@ -888,6 +891,7 @@ func (e *emitter) emitF(f *File) {
 	e.mov(R0, XZR)
 	e.makeLabel(lab)
 	e.emit("ret")
+	e.clearL()
 	e.fc = true
 	for _, s := range f.FList {
 
