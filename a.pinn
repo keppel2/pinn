@@ -1,10 +1,10 @@
 func fact(fa int) int {
-  if fa == 1 {
+  x = fa;
+  if x == 1 {
     return 1;
   }
-  x = fa;
-  x = x * fact(fa - 1);
+  x = x * fact(x - 1);
   return x;
 }
 
-print(fact(3));
+print(fact(4));

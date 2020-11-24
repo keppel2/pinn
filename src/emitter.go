@@ -44,7 +44,7 @@ const (
 	TR1
 	TR2
 	TR3
-	//	TR4
+	TR4
 	TRV
 	TMAIN
 	TBP
@@ -175,6 +175,7 @@ func (e *emitter) pop(r reg) {
 	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
 }
 func (e *emitter) popP() {
+	e.pop(TR4)
 	e.pop(TR3)
 	e.pop(TR2)
 	e.pop(TR1)
@@ -190,6 +191,7 @@ func (e *emitter) pushP() {
 	e.push(TR1)
 	e.push(TR2)
 	e.push(TR3)
+	e.push(TR4)
 }
 
 func offSet(a, b string) string {
@@ -763,29 +765,29 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-				e.assignToReg(TR3, lh2)
-				e.mov(TR2, TR3)
-				e.assignToReg(TR1, t.RHSa[0])
-				e.doOp(TR3, TR2, TR1, t.Op[0:1])
+				e.assignToReg(TR4, lh2)
+				e.mov(TR2, TR4)
+				e.assignToReg(TR3, t.RHSa[0])
+				e.doOp(TR4, TR2, TR3, t.Op[0:1])
 			} else if t.Op == "++" || t.Op == "--" {
-				e.assignToReg(TR3, lh2)
+				e.assignToReg(TR4, lh2)
 				if t.Op == "++" {
 					e.mov(TR1, 1)
-					e.doOp(TR3, TR3, TR1, "+")
+					e.doOp(TR4, TR4, TR1, "+")
 				} else {
 					e.mov(TR1, 1)
-					e.doOp(TR3, TR3, TR1, "-")
+					e.doOp(TR4, TR4, TR1, "-")
 				}
 			} else {
-				e.assignToReg(TR3, t.RHSa[0])
+				e.assignToReg(TR4, t.RHSa[0])
 			}
 
 			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
-			e.assignToReg(TR2, lh2.E)
-			e.emitR("lsl", TR2, TR2, 3)
-			e.emitR("add", TR2, TR2, moffOff(ml.i))
-			e.str(TR3, TBP, TR2)
+			e.assignToReg(TR1, lh2.E)
+			e.emitR("lsl", TR1, TR1, 3)
+			e.emitR("add", TR1, TR1, moffOff(ml.i))
+			e.str(TR4, TBP, TR1)
 		}
 
 	case *VarStmt:
