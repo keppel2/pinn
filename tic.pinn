@@ -9,20 +9,23 @@ SQSIZE = SIZE * SIZE;
 
 
 var glob [4]int;
-  for i = 0; i < SQSIZE; i++ {
-    glob[i] = EMPTY;
+i5 = 0;
+  for i5 = 0; i5 < SQSIZE; i5++ {
+    glob[i5] = EMPTY;
   }
-
+printBoard();
 func printBoard () {
   i = 0;
   j = 0;
   for i = 0; i < SIZE; i++ {
     for j = 0; j < SIZE; j++ {
+    print(i);print(j);
       print(glob[xy(i, j)]);
     }
     println();
   }
 }
+return 42;
 
 func xy (fx, fy int) int {
   return fy * SIZE + fx;
@@ -90,31 +93,19 @@ func opposite (opx int) int {
       
 func minimax (player int) int
 {
-//print(3);
- print(player);
  var flob [4]int; 
  i = 0;
  for i = 0; i < SQSIZE; i++ {
    flob[i] = glob[i];
  }
-    marker++;
-    if marker == 100 {
-    printBoard();
-    }
   best = opposite(player);
 
   result = winner();
 
-  print(8);
-  print(result);
-  print(result);
-  print(result);
   if result != TIE {
     return result;
   }
-  print(2);
   if full() == 1 {
-  print(3);
         return TIE;
   }
   print(11);
@@ -145,6 +136,5 @@ func main() {
 print(PLAYER_A);
     result = minimax (PLAYER_A);
 }
-marker = 0;
 printBoard();
 main();

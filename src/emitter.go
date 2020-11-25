@@ -132,6 +132,11 @@ func moffOff(a int) int {
 	return a * 8
 }
 
+func (e *emitter) storeAll() {
+	for k, _ := range e.rMap {
+		e.toStore(k)
+	}
+}
 func (e *emitter) clearL() {
 	for k, v := range e.rAlloc {
 		_ = v
@@ -227,7 +232,7 @@ func offSet(a, b string) string {
 func (e *emitter) toStore(id string) {
 	ml := e.rMap[id]
 	if ml.r == IR {
-		e.err("")
+		return //e.err("")
 	}
 	if ml.i == -1 {
 		if ml.fc {
@@ -688,6 +693,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
 	e.emit("//")
+	//  e.storeAll()
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)

@@ -1,5 +1,14 @@
-func f(a int) {
-print(2);
-print(a);
+func fr(a int, b int) {
+return a + b;
 }
-f(5);
+
+x = 0;
+y = 0;
+for x = 0; x < 5; x++ {
+for y = 0; y < 2; y++ {
+
+fr(x, y);
+print(x);
+print(y);
+}
+}
