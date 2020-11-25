@@ -1,7 +1,12 @@
-func fr(a int) {
-print(a);
-a = 7;
-print(a);
+func fact(fa int) int {
+  if fa == 1 {
+    return 1;
+  }
+  x = fa;
+  y = fact(fa - 1);
+//  print(x);print(y);println();
+  return fa * y;
 }
-fr(2);
 
+a = fact(3);
+return a;

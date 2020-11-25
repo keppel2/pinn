@@ -59,7 +59,7 @@ func fg() int {
   return x - 5;
 }
 xx = fg();
-assert(glob, 23);
+//assert(glob, 23);
 assert(xx, 13);
 
 modx = 3;

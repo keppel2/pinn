@@ -239,9 +239,7 @@ func (e *emitter) toStore(id string) {
 	}
 	if ml.i == -1 {
 		if ml.fc {
-			e.soff++
-			ml.i = e.soff
-			e.push(ml.r)
+			e.pushReg(ml)
 		} else {
 			ml.i = e.moff
 			e.str(ml.r, TBP, moffOff(ml.i))
@@ -431,9 +429,36 @@ func (e *emitter) emitPrint() {
 	e.emit("ret")
 }
 
+func (e *emitter) pushReg(m *mloc) {
+	e.soff++
+	m.i = e.soff
+	e.push(m.r)
+}
+
+func (e *emitter) forceReg(v string, r reg) {
+	if _, ok := e.rMap[v]; ok {
+		e.err(v)
+	}
+	if e.rAlloc[r] != "" {
+		e.err(v)
+	}
+	e.rAlloc[r] = v
+	ml := new(mloc)
+	ml.init(e.fc)
+	if !e.fc {
+		e.err("")
+	}
+	ml.r = r
+	e.pushReg(ml)
+	e.rMap[v] = ml
+
+}
+
 func (e *emitter) fillReg(s string, create bool) reg {
 	ml, ok := e.rMap[s]
 	if ok && ml.r != IR {
+		//    e.rAlloc[ml.r] = ""
+		//    ml.r = IR
 		return ml.r
 	}
 	if !ok && !create {
@@ -592,6 +617,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 func (e *emitter) emitFunc(f *FuncDecl) {
 	e.label(FP + f.Wl.Value)
 	e.soff = 0
+	e.mov(TSS, TSP)
 
 	/*
 			for r := R1; r <= R8; r++ {
@@ -606,46 +632,25 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			}
 	*/
 	reg := R1
-	tssd := 1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
-			if _, ok := e.rMap[vd2.Value]; ok {
-				e.err(vd2.Value)
-			}
-			ml := new(mloc)
+			e.forceReg(vd2.Value, reg)
+			e.toStore(vd2.Value)
 			/*
 				ml.init(MLstack)
 				e.push(reg)
 				ml.i = tssd
 				e.rMap[vd2.Value] = ml
 			*/
-			ml.init(true)
-			ml.r = reg
-			e.rAlloc[reg] = vd2.Value
-			e.rMap[vd2.Value] = ml
-			tssd++
 			reg++
 		}
 	}
 	lab := e.clab()
 	//e.fexitm[f.Wl.Value] = lab
 	e.ebranch = lab
-	e.mov(TSS, TSP)
 	e.emitStmt(f.B)
 	e.makeLabel(lab)
 	e.mov(TSP, TSS)
-	//	e.emitR("add", TSP, TSP, moffOff(e.soff))
-	reg = R1
-	/*
-			for _, vd := range f.PList {
-				for _, vd2 := range vd.List {
-					//e.pop(reg)
-		//			e.rMap[vd2.Value] = nil
-					//e.rAlloc[reg] = vd2.Value
-					reg++
-				}
-			}
-	*/
 	e.emit("ret")
 	e.clearL()
 }
@@ -699,7 +704,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
 	e.emit("//")
-	//  e.storeAll()
+	e.storeAll()
 	switch t := s.(type) {
 	case *ExprStmt:
 		ce := t.Expr.(*CallExpr)
