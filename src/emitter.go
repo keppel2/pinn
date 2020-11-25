@@ -155,6 +155,9 @@ func (e *emitter) newVar(s string, k Kind) {
 	switch t := k.(type) {
 	case *SKind:
 	case *ArKind:
+		if _, ok := e.rMap[s]; ok {
+			e.err(s)
+		}
 		ml := new(mloc)
 		ml.init(e.fc)
 		ml.len = e.atoi(t.Len.(*NumberExpr).Il.Value)
@@ -606,6 +609,9 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	tssd := 1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
+			if _, ok := e.rMap[vd2.Value]; ok {
+				e.err(vd2.Value)
+			}
 			ml := new(mloc)
 			/*
 				ml.init(MLstack)

@@ -1,14 +1,7 @@
-func fr(a int, b int) {
-return a + b;
+func fr(a int) {
+print(a);
+a = 7;
+print(a);
 }
+fr(2);
 
-x = 0;
-y = 0;
-for x = 0; x < 5; x++ {
-for y = 0; y < 2; y++ {
-
-fr(x, y);
-print(x);
-print(y);
-}
-}

@@ -87,7 +87,6 @@ assert(gmm, 2);
 
 
 
-var ar [2]int;
 g = 3;
 func far() {
 var nar [2]int;
