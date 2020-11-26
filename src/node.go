@@ -226,9 +226,10 @@ type TypeStmt struct {
 }
 
 type FuncDecl struct {
-	Wl    *WLit
-	PList []*Field
-	K     Kind
-	B     *BlockStmt
+	Wl     *WLit
+	PList  []*Field
+	PCount int
+	K      Kind
+	B      *BlockStmt
 	node
 }

@@ -208,14 +208,18 @@ func (p *parser) funcDecl() *FuncDecl {
 	rt.Wl = p.wLit()
 	p.want("(")
 	if !p.got(")") {
-		vd := p.field()
-		rt.PList = append(rt.PList, vd)
-		for p.got(",") {
-			vd = p.field()
+		for {
+			vd := p.field()
+			rt.PCount += len(vd.List)
 			rt.PList = append(rt.PList, vd)
+			if p.got(",") {
+				continue
+			}
+			break
 		}
 		p.want(")")
 	}
+
 	if p.tok != "{" {
 		rt.K = p.kind()
 	}

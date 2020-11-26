@@ -118,7 +118,6 @@ func (m *mloc) String() string {
 }
 
 func (m *mloc) init(fc bool) {
-	m.i = -1
 	m.r = IR
 	m.fc = fc
 }
@@ -677,13 +676,6 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.label(FP + f.Wl.Value)
 	e.soff = 0
 	e.mov(TSS, TSP)
-	count := 0
-	for _, vd := range f.PList {
-		for _ = range vd.List {
-			count++
-		}
-	}
-
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
 
@@ -693,7 +685,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			ml := new(mloc)
 			ml.init(e.fc)
 			e.soff++
-			ml.i = -(count - e.soff)
+			ml.i = -(f.PCount - e.soff)
 			e.rMap[vd2.Value] = ml
 		}
 	}
@@ -780,10 +772,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	e.emit("bl", fn)
-	for _, v := range ce.Params {
-		_ = v
-		e.popx()
-	}
+	e.emitR("add", TSP, TSP, moffOff(len(ce.Params)))
 	e.pop(LR)
 	e.pop(TSS)
 
