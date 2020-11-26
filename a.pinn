@@ -1,12 +1,14 @@
-func fact(fa int) int {
-  if fa == 1 {
-    return 1;
+x = 0;
+g = 2;
+
+func fr(x int) {
+
+  if g == 0 {
+    return;
   }
-  x = fa;
-  y = fact(fa - 1);
-//  print(x);print(y);println();
-  return fa * y;
+  g = g - 1;
+  fr(g);
 }
 
-a = fact(3);
-return a;
+fr(g);
+

@@ -182,6 +182,21 @@ func (e *emitter) push(r reg) {
 func (e *emitter) pop(r reg) {
 	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
 }
+func (e *emitter) pushAll() {
+	for i := R1; i <= LR; i++ {
+		if i != TSP {
+			e.push(i)
+		}
+	}
+
+}
+func (e *emitter) popAll() {
+	for i := LR; i >= R1; i-- {
+		if i != TSP {
+			e.pop(i)
+		}
+	}
+}
 func (e *emitter) popP() {
 	e.pop(TR4)
 	e.pop(TR3)
@@ -682,19 +697,20 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	// e.pushP()
 	e.push(TRV)
 	for k, v := range ce.Params {
-		e.push(1 + reg(k))
+		//		e.push(1 + reg(k))
 		e.assignToReg(reg(k)+1, v)
 	}
 	e.push(LR)
 	e.push(TSS)
-	e.pushP()
+	e.pushAll()
 
 	e.emit("bl", FP+ID)
-	e.popP()
+	e.popAll()
 	e.pop(TSS)
 	e.pop(LR)
 	for k, _ := range ce.Params {
-		e.pop(reg(k) + 1)
+		_ = k
+		//		e.pop(reg(k) + 1)
 	}
 	e.pop(TRV)
 	//  e.popP()
@@ -703,47 +719,52 @@ func (e *emitter) emitCall(ce *CallExpr) {
 
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
-	e.emit("//")
 	e.storeAll()
+	e.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
-		ce := t.Expr.(*CallExpr)
-		ID := ce.ID.(*VarExpr).Wl.Value
-		if ID == "assert" {
-			e.assignToReg(TR2, ce.Params[0])
-			e.assignToReg(TR3, ce.Params[1])
-			e.emitR("cmp", TR2, TR3)
-			lab := e.clab()
-			e.br(lab, "eq")
-			ln := e.st.Gpos().Line
-			e.mov(R0, ln)
-			e.mov(LR, TMAIN)
-			e.emit("ret")
-			e.makeLabel(lab)
-		} else if ID == "bad" {
-			e.mov(R0, 1)
-			e.mov(LR, TMAIN)
-			e.emit("ret")
-		} else if ID == "exit" {
-			e.assignToReg(R0, ce.Params[0])
-			e.mov(LR, TMAIN)
-			e.emit("ret")
-		} else if ID == "print" {
-			didPrint = true
+		switch t2 := t.Expr.(type) {
 
-			e.push(R1)
-			e.assignToReg(R1, ce.Params[0])
-			e.push(LR)
-			e.emit("bl", "print")
-			e.pop(LR)
-			e.pop(R1)
-		} else if ID == "println" {
-			didPrint = true
-			e.push(LR)
-			e.emit("bl", "println")
-			e.pop(LR)
-		} else {
-			e.emitCall(ce)
+		case *CallExpr:
+
+			ce := t2
+			ID := ce.ID.(*VarExpr).Wl.Value
+			if ID == "assert" {
+				e.assignToReg(TR2, ce.Params[0])
+				e.assignToReg(TR3, ce.Params[1])
+				e.emitR("cmp", TR2, TR3)
+				lab := e.clab()
+				e.br(lab, "eq")
+				ln := e.st.Gpos().Line
+				e.mov(R0, ln)
+				e.mov(LR, TMAIN)
+				e.emit("ret")
+				e.makeLabel(lab)
+			} else if ID == "bad" {
+				e.mov(R0, 1)
+				e.mov(LR, TMAIN)
+				e.emit("ret")
+			} else if ID == "exit" {
+				e.assignToReg(R0, ce.Params[0])
+				e.mov(LR, TMAIN)
+				e.emit("ret")
+			} else if ID == "print" {
+				didPrint = true
+
+				e.push(R1)
+				e.assignToReg(R1, ce.Params[0])
+				e.push(LR)
+				e.emit("bl", "print")
+				e.pop(LR)
+				e.pop(R1)
+			} else if ID == "println" {
+				didPrint = true
+				e.push(LR)
+				e.emit("bl", "println")
+				e.pop(LR)
+			} else {
+				e.emitCall(ce)
+			}
 		}
 
 	case *BlockStmt:
@@ -791,6 +812,8 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *ReturnStmt:
 		if t.E != nil {
 			e.assignToReg(TRV, t.E)
+		} else {
+			e.mov(TRV, 0)
 		}
 		e.mov(R0, TRV)
 		e.br(e.ebranch)
@@ -823,7 +846,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 			lhi := e.fillReg(id, true)
 			e.assignToReg(lhi, t.RHSa[0])
-			e.toStore(id)
+			e.storeAll()
+			//e.toStore(id)
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
