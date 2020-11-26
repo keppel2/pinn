@@ -1,2 +1,14 @@
-x = 5;
-print(x);
+g = 2;
+
+func fr(x int) {
+  x = g;
+  if g == 0 {
+    return;
+  }
+  g = g - 1;
+  fr(g);
+  print(x);print(g);println();
+}
+
+fr(g);
+

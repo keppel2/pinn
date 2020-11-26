@@ -771,7 +771,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	// e.pushP()
-	e.push(TRV)
 	for k, v := range ce.Params {
 		//		e.push(1 + reg(k))
 		e.assignToReg(reg(k)+1, v)
@@ -788,7 +787,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		_ = k
 		//		e.pop(reg(k) + 1)
 	}
-	e.pop(TRV)
 	//  e.popP()
 
 }
