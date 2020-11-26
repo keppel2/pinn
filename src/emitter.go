@@ -36,7 +36,7 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
 
 const (
 	LR reg = 30 - iota
@@ -45,6 +45,9 @@ const (
 	TR2
 	TR3
 	TR4
+	TR5
+	TR6
+	TR7
 	TRV
 	TMAIN
 	TBP
@@ -694,6 +697,35 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 func (e *emitter) emitCall(ce *CallExpr) {
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
+
+	fn := FP + ID
+	if ID == "assert" {
+		e.assignToReg(TR2, ce.Params[0])
+		e.assignToReg(TR3, ce.Params[1])
+		e.emitR("cmp", TR2, TR3)
+		lab := e.clab()
+		e.br(lab, "eq")
+		ln := e.st.Gpos().Line
+		e.mov(R0, ln)
+		e.mov(LR, TMAIN)
+		e.emit("ret")
+		e.makeLabel(lab)
+		return
+	} else if ID == "bad" {
+		e.mov(R0, 1)
+		e.mov(LR, TMAIN)
+		e.emit("ret")
+		return
+	} else if ID == "exit" {
+		e.assignToReg(R0, ce.Params[0])
+		e.mov(LR, TMAIN)
+		e.emit("ret")
+		return
+	} else if ID == "print" || ID == "println" {
+		fn = ID
+		didPrint = true
+	}
+
 	// e.pushP()
 	e.push(TRV)
 	for k, v := range ce.Params {
@@ -704,7 +736,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.push(TSS)
 	e.pushAll()
 
-	e.emit("bl", FP+ID)
+	e.emit("bl", fn)
 	e.popAll()
 	e.pop(TSS)
 	e.pop(LR)
@@ -723,50 +755,7 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
-		switch t2 := t.Expr.(type) {
-
-		case *CallExpr:
-
-			ce := t2
-			ID := ce.ID.(*VarExpr).Wl.Value
-			if ID == "assert" {
-				e.assignToReg(TR2, ce.Params[0])
-				e.assignToReg(TR3, ce.Params[1])
-				e.emitR("cmp", TR2, TR3)
-				lab := e.clab()
-				e.br(lab, "eq")
-				ln := e.st.Gpos().Line
-				e.mov(R0, ln)
-				e.mov(LR, TMAIN)
-				e.emit("ret")
-				e.makeLabel(lab)
-			} else if ID == "bad" {
-				e.mov(R0, 1)
-				e.mov(LR, TMAIN)
-				e.emit("ret")
-			} else if ID == "exit" {
-				e.assignToReg(R0, ce.Params[0])
-				e.mov(LR, TMAIN)
-				e.emit("ret")
-			} else if ID == "print" {
-				didPrint = true
-
-				e.push(R1)
-				e.assignToReg(R1, ce.Params[0])
-				e.push(LR)
-				e.emit("bl", "print")
-				e.pop(LR)
-				e.pop(R1)
-			} else if ID == "println" {
-				didPrint = true
-				e.push(LR)
-				e.emit("bl", "println")
-				e.pop(LR)
-			} else {
-				e.emitCall(ce)
-			}
-		}
-
+		e.assignToReg(TR7, t.Expr)
 	case *BlockStmt:
 		for _, s := range t.SList {
 			e.emitStmt(s)
