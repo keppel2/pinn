@@ -4,8 +4,11 @@ func f(aa, bb int) int {
 
 assert(f(1, 2), 3);
 
-if 10 + 11 > 12 {
-} else {
+if 10 + 11 < 12 {
+  bad();
+}
+
+if 5 < 1 + 0 {
   bad();
 }
 x = 10;
