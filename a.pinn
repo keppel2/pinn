@@ -1,11 +1,10 @@
-print(fact(2));
-
-func fact(fa int) int {
-  if fa == 1 {
+func fact(a int) int {
+  if a == 1 {
     return 1;
   }
-  x = fa;
-  y = fact(fa - 1);
-  return x * y;
+  x = a;
+  y = fact(a - 1);
+  return x * y;//fact(a - 1);
 }
 
+return fact(4);

@@ -319,7 +319,6 @@ func (e *emitter) init() {
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
-	//	e.moff = -1
 }
 
 /*
@@ -698,6 +697,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			e.rMap[vd2.Value] = ml
 		}
 	}
+	e.soff = 0
 	//  e.emitR("add", TSS, TSS, moffOff(e.soff))
 	lab := e.clab()
 	e.ebranch = lab
@@ -749,7 +749,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.makeLabel(lab)
 		return
 	} else if ID == "bad" {
-		e.mov(R0, 1)
+		e.mov(R0, 7)
 		e.mov(LR, TMAIN)
 		e.emit("ret")
 		return
@@ -758,10 +758,13 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.mov(LR, TMAIN)
 		e.emit("ret")
 		return
-	} else if ID == "print" || ID == "println" {
+	} else if ID == "print" {
 		e.assignToReg(R1, ce.Params[0])
 		fn = ID
 		didPrint = true
+	} else if ID == "println" {
+		didPrint = true
+		fn = ID
 	}
 
 	// e.pushP()
@@ -841,7 +844,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		if t.E != nil {
 			e.assignToReg(TRV, t.E)
 		} else {
-			e.mov(TRV, 0)
+			e.mov(TRV, 5)
 		}
 		e.mov(R0, TRV)
 		e.br(e.ebranch)
