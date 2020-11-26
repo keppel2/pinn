@@ -36,7 +36,7 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
 
 const (
 	LR reg = 30 - iota
@@ -48,6 +48,7 @@ const (
 	TR5
 	TR6
 	TR7
+	TR8
 	TRV
 	TMAIN
 	TBP
@@ -185,8 +186,12 @@ func (e *emitter) push(r reg) {
 func (e *emitter) pop(r reg) {
 	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
 }
+
+func (e *emitter) popx() {
+	e.emitR("add", TSP, TSP, 8)
+}
 func (e *emitter) pushAll() {
-	for i := R1; i <= LR; i++ {
+	for i := TRV; i <= TR1; i++ {
 		if i != TSP {
 			e.push(i)
 		}
@@ -194,7 +199,7 @@ func (e *emitter) pushAll() {
 
 }
 func (e *emitter) popAll() {
-	for i := LR; i >= R1; i-- {
+	for i := TR1; i >= TRV; i-- {
 		if i != TSP {
 			e.pop(i)
 		}
@@ -673,44 +678,32 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.label(FP + f.Wl.Value)
 	e.soff = 0
 	e.mov(TSS, TSP)
+	count := 0
+	for _, vd := range f.PList {
+		for _ = range vd.List {
+			count++
+		}
+	}
 
-	/*
-			for r := R1; r <= R8; r++ {
-		    if e.rAlloc[r] != "" {
-
-				  s := e.rAlloc[r]
-		      b := e.rAllocb[r]
-				  e.rAlloc[r] = ""
-
-		    e.rAllocb[r] = false
-				e.rMap[s] = nil
-			}
-	*/
-	reg := R1
 	for _, vd := range f.PList {
 		for _, vd2 := range vd.List {
-			/*
-				e.forceReg(vd2.Value, reg)
-				e.toStore(vd2.Value)
-			*/
+
 			if _, ok := e.rMap[vd2.Value]; ok {
 				e.err(vd2.Value)
 			}
-			e.storeId(vd2.Value, reg)
-			/*
-				ml.init(MLstack)
-				e.push(reg)
-				ml.i = tssd
-				e.rMap[vd2.Value] = ml
-			*/
-			reg++
+			ml := new(mloc)
+			ml.init(e.fc)
+			e.soff++
+			ml.i = -(count - e.soff)
+			e.rMap[vd2.Value] = ml
 		}
 	}
+	//  e.emitR("add", TSS, TSS, moffOff(e.soff))
 	lab := e.clab()
-	//e.fexitm[f.Wl.Value] = lab
 	e.ebranch = lab
 	e.emitStmt(f.B)
 	e.makeLabel(lab)
+
 	e.mov(TSP, TSS)
 	e.emit("ret")
 	e.clearL()
@@ -766,28 +759,32 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.emit("ret")
 		return
 	} else if ID == "print" || ID == "println" {
+		e.assignToReg(R1, ce.Params[0])
 		fn = ID
 		didPrint = true
 	}
 
 	// e.pushP()
-	for k, v := range ce.Params {
-		//		e.push(1 + reg(k))
-		e.assignToReg(reg(k)+1, v)
-	}
-	e.push(LR)
-	e.push(TSS)
 	e.pushAll()
+	e.push(TSS)
+	e.push(LR)
+
+	for _, v := range ce.Params {
+		//		e.push(1 + reg(k))
+
+		e.assignToReg(TR1, v)
+		e.push(TR1)
+	}
 
 	e.emit("bl", fn)
-	e.popAll()
-	e.pop(TSS)
-	e.pop(LR)
-	for k, _ := range ce.Params {
-		_ = k
-		//		e.pop(reg(k) + 1)
+	for _, v := range ce.Params {
+		_ = v
+		e.popx()
 	}
-	//  e.popP()
+	e.pop(LR)
+	e.pop(TSS)
+
+	e.popAll()
 
 }
 
