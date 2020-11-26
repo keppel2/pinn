@@ -4,18 +4,84 @@ TRUE = 1;
 TIE = 3;
 PLAYER_A = 1;
 PLAYER_B = 2;
-SIZE = 2;
+SIZE = 3;
 SQSIZE = SIZE * SIZE;
 count = 0;
 
-var glob [4]int;
+var glob [9]int;
+
+
+
+func minimax (player int, depth int) int
+{
+count++;
+//if count % 10 == 0 {
+/*
+  printBoard();
+  print(player);
+  print(depth);
+  println();
+  println();
+ */ 
+//}
+ var flob [9]int; 
+ i = 0;
+ for i = 0; i < SQSIZE; i++ {
+   flob[i] = glob[i];
+ }
+ result = 0;
+  best = opposite(player);
+
+  result = winner();
+
+  if result != TIE {
+    return result;
+  }
+  if full() == TRUE {
+        return TIE;
+  }
+  x = 0;
+  y = 0;
+  for x = 0; x < SIZE; x++ {
+    for y = 0; y < SIZE; y++ {
+      if flob[xy(x, y)]  == EMPTY {
+        flob[xy(x, y)] = player;
+        for i = 0; i < SQSIZE; i++ {
+          glob[i] = flob[i];
+        }
+ 
+        result = minimax(opposite(player), depth + 1);
+        if result == player {
+          return player;
+        }
+        if result == TIE {
+          best = TIE;
+        }
+        flob[xy(x, y)] = EMPTY;
+        for i = 0; i < SQSIZE; i++ {
+          glob[i] = flob[i];
+        }
+ 
+      }
+    }
+  }
+  return best;
+}
+
 i5 = 0;
   for i5 = 0; i5 < SQSIZE; i5++ {
     glob[i5] = EMPTY;
   }
-  glob[0] = PLAYER_B;
+
+/*
+  glob[xy(0, 0)] = PLAYER_A;
+  glob[xy(0, 1)] = PLAYER_A;
+  glob[xy(0, 2)] = PLAYER_B;
+  glob[xy(1, 0)] = PLAYER_A;
+  */
 func printBoard () {
 println();
+
   i = 0;
   j = 0;
   for i = 0; i < SIZE; i++ {
@@ -64,6 +130,7 @@ func line (x int, y int, dx int, dy int) int {
 
 func winner () int {
   i = 0;
+  rt = 0;
   for i = 0; i < SIZE; i++ {
 
         rt = line(i, 0, 0, 1);
@@ -90,51 +157,9 @@ func opposite (opx int) int {
 
 
       
-func minimax (player int) int
-{
-count++;
-printBoard();
- var flob [4]int; 
- i = 0;
- for i = 0; i < SQSIZE; i++ {
-   flob[i] = glob[i];
- }
-  best = opposite(player);
-
-  result = winner();
-
-  if result != TIE {
-    return result;
-  }
-  if full() == TRUE {
-        return TIE;
-  }
-  x = 0;
-  y = 0;
-  for x = 0; x < SIZE; x++ {
-    for y = 0; y < SIZE; y++ {
-    if flob[xy(x, y)]  == EMPTY {
-        flob[xy(x, y)] = player;
- for i = 0; i < SQSIZE; i++ {
-   glob[i] = flob[i];
- }
- 
-        result = minimax(opposite(player));
-      if result == player {
-        return player;
-      }
-      if result == TIE {
-        best = TIE;
-      }
-      flob[xy(x, y)] = EMPTY;
-    }
-  }
-  }
-  return best;
-}
 func main() {
     
-    result = minimax (PLAYER_A);
+    result = minimax (PLAYER_A, 0);
     print(result);
 }
 printBoard();
