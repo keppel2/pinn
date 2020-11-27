@@ -186,7 +186,7 @@ func (e *emitter) newVar(s string, k Kind) {
 }
 
 func (e *emitter) push(r reg) {
-	e.emit("str", makeReg(r), "["+makeReg(TSP), makeConst(-8)+"]!")
+	e.str(ATpre, r, TSP, -8)
 }
 
 func (e *emitter) pop(r reg) {
@@ -223,17 +223,17 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	e.setIndex(index, m)
 	if m.fc {
-		e.str(dest, TSS, index)
+		e.str(ATeq, dest, TSS, index)
 	} else {
-		e.str(dest, TBP, index)
+		e.str(ATeq, dest, TBP, index)
 	}
 }
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	e.setIndex(index, m)
 	if m.fc {
-		e.ldr(dest, TSS, index)
+		e.ldr(ATeq, dest, TSS, index)
 	} else {
-		e.ldr(dest, TBP, index)
+		e.ldr(ATeq, dest, TBP, index)
 	}
 }
 
@@ -251,15 +251,15 @@ func (e *emitter) toStore(id string) {
 			e.pushReg(ml)
 		} else {
 			ml.i = e.moff
-			e.str(ml.r, TBP, moffOff(ml.i))
+			e.str(ATeq, ml.r, TBP, moffOff(ml.i))
 			e.moff++
 		}
 	} else {
 
 		if ml.fc {
-			e.str(ml.r, TSS, -moffOff(ml.i))
+			e.str(ATeq, ml.r, TSS, -moffOff(ml.i))
 		} else {
-			e.str(ml.r, TBP, moffOff(ml.i))
+			e.str(ATeq, ml.r, TBP, moffOff(ml.i))
 		}
 	}
 	e.rAlloc[ml.r] = ""
@@ -409,7 +409,7 @@ func (e *emitter) emitPrint() {
 
 	e.sub(TSP, 17)
 	e.mov(TR3, int(','))
-	e.str(TR3, TSP)
+	e.str(ATeq, TR3, TSP)
 	e.mov(TR2, 0)
 	e.mov(TR3, 0)
 
@@ -429,13 +429,13 @@ func (e *emitter) emitPrint() {
 	e.add(TR2, TR4)
 	e.emitR("cmp", TR3, 7)
 	e.br(lab3, "ne")
-	e.str(TR2, TSP, 9)
+	e.str(ATeq, TR2, TSP, 9)
 	e.mov(TR2, 0)
 	e.makeLabel(lab3)
 	e.add(TR3, 1)
 	e.emitR("cmp", TR3, 16)
 	e.br(lab, "ne")
-	e.str(TR2, TSP, 1)
+	e.str(ATeq, TR2, TSP, 1)
 	e.mov(TR1, 1)
 	e.mov(TR2, TSP)
 	e.mov(TR3, 17)
@@ -457,9 +457,9 @@ func (e *emitter) loadId(v string, r reg) {
 		e.err(v)
 	}
 	if ml.fc {
-		e.ldr(r, TSS, -moffOff(ml.i))
+		e.ldr(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
-		e.ldr(r, TBP, moffOff(ml.i))
+		e.ldr(ATeq, r, TBP, moffOff(ml.i))
 	}
 }
 
@@ -467,9 +467,9 @@ func (e *emitter) storeId(v string, r reg) {
 	ml, ok := e.rMap[v]
 	if ok {
 		if ml.fc {
-			e.str(r, TSS, -moffOff(ml.i))
+			e.str(ATeq, r, TSS, -moffOff(ml.i))
 		} else {
-			e.str(r, TBP, moffOff(ml.i))
+			e.str(ATeq, r, TBP, moffOff(ml.i))
 		}
 	} else {
 		ml := new(mloc)
@@ -480,7 +480,7 @@ func (e *emitter) storeId(v string, r reg) {
 			ml.i = e.soff
 		} else {
 			ml.i = e.moff
-			e.str(r, TBP, moffOff(ml.i))
+			e.str(ATeq, r, TBP, moffOff(ml.i))
 			e.moff++
 		}
 		e.rMap[v] = ml
@@ -526,9 +526,9 @@ func (e *emitter) fillReg(s string, create bool) reg {
 		e.rMap[s] = ml
 	} else {
 		if ml.fc {
-			e.ldr(k, TSS, -moffOff(ml.i))
+			e.ldr(ATeq, k, TSS, -moffOff(ml.i))
 		} else {
-			e.ldr(k, TBP, moffOff(ml.i))
+			e.ldr(ATeq, k, TBP, moffOff(ml.i))
 		}
 		ml.r = k
 	}
@@ -558,38 +558,70 @@ func (e *emitter) br(b branchi, s ...string) {
 	e.emit(br, makeBranch(b.(branch)))
 }
 
-func (e *emitter) str(d regi, base regi, offset ...regOrConst) {
+type atype int
+
+const (
+	ATinvalid atype = iota
+	ATeq
+	ATpre
+	ATpost
+)
+
+func (e *emitter) str(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
-		e.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+		switch t {
+		case ATeq:
+			e.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+		case ATpre:
+			e.emit("str", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0])))
+		case ATpost:
+			e.emit("str", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0])))
+		}
 	} else {
 		e.emit("str", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
 	}
 }
 
-func (e *emitter) ldr(d regi, base regi, offset ...regOrConst) {
+func (e *emitter) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
-		e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+		switch t {
+		case ATeq:
+			e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+		case ATpre:
+			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0])))
+		case ATpost:
+			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0])))
+		}
 	} else {
 		e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
 	}
 }
+
+func (e *emitter) nativeOp(op string, a regi, b regOrConst) {
+	if L {
+		e.emitR(op, b, a)
+	} else {
+		e.emitR(op, a, a, b)
+	}
+}
+
 func (e *emitter) sub(a regi, b regOrConst) {
-	e.emitR("sub", a, a, b)
+	e.nativeOp("sub", a, b)
 }
 func (e *emitter) add(a regi, b regOrConst) {
-	e.emitR("add", a, a, b)
+	e.nativeOp("add", a, b)
 }
 func (e *emitter) mul(a regi, b regOrConst) {
-	e.emitR("mul", a, a, b)
+	e.nativeOp("mul", a, b)
 }
 func (e *emitter) and(a regi, b regOrConst) {
-	e.emitR("and", a, a, b)
+	e.nativeOp("and", a, b)
 }
 func (e *emitter) lsl(a regi, b regOrConst) {
-	e.emitR("lsl", a, a, b)
+	e.nativeOp("lsl", a, b)
 }
 func (e *emitter) lsr(a regi, b regOrConst) {
-	e.emitR("lsr", a, a, b)
+	e.nativeOp("lsr", a, b)
 }
 func (e *emitter) mov(a regi, b regOrConst) {
 	if L {
