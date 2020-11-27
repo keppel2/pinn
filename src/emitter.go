@@ -194,7 +194,7 @@ func (e *emitter) pop(r reg) {
 }
 
 func (e *emitter) popx() {
-	e.emitR("add", TSP, TSP, 8)
+	e.add(TSP, 8)
 }
 func (e *emitter) pushAll() {
 	for i := TR2; i <= TR7; i++ {
@@ -214,9 +214,9 @@ func (e *emitter) popAll() {
 func (e *emitter) setIndex(index reg, m *mloc) {
 	e.emitR("lsl", index, index, 3)
 	if m.fc {
-		e.emitR("sub", index, index, moffOff(m.i))
+		e.sub(index, moffOff(m.i))
 	} else {
-		e.emitR("add", index, index, moffOff(m.i))
+		e.add(index, moffOff(m.i))
 	}
 }
 
@@ -407,7 +407,7 @@ func (e *emitter) emitPrint() {
 
 	e.label("print")
 
-	e.emitR("sub", TSP, TSP, 17)
+	e.sub(TSP, 17)
 	e.mov(TR3, int(','))
 	e.str(TR3, TSP)
 	e.mov(TR2, 0)
@@ -565,9 +565,14 @@ func (e *emitter) ldr(d regi, base regi, offset ...regOrConst) {
 		e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
 	}
 }
-
+func (e *emitter) sub(a regi, b regOrConst) {
+	e.emitR("sub", a, a, b)
+}
 func (e *emitter) add(a regi, b regOrConst) {
 	e.emitR("add", a, a, b)
+}
+func (e *emitter) mul(a regi, b regOrConst) {
+	e.emitR("mul", a, a, b)
 }
 func (e *emitter) mov(a regi, b regOrConst) {
 	if L {
@@ -606,11 +611,14 @@ func (e *emitter) doOp(dest, b reg, op string) {
 	mn := ""
 	switch op {
 	case "+":
-		mn = "add"
+		e.add(dest, b)
+		return
 	case "-":
-		mn = "sub"
+		e.sub(dest, b)
+		return
 	case "*":
-		mn = "mul"
+		e.mul(dest, b)
+		return
 	case "/":
 		mn = "udiv"
 	}
@@ -693,7 +701,6 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 		}
 	}
 	e.soff = 0
-	//  e.emitR("add", TSS, TSS, moffOff(e.soff))
 	lab := e.clab()
 	e.ebranch = lab
 	e.emitStmt(f.B)
@@ -775,7 +782,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	e.emit("bl", fn)
-	e.emitR("add", TSP, TSP, moffOff(len(ce.Params)))
+	e.add(TSP, moffOff(len(ce.Params)))
 	e.pop(LR)
 	e.pop(TSS)
 
@@ -960,10 +967,10 @@ func (e *emitter) emitF(f *File) {
 	e.src += ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
-	e.emitR("sub", SP, SP, 0x100)
+	e.sub(SP, 0x100)
 	e.mov(TSP, SP)
 	e.mov(TSS, SP)
-	e.emitR("sub", SP, SP, 0x10000)
+	e.sub(SP, 0x10000)
 	e.mov(TBP, SP)
 	lab := e.clab()
 	e.ebranch = lab
