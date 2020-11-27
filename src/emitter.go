@@ -402,6 +402,17 @@ func (e *emitter) err(msg string) {
 
 func (e *emitter) emitPrint() {
 	e.label("println")
+  if L {
+    e.mov(TR8, int('\n'))
+    e.push(TR8)
+    e.mov(TR1, 1) //SYSCALL
+    e.mov(TR6, 1) //STDOUT
+    e.mov(TR4, 1) //1 byte
+    e.mov(TR5, TSP)
+    e.emit("syscall")
+    e.pop(TR8)
+    e.emit("ret")
+  } else {
 	e.mov(TR1, int('\n'))
 	e.push(TR1)
 	e.mov(TR1, 1)
@@ -411,6 +422,7 @@ func (e *emitter) emitPrint() {
 	e.emitR("svc", 0)
 	e.pop(TR1)
 	e.emit("ret")
+  }
 
 	e.label("print")
 
@@ -426,7 +438,7 @@ func (e *emitter) emitPrint() {
 	e.makeLabel(lab)
 	e.mov(TR4, TR1)
 	e.and(TR4, 0xf)
-	e.emitR("cmp", TR4, 10)
+	e.cmp(TR4, 10)
 	e.br(lab2, "lt")
 	e.add(TR4, int('a'-':'))
 	e.makeLabel(lab2)
@@ -434,20 +446,30 @@ func (e *emitter) emitPrint() {
 	e.add(TR4, int('0'))
 	e.lsl(TR2, 8)
 	e.add(TR2, TR4)
-	e.emitR("cmp", TR3, 7)
+	e.cmp(TR3, 7)
 	e.br(lab3, "ne")
 	e.str(ATeq, TR2, TSP, 9)
 	e.mov(TR2, 0)
 	e.makeLabel(lab3)
 	e.add(TR3, 1)
-	e.emitR("cmp", TR3, 16)
+	e.cmp(TR3, 16)
 	e.br(lab, "ne")
 	e.str(ATeq, TR2, TSP, 1)
+  if L {
+    e.mov(TR1, 1)
+    e.mov(TR6, 1)
+    e.mov(TR4, 17)
+    e.mov(TR5, TSP)
+    e.emit("syscall")
+    
+  } else {
+
 	e.mov(TR1, 1)
 	e.mov(TR2, TSP)
 	e.mov(TR3, 17)
 	e.mov(TR9, 64)
 	e.emitR("svc", 0)
+  }
 	e.add(TSP, 17)
 	e.emit("ret")
 }
@@ -553,7 +575,7 @@ func (e *emitter) br(b branchi, s ...string) {
 	if L {
 		br := "jmp"
 		if len(s) == 1 {
-			br = "j" + s[0]
+			br = "j" + localCond(s[0])
 		}
 		e.emit(br, makeBranch(b.(branch)))
 		return
@@ -585,12 +607,26 @@ func (e *emitter) str(t atype, d regi, base regi, offset ...regOrConst) {
       }
 
 		case ATpre:
+    if L {
+      e.add(base, offset[0])
+      e.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
+    } else {
 			e.emit("str", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
+      }
 		case ATpost:
+    if L {
+      e.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
+      e.add(base, offset[0])
+    } else {
 			e.emit("str", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
+      }
 		}
 	} else {
+    if L {
+      e.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
+    } else {
 		e.emit("str", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
+    }
 	}
 }
 
@@ -604,12 +640,26 @@ func (e *emitter) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 			e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
       }
 		case ATpre:
+    if L {
+      e.add(base, offset[0])
+      e.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
+    } else {
 			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
+    }
 		case ATpost:
+    if L {
+      e.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
+      e.add(base, offset[0])
+    } else {
 			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
 		}
+    }
 	} else {
+    if L {
+      e.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
+    } else {
 		e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
+    }
 	}
 }
 
@@ -619,6 +669,14 @@ func (e *emitter) nativeOp(op string, a regi, b regOrConst) {
 	} else {
 		e.emitR(op, a, a, b)
 	}
+}
+
+func (e *emitter) cmp(a regi, b regOrConst) {
+  if L {
+    e.emitR("cmpq", b, a)
+  } else {
+    e.emitR("cmp", a, b)
+  }
 }
 
 func (e *emitter) sub(a regi, b regOrConst) {
@@ -634,10 +692,18 @@ func (e *emitter) and(a regi, b regOrConst) {
 	e.nativeOp("and", a, b)
 }
 func (e *emitter) lsl(a regi, b regOrConst) {
+if L {
+  e.nativeOp("sal", a, b)
+  } else {
 	e.nativeOp("lsl", a, b)
+  }
 }
 func (e *emitter) lsr(a regi, b regOrConst) {
+  if L {
+  e.nativeOp("shr", a, b)
+  } else {
 	e.nativeOp("lsr", a, b)
+  }
 }
 func (e *emitter) mov(a regi, b regOrConst) {
 	if L {
@@ -703,6 +769,22 @@ func (e *emitter) doOp(dest, b reg, op string) {
 
 }
 
+func localCond(a string) string {
+rt := a
+  if L {
+    switch a {
+    case "eq":
+    rt = "e"
+    case "gt":
+    rt = "g"
+    case "lt":
+    rt = "l"
+
+    }
+  }
+  return rt
+}
+
 func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	e.lst = e.st
 	e.st = be
@@ -710,13 +792,13 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR4, be.LHS)
 		e.assignToReg(TR5, be.RHS)
-		e.emitR("cmp", TR4, TR5)
+		e.cmp(TR4, TR5)
 		bi := ""
 		switch be.op {
 		case "==":
 			bi = "ne"
 		case "!=":
-			bi = "eq"
+        bi = "eq"
 		case "<":
 			bi = "ge"
 		case "<=":
@@ -806,23 +888,35 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	if ID == "assert" {
 		e.assignToReg(TR2, ce.Params[0])
 		e.assignToReg(TR3, ce.Params[1])
-		e.emitR("cmp", TR2, TR3)
+		e.cmp(TR2, TR3)
 		lab := e.clab()
 		e.br(lab, "eq")
 		ln := e.st.Gpos().Line
 		e.mov(TR1, ln)
+    if L {
+      e.emitR("push", TMAIN)
+    } else {
 		e.mov(LR, TMAIN)
+    }
 		e.emit("ret")
 		e.makeLabel(lab)
 		return
 	} else if ID == "bad" {
 		e.mov(TR1, 7)
+    if L {
+      e.emitR("push", TMAIN)
+    } else {
 		e.mov(LR, TMAIN)
+    }
 		e.emit("ret")
 		return
 	} else if ID == "exit" {
 		e.assignToReg(TR1, ce.Params[0])
+    if L {
+      e.emitR("push", TMAIN)
+      } else {
 		e.mov(LR, TMAIN)
+    }
 		e.emit("ret")
 		return
 	} else if ID == "print" {
@@ -837,7 +931,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	// e.pushP()
 	e.pushAll()
 	e.push(TSS)
+  if !L {
 	e.push(LR)
+  }
 
 	for _, v := range ce.Params {
 		//		e.push(1 + reg(k))
@@ -852,7 +948,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.emit("bl", fn)
   }
 	e.add(TSP, moffOff(len(ce.Params)))
+  if !L {
 	e.pop(LR)
+  }
 	e.pop(TSS)
 
 	e.popAll()

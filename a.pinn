@@ -1,2 +1,3 @@
-x = 3;
-return x;
+print(4);
+println();
+print(3);
