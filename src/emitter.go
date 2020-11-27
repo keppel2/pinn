@@ -602,7 +602,7 @@ func (e *emitter) regLoad(ex Expr) reg {
 
 }
 
-func (e *emitter) doOp(dest, a, b reg, op string) {
+func (e *emitter) doOp(dest, b reg, op string) {
 	mn := ""
 	switch op {
 	case "+":
@@ -615,7 +615,7 @@ func (e *emitter) doOp(dest, a, b reg, op string) {
 		mn = "udiv"
 	}
 	if mn != "" {
-		e.emitR(mn, dest, a, b)
+		e.emitR(mn, dest, dest, b)
 		return
 	}
 	switch op {
@@ -672,7 +672,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	} else {
 		e.assignToReg(TR3, be.RHS)
 	}
-	e.doOp(dest, dest, TR3, be.op)
+	e.doOp(dest, TR3, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -855,23 +855,23 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.loadId(id, TR2)
 				e.assignToReg(TR3, t.RHSa[0])
 				//				e.mov(TR2, lhi)
-				e.doOp(TR1, TR2, TR3, t.Op[0:1])
-				e.storeId(id, TR1)
+				e.doOp(TR2, TR3, t.Op[0:1])
+				e.storeId(id, TR2)
 				//				e.toStore(id)
 
 				return
 			}
 			if t.Op == "++" {
-				e.loadId(id, TR2)
+				e.loadId(id, TR3)
 				//			lhi := e.fillReg(id, false)
 				e.mov(TR1, 1)
-				e.doOp(TR3, TR2, TR1, "+")
+				e.doOp(TR3, TR1, "+")
 				e.storeId(id, TR3)
 				return
 			} else if t.Op == "--" {
-				e.loadId(id, TR2)
+				e.loadId(id, TR3)
 				e.mov(TR1, 1)
-				e.doOp(TR3, TR2, TR1, "-")
+				e.doOp(TR3, TR1, "-")
 				e.storeId(id, TR3)
 				return
 			}
@@ -885,17 +885,16 @@ func (e *emitter) emitStmt(s Stmt) {
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				e.assignToReg(TR4, lh2)
-				e.mov(TR2, TR4)
 				e.assignToReg(TR3, t.RHSa[0])
-				e.doOp(TR4, TR2, TR3, t.Op[0:1])
+				e.doOp(TR4, TR3, t.Op[0:1])
 			} else if t.Op == "++" || t.Op == "--" {
 				e.assignToReg(TR4, lh2)
 				if t.Op == "++" {
 					e.mov(TR1, 1)
-					e.doOp(TR4, TR4, TR1, "+")
+					e.doOp(TR4, TR1, "+")
 				} else {
 					e.mov(TR1, 1)
-					e.doOp(TR4, TR4, TR1, "-")
+					e.doOp(TR4, TR1, "-")
 				}
 			} else {
 				e.assignToReg(TR4, t.RHSa[0])
