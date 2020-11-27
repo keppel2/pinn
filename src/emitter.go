@@ -5,7 +5,7 @@ import "fmt"
 import "reflect"
 import "strconv"
 
-var L = true
+var L = false
 
 var RP = "x"
 
@@ -998,15 +998,15 @@ func (e *emitter) emitStmt(s Stmt) {
 }
 
 func (e *emitter) emitDefines() {
-if L {
+	if L {
 		for r := TR1; r <= TSS; r++ {
 			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n"
 		}
-    } else {
+	} else {
 		for r := TR1; r <= TSS; r++ {
 			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, r) + "\n"
 		}
-    }
+	}
 }
 
 var didPrint = false
@@ -1016,11 +1016,11 @@ func (e *emitter) emitF(f *File) {
 	e.src += ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
-	e.sub(SP, 0x100)
 	e.mov(TSP, SP)
-	e.mov(TSS, SP)
-	e.sub(SP, 0x10000)
-	e.mov(TBP, SP)
+	e.sub(TSP, 0x100)
+	e.mov(TSS, TSP)
+	e.mov(TBP, TSP)
+	e.sub(TBP, 0x10000)
 	lab := e.clab()
 	e.ebranch = lab
 	for _, s := range f.SList {
