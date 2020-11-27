@@ -29,8 +29,10 @@ ar[2]--;
 assert(ar[2], 41);
 ar[2] += 5;
 assert(ar[2], 46);
+/*
 ar[2] %= 10;
 assert(ar[2], 6);
+*/
 a = 12;
 a -= 8;
 assert(a, 4);
@@ -65,9 +67,11 @@ xx = fg();
 assert(glob, 23);
 assert(xx, 13);
 
+/*
 modx = 3;
 modx %= 2;
 assert(modx, 1);
+*/
 
 var arG [2]int;
 arG[0] = 2;
