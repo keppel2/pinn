@@ -5,7 +5,9 @@ import "fmt"
 import "reflect"
 import "strconv"
 
-const RP = "x"
+var L = true
+
+var RP = "x"
 
 const OS = ", "
 
@@ -37,6 +39,9 @@ func (e *emitter) _f() {
 func (r reg) aReg() {}
 
 var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+
+var irs []string = []string{
+"ax", "bx", "cx", "dx", "si", "di", "bp", "sp", "8", "9", "10", "11", "12", "13", "14", "15"}
 
 const (
 	LR reg = 30 - iota
@@ -314,6 +319,9 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 }
 
 func (e *emitter) init() {
+  if L {
+    RP = "%r"
+  }
 	rand.Seed(42)
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
@@ -365,7 +373,11 @@ func (e *emitter) atoi(s string) int {
 }
 
 func makeConst(i int) string {
+if L {
+	return fmt.Sprintf("$%v", i)
+} else {
 	return fmt.Sprintf("#%v", i)
+  }
 }
 
 func makeBranch(i branchi) string {
@@ -572,7 +584,10 @@ func (e *emitter) ldr(d regi, base regi, offset ...regOrConst) {
 }
 
 func (e *emitter) mov(a regi, b regOrConst) {
+if L {
+  e.emitR("mov", b, a) } else {
 	e.emitR("mov", a, b)
+  }
 	/*
 		a2, ok := a.(reg)
 		if !ok {
@@ -835,7 +850,10 @@ func (e *emitter) emitStmt(s Stmt) {
 		} else {
 			e.mov(TRV, 5)
 		}
-		e.mov(R0, TRV)
+		if L {
+    e.emitR("mov", TRV, TR1)
+    } else {e.mov(R0, TRV)
+    }
 		e.br(e.ebranch)
 	case *AssignStmt:
 		lh := t.LHSa[0]
@@ -935,13 +953,21 @@ func (e *emitter) emitStmt(s Stmt) {
 
 }
 
+func (e *emitter) emitDefines() {
+  mrs := rs
+  if L {
+    mrs = irs
+  }
+	for r := TR1; r >= TSS; r-- {
+		e.src += "#define " + rs[TR1 - r] + " " + fmt.Sprintf("%v%v", RP, mrs[TR1 - r]) + "\n"
+	}
+}
+
+
 var didPrint = false
 
 func (e *emitter) emitF(f *File) {
-	for i, r := 0, TR1; r >= TSS; r-- {
-		e.src += "#define " + rs[i] + " " + fmt.Sprintf("%v%v", RP, r) + "\n"
-		i++
-	}
+  e.emitDefines()
 	e.src += ".global main\n"
 	e.label("main")
 	e.mov(TMAIN, LR)
