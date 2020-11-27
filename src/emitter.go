@@ -5,7 +5,7 @@ import "fmt"
 import "reflect"
 import "strconv"
 
-var L = false
+var L = true
 
 var RP = "x"
 
@@ -998,15 +998,15 @@ func (e *emitter) emitStmt(s Stmt) {
 }
 
 func (e *emitter) emitDefines() {
-	if L {
-		for r := TR1; r >= TSS; r-- {
-			e.src += "#define " + rs[TR1-r] + " " + fmt.Sprintf("%v%v", RP, rs[r]) + "\n"
+if L {
+		for r := TR1; r <= TSS; r++ {
+			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n"
 		}
-	} else {
+    } else {
 		for r := TR1; r <= TSS; r++ {
 			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, r) + "\n"
 		}
-	}
+    }
 }
 
 var didPrint = false
