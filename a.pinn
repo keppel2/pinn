@@ -1,2 +1,4 @@
-println();
-println();
+x = 0 + f();
+print(x);
+
+func f() int { return 7; }

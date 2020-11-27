@@ -197,7 +197,7 @@ func (e *emitter) popx() {
 	e.emitR("add", TSP, TSP, 8)
 }
 func (e *emitter) pushAll() {
-	for i := TRV; i <= TR1; i++ {
+	for i := TR2; i <= TR7; i++ {
 		if i != TSP {
 			e.push(i)
 		}
@@ -205,7 +205,7 @@ func (e *emitter) pushAll() {
 
 }
 func (e *emitter) popAll() {
-	for i := TR1; i >= TRV; i-- {
+	for i := TR7; i >= TR2; i-- {
 		if i != TSP {
 			e.pop(i)
 		}
@@ -328,8 +328,8 @@ func (e *emitter) clab() branch {
 }
 
 func makeReg(i regi) string {
-	if i.(reg) <= TR1 && i.(reg) >= TSS {
-		return rs[TR1-i.(reg)]
+	if i.(reg) >= TR1 && i.(reg) <= TSS {
+		return rs[i.(reg)]
 	}
 
 	if i == LR {
@@ -417,21 +417,22 @@ func (e *emitter) emitPrint() {
 	lab2 := e.clab()
 	lab3 := e.clab()
 	e.makeLabel(lab)
-	e.emitR("and", TR4, TR1, 0xf)
+	e.mov(TR4, TR1)
+	e.emitR("and", TR4, TR4, 0xf)
 	e.emitR("cmp", TR4, 10)
 	e.br(lab2, "lt")
-	e.emitR("add", TR4, TR4, int('a'-':'))
+	e.add(TR4, int('a'-':'))
 	e.makeLabel(lab2)
 	e.emitR("lsr", TR1, TR1, 4)
-	e.emitR("add", TR4, TR4, int('0'))
+	e.add(TR4, int('0'))
 	e.emitR("lsl", TR2, TR2, 8)
-	e.emitR("add", TR2, TR2, TR4)
+	e.add(TR2, TR4)
 	e.emitR("cmp", TR3, 7)
 	e.br(lab3, "ne")
 	e.str(TR2, TSP, 9)
 	e.mov(TR2, 0)
 	e.makeLabel(lab3)
-	e.emitR("add", TR3, TR3, 1)
+	e.add(TR3, 1)
 	e.emitR("cmp", TR3, 16)
 	e.br(lab, "ne")
 	e.str(TR2, TSP, 1)
@@ -440,7 +441,7 @@ func (e *emitter) emitPrint() {
 	e.mov(TR3, 17)
 	e.mov(TR9, 64)
 	e.emitR("svc", 0)
-	e.emitR("add", TSP, TSP, 17)
+	e.add(TSP, 17)
 	e.emit("ret")
 }
 
@@ -565,6 +566,9 @@ func (e *emitter) ldr(d regi, base regi, offset ...regOrConst) {
 	}
 }
 
+func (e *emitter) add(a regi, b regOrConst) {
+	e.emitR("add", a, a, b)
+}
 func (e *emitter) mov(a regi, b regOrConst) {
 	if L {
 		e.emitR("mov", b, a)
@@ -616,8 +620,9 @@ func (e *emitter) doOp(dest, a, b reg, op string) {
 	}
 	switch op {
 	case "%":
-		e.emitR("udiv", dest, a, b)
-		e.emitR("msub", dest, dest, b, a)
+		e.mov(TR5, dest)
+		e.emitR("udiv", dest, TR5, b)
+		e.emitR("msub", dest, dest, b, TR5)
 		return
 	default:
 		e.err(op)
@@ -653,12 +658,12 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	}
 	switch t := be.LHS.(type) {
 	case *NumberExpr, *VarExpr:
-		e.assignToReg(TR2, t)
+		e.assignToReg(dest, t)
 	case *BinaryExpr:
-		e.binaryExpr(TR2, t)
+		e.binaryExpr(dest, t)
 	case *CallExpr:
 		e.emitCall(t)
-		e.mov(TR2, TR1)
+		e.mov(dest, TR1)
 	}
 	//	op := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
@@ -667,7 +672,7 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	} else {
 		e.assignToReg(TR3, be.RHS)
 	}
-	e.doOp(dest, TR2, TR3, be.op)
+	e.doOp(dest, dest, TR3, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -872,8 +877,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 			//lhi := e.fillReg(id, true)
 			//e.assignToReg(lhi, t.RHSa[0])
-			e.assignToReg(TR1, t.RHSa[0])
-			e.storeId(id, TR1)
+			e.assignToReg(TR4, t.RHSa[0])
+			e.storeId(id, TR4)
 			//e.storeAll()
 			//e.toStore(id)
 
