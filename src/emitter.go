@@ -713,6 +713,28 @@ func (e *emitter) mul(a regi, b regOrConst) {
 	}
 
 }
+func (e *emitter) rem(a regi, b regOrConst) {
+	if L {
+		e.mov(TR1, a)
+		e.mov(TR4, 0)
+		e.emitR("div", b)
+		e.mov(a, TR4)
+	} else {
+		e.mov(TR5, a)
+		e.emitR("udiv", a, TR5, b)
+		e.emitR("msub", a, a, b, TR5)
+	}
+}
+func (e *emitter) div(a regi, b regOrConst) {
+	if L {
+		e.mov(TR1, a)
+		e.mov(TR4, 0)
+		e.emitR("div", b)
+		e.mov(a, TR1)
+	} else {
+		e.nativeOp("udiv", a, b)
+	}
+}
 func (e *emitter) and(a regi, b regOrConst) {
 	e.nativeOp("and", a, b)
 }
@@ -764,7 +786,6 @@ func (e *emitter) regLoad(ex Expr) reg {
 }
 
 func (e *emitter) doOp(dest, b reg, op string) {
-	mn := ""
 	switch op {
 	case "+":
 		e.add(dest, b)
@@ -776,17 +797,14 @@ func (e *emitter) doOp(dest, b reg, op string) {
 		e.mul(dest, b)
 		return
 	case "/":
-		mn = "udiv"
-	}
-	if mn != "" {
-		e.emitR(mn, dest, dest, b)
+		e.div(dest, b)
+		return
+	case "%":
+		e.rem(dest, b)
 		return
 	}
 	switch op {
 	case "%":
-		e.mov(TR5, dest)
-		e.emitR("udiv", dest, TR5, b)
-		e.emitR("msub", dest, dest, b, TR5)
 		return
 	default:
 		e.err(op)
@@ -815,9 +833,9 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	e.st = be
 	defer func() { e.st = e.lst }()
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-		e.assignToReg(TR4, be.LHS)
-		e.assignToReg(TR5, be.RHS)
-		e.cmp(TR4, TR5)
+		e.assignToReg(TR5, be.LHS)
+		e.assignToReg(TR6, be.RHS)
+		e.cmp(TR5, TR6)
 		bi := ""
 		switch be.op {
 		case "==":
