@@ -212,7 +212,7 @@ func (e *emitter) popAll() {
 	}
 }
 func (e *emitter) setIndex(index reg, m *mloc) {
-	e.emitR("lsl", index, index, 3)
+	e.lsl(index, 3)
 	if m.fc {
 		e.sub(index, moffOff(m.i))
 	} else {
@@ -418,14 +418,14 @@ func (e *emitter) emitPrint() {
 	lab3 := e.clab()
 	e.makeLabel(lab)
 	e.mov(TR4, TR1)
-	e.emitR("and", TR4, TR4, 0xf)
+	e.and(TR4, 0xf)
 	e.emitR("cmp", TR4, 10)
 	e.br(lab2, "lt")
 	e.add(TR4, int('a'-':'))
 	e.makeLabel(lab2)
-	e.emitR("lsr", TR1, TR1, 4)
+	e.lsr(TR1, 4)
 	e.add(TR4, int('0'))
-	e.emitR("lsl", TR2, TR2, 8)
+	e.lsl(TR2, 8)
 	e.add(TR2, TR4)
 	e.emitR("cmp", TR3, 7)
 	e.br(lab3, "ne")
@@ -543,6 +543,14 @@ func makeRC(a regOrConst) string {
 }
 
 func (e *emitter) br(b branchi, s ...string) {
+	if L {
+		br := "jmp"
+		if len(s) == 1 {
+			br = "j" + s[0]
+		}
+		e.emit(br, makeBranch(b.(branch)))
+		return
+	}
 	br := "b"
 	if len(s) == 1 {
 		br += "." + s[0]
@@ -573,6 +581,15 @@ func (e *emitter) add(a regi, b regOrConst) {
 }
 func (e *emitter) mul(a regi, b regOrConst) {
 	e.emitR("mul", a, a, b)
+}
+func (e *emitter) and(a regi, b regOrConst) {
+	e.emitR("and", a, a, b)
+}
+func (e *emitter) lsl(a regi, b regOrConst) {
+	e.emitR("lsl", a, a, b)
+}
+func (e *emitter) lsr(a regi, b regOrConst) {
+	e.emitR("lsr", a, a, b)
 }
 func (e *emitter) mov(a regi, b regOrConst) {
 	if L {
