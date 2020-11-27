@@ -5,7 +5,7 @@ import "fmt"
 import "reflect"
 import "strconv"
 
-var L = false
+var L = true
 
 var RP = "x"
 
@@ -191,7 +191,7 @@ func (e *emitter) push(r reg) {
 }
 
 func (e *emitter) pop(r reg) {
-	e.emit("ldr", makeReg(r), "["+makeReg(TSP)+"]", makeConst(8))
+	e.ldr(ATpost, r, TSP, 8)
 }
 
 func (e *emitter) popx() {
@@ -296,7 +296,7 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 	sa := []string{}
 	for _, s := range ops {
 
-		sa = append(sa, makeRC(s))
+		sa = append(sa, makeRC(s, true))
 	}
 	e.emit(i, sa...)
 }
@@ -358,9 +358,12 @@ func (e *emitter) atoi(s string) int {
 
 }
 
-func makeConst(i int) string {
+func makeConst(i int, pref bool) string {
 	if L {
-		return fmt.Sprintf("$%v", i)
+    if pref {
+		return "$" + fmt.Sprint(i)
+    }
+    return fmt.Sprint(i)
 	} else {
 		return fmt.Sprintf("#%v", i)
 	}
@@ -539,11 +542,11 @@ func (e *emitter) fillReg(s string, create bool) reg {
 	return k
 }
 
-func makeRC(a regOrConst) string {
+func makeRC(a regOrConst, pref bool) string {
 	if a2, ok := a.(reg); ok {
 		return makeReg(a2)
 	}
-	return makeConst(a.(int))
+	return makeConst(a.(int), pref)
 }
 
 func (e *emitter) br(b branchi, s ...string) {
@@ -575,11 +578,16 @@ func (e *emitter) str(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
 		switch t {
 		case ATeq:
-			e.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+    if L {
+      e.emit("mov", makeReg(d), fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)))
+    } else {
+			e.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
+      }
+
 		case ATpre:
-			e.emit("str", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0])))
+			e.emit("str", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
 		case ATpost:
-			e.emit("str", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0])))
+			e.emit("str", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
 		}
 	} else {
 		e.emit("str", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
@@ -590,11 +598,15 @@ func (e *emitter) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
 		switch t {
 		case ATeq:
-			e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0])))
+    if L {
+      e.emit("mov", fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)), makeReg(d))
+    } else {
+			e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
+      }
 		case ATpre:
-			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0])))
+			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
 		case ATpost:
-			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0])))
+			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
 		}
 	} else {
 		e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
@@ -1028,6 +1040,7 @@ func (e *emitter) emitF(f *File) {
     e.emitR("push", TMAIN)
   } else {
 	e.mov(TMAIN, LR)
+  }
 	e.mov(TSP, SP)
 	e.sub(TSP, 0x100)
 	e.mov(TSS, TSP)
