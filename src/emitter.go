@@ -41,7 +41,7 @@ func (r reg) aReg() {}
 var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
 
 var irs []string = []string{
-	"ax", "bx", "cx", "dx", "si", "di", "bp", "sp", "8", "9", "10", "11", "12", "13", "14", "15"}
+	"ax", "bx", "cx", "dx", "si", "di", "bp", "8", "9", "10", "11", "12", "13", "14", "15"}
 
 const (
 	TR1 reg = iota
@@ -175,7 +175,8 @@ func (e *emitter) newVar(s string, k Kind) {
 			e.soff += ml.len
 			ml.i = e.soff
 			for i := 0; i < ml.len; i++ {
-				e.push(XZR)
+        e.mov(TR1, 0)
+				e.push(TR1)
 			}
 		} else {
 			ml.i = e.moff
@@ -336,6 +337,9 @@ func makeReg(i regi) string {
 		return "lr"
 	}
 	if i == SP {
+    if L {
+      return RP + "sp"
+    }
 		return "sp"
 	}
 	if i == XZR {
@@ -830,7 +834,11 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.push(TR1)
 	}
 
+  if L {
+    e.emit("call", fn)
+  } else {
 	e.emit("bl", fn)
+  }
 	e.add(TSP, moffOff(len(ce.Params)))
 	e.pop(LR)
 	e.pop(TSS)
@@ -1015,6 +1023,10 @@ func (e *emitter) emitF(f *File) {
 	e.emitDefines()
 	e.src += ".global main\n"
 	e.label("main")
+  if L {
+    e.emitR("pop", TMAIN)
+    e.emitR("push", TMAIN)
+  } else {
 	e.mov(TMAIN, LR)
 	e.mov(TSP, SP)
 	e.sub(TSP, 0x100)
@@ -1026,7 +1038,7 @@ func (e *emitter) emitF(f *File) {
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-	e.mov(TR1, XZR)
+	e.mov(TR1, 0)
 	e.makeLabel(lab)
 	e.emit("ret")
 	e.clearL()
