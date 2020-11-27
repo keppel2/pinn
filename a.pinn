@@ -1,13 +1,1 @@
-func fact(a int, depth int) int {
-print(depth);
-  if a == 1 {
-    return 1;
-  }
-  x = a;
-  y = fact(a - 1, depth + 1);
-  println();
-  print(depth);
-  return x * y;//fact(a - 1);
-}
-
-return fact(4, 0);
+return 2;
