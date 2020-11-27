@@ -38,15 +38,13 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
 
 var irs []string = []string{
 	"ax", "bx", "cx", "dx", "si", "di", "bp", "sp", "8", "9", "10", "11", "12", "13", "14", "15"}
 
 const (
-	LR reg = 30 - iota
-
-	TR1
+	TR1 reg = iota
 	TR2
 	TR3
 	TR4
@@ -54,6 +52,7 @@ const (
 	TR6
 	TR7
 	TR8
+	TR9
 	TRV
 	TMAIN
 	TBP
@@ -64,10 +63,12 @@ const (
 )
 
 const (
+	LR reg = 30
 	SP reg = LR + 1 + iota
 	XZR
 )
 
+/*
 const (
 	R0 reg = iota
 	R1
@@ -79,11 +80,12 @@ const (
 	R7
 	R8
 )
+*/
 
 const BP = ".br"
 const FP = ".f"
 
-var RB reg = R8 + 1
+var RB reg = TSS + 1
 var IR reg = -1
 
 /*
@@ -209,26 +211,6 @@ func (e *emitter) popAll() {
 		}
 	}
 }
-func (e *emitter) popP() {
-	e.pop(TR4)
-	e.pop(TR3)
-	e.pop(TR2)
-	e.pop(TR1)
-	for i := RB - 1; i >= 1; i-- {
-		e.pop(i)
-	}
-}
-
-func (e *emitter) pushP() {
-	for i := R1; i <= R8; i++ {
-		e.push(i)
-	}
-	e.push(TR1)
-	e.push(TR2)
-	e.push(TR3)
-	e.push(TR4)
-}
-
 func (e *emitter) setIndex(index reg, m *mloc) {
 	e.emitR("lsl", index, index, 3)
 	if m.fc {
@@ -415,10 +397,10 @@ func (e *emitter) emitPrint() {
 	e.label("println")
 	e.mov(TR1, int('\n'))
 	e.push(TR1)
-	e.mov(R0, 1)
-	e.mov(R1, TSP)
-	e.mov(R2, 1)
-	e.mov(R8, 64)
+	e.mov(TR1, 1)
+	e.mov(TR2, TSP)
+	e.mov(TR3, 1)
+	e.mov(TR9, 64)
 	e.emitR("svc", 0)
 	e.pop(TR1)
 	e.emit("ret")
@@ -435,15 +417,15 @@ func (e *emitter) emitPrint() {
 	lab2 := e.clab()
 	lab3 := e.clab()
 	e.makeLabel(lab)
-	e.emitR("and", TR1, R1, 0xf)
-	e.emitR("cmp", TR1, 10)
+	e.emitR("and", TR4, TR1, 0xf)
+	e.emitR("cmp", TR4, 10)
 	e.br(lab2, "lt")
-	e.emitR("add", TR1, TR1, int('a'-':'))
+	e.emitR("add", TR4, TR4, int('a'-':'))
 	e.makeLabel(lab2)
-	e.emitR("lsr", R1, R1, 4)
-	e.emitR("add", TR1, TR1, int('0'))
+	e.emitR("lsr", TR1, TR1, 4)
+	e.emitR("add", TR4, TR4, int('0'))
 	e.emitR("lsl", TR2, TR2, 8)
-	e.emitR("add", TR2, TR2, TR1)
+	e.emitR("add", TR2, TR2, TR4)
 	e.emitR("cmp", TR3, 7)
 	e.br(lab3, "ne")
 	e.str(TR2, TSP, 9)
@@ -453,10 +435,10 @@ func (e *emitter) emitPrint() {
 	e.emitR("cmp", TR3, 16)
 	e.br(lab, "ne")
 	e.str(TR2, TSP, 1)
-	e.mov(R0, 1)
-	e.mov(R1, TSP)
-	e.mov(R2, 17)
-	e.mov(R8, 64)
+	e.mov(TR1, 1)
+	e.mov(TR2, TSP)
+	e.mov(TR3, 17)
+	e.mov(TR9, 64)
 	e.emitR("svc", 0)
 	e.emitR("add", TSP, TSP, 17)
 	e.emit("ret")
@@ -676,12 +658,12 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 		e.binaryExpr(TR2, t)
 	case *CallExpr:
 		e.emitCall(t)
-		e.mov(TR2, R0)
+		e.mov(TR2, TR1)
 	}
 	//	op := ""
 	if t, ok := be.RHS.(*CallExpr); ok {
 		e.emitCall(t)
-		e.mov(TR3, R0)
+		e.mov(TR3, TR1)
 	} else {
 		e.assignToReg(TR3, be.RHS)
 	}
@@ -727,7 +709,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.binaryExpr(r, t2)
 	case *CallExpr:
 		e.emitCall(t2)
-		e.mov(r, R0)
+		e.mov(r, TR1)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
@@ -751,23 +733,23 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		lab := e.clab()
 		e.br(lab, "eq")
 		ln := e.st.Gpos().Line
-		e.mov(R0, ln)
+		e.mov(TR1, ln)
 		e.mov(LR, TMAIN)
 		e.emit("ret")
 		e.makeLabel(lab)
 		return
 	} else if ID == "bad" {
-		e.mov(R0, 7)
+		e.mov(TR1, 7)
 		e.mov(LR, TMAIN)
 		e.emit("ret")
 		return
 	} else if ID == "exit" {
-		e.assignToReg(R0, ce.Params[0])
+		e.assignToReg(TR1, ce.Params[0])
 		e.mov(LR, TMAIN)
 		e.emit("ret")
 		return
 	} else if ID == "print" {
-		e.assignToReg(R1, ce.Params[0])
+		e.assignToReg(TR1, ce.Params[0])
 		fn = ID
 		didPrint = true
 	} else if ID == "println" {
@@ -854,7 +836,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		if L {
 			e.emitR("mov", TRV, TR1)
 		} else {
-			e.mov(R0, TRV)
+			e.mov(TR1, TRV)
 		}
 		e.br(e.ebranch)
 	case *AssignStmt:
@@ -956,18 +938,13 @@ func (e *emitter) emitStmt(s Stmt) {
 }
 
 func (e *emitter) emitDefines() {
-	mrs := rs
-	if L {
-		mrs = irs
-	}
-	_ = mrs
 	if L {
 		for r := TR1; r >= TSS; r-- {
 			e.src += "#define " + rs[TR1-r] + " " + fmt.Sprintf("%v%v", RP, rs[r]) + "\n"
 		}
 	} else {
-		for r := TR1; r >= TSS; r-- {
-			e.src += "#define " + rs[TR1-r] + " " + fmt.Sprintf("%v%v", RP, r) + "\n"
+		for r := TR1; r <= TSS; r++ {
+			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, r) + "\n"
 		}
 	}
 }
@@ -989,7 +966,7 @@ func (e *emitter) emitF(f *File) {
 	for _, s := range f.SList {
 		e.emitStmt(s)
 	}
-	e.mov(R0, XZR)
+	e.mov(TR1, XZR)
 	e.makeLabel(lab)
 	e.emit("ret")
 	e.clearL()
