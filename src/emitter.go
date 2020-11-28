@@ -222,37 +222,35 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 }
 
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
-	e.setIndex(index, m)
 	if m.fc {
 		if L {
-			e.add(index, TSS)
-			e.str(ATeq, dest, index)
+			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)))
 		} else {
+			e.setIndex(index, m)
 			e.str(ATeq, dest, TSS, index)
 		}
 	} else {
 		if L {
-			e.add(index, TBP)
-			e.str(ATeq, dest, index)
+			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)))
 		} else {
+			e.setIndex(index, m)
 			e.str(ATeq, dest, TBP, index)
 		}
 	}
 }
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
-	e.setIndex(index, m)
 	if m.fc {
 		if L {
-			e.add(index, TSS)
-			e.ldr(ATeq, dest, index)
+			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)), makeReg(dest))
 		} else {
+			e.setIndex(index, m)
 			e.ldr(ATeq, dest, TSS, index)
 		}
 	} else {
 		if L {
-			e.add(index, TBP)
-			e.ldr(ATeq, dest, index)
+			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)), makeReg(dest))
 		} else {
+			e.setIndex(index, m)
 			e.ldr(ATeq, dest, TBP, index)
 		}
 	}
