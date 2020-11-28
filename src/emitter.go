@@ -1027,7 +1027,7 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
-		e.assignToReg(TR1, t.Expr)
+		e.assignToReg(TR8, t.Expr)
 	case *BlockStmt:
 		for _, s := range t.SList {
 			e.emitStmt(s)

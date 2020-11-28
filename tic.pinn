@@ -131,21 +131,9 @@ func opposite (opx int) int {
 
 */
 SQSIZE = 9      ;
-func main() {
 
-   var flob [9]int;
-  print(flob[2]);
   i5 = 0;
-  print(SQSIZE);
-  for i5 = 0; i5 < SQSIZE; i5++ {
+  for ; i5 < SQSIZE;  {
   print(2);
-    flob[i5] = 0;
   }
-//  printBoard(flob);
-
-   
- //   result = minimax (PLAYER_A, 0, flob);
-//    print(result);
-}
 //print(count);
-main();
