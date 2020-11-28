@@ -121,6 +121,7 @@ type emitter struct {
 	fexit   branch
 	lst     Node
 	st      Node
+	file    *File
 }
 
 func (m *mloc) String() string {
@@ -323,7 +324,7 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 	e.emit(i, sa...)
 }
 
-func (e *emitter) init() {
+func (e *emitter) init(f *File) {
 	if L {
 		RP = "%r"
 	}
@@ -331,6 +332,7 @@ func (e *emitter) init() {
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
+	e.file = f
 }
 
 /*
@@ -891,7 +893,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 				ml := new(mloc)
 				ml.init(e.fc)
 				e.soff += e.atoi(ark.Len.(*NumberExpr).Il.Value)
-				ml.i = -(f.PCount - e.soff)
+				ml.i = -(f.PSize - e.soff)
 				e.rMap[vd2.Value] = ml
 			}
 			continue
@@ -905,7 +907,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			ml := new(mloc)
 			ml.init(e.fc)
 			e.soff++
-			ml.i = -(f.PCount - e.soff)
+			ml.i = -(f.PSize - e.soff)
 			e.rMap[vd2.Value] = ml
 		}
 	}
@@ -945,6 +947,14 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 func (e *emitter) emitCall(ce *CallExpr) {
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
+	fun := e.file.getFunc(ID)
+	if fun == nil {
+		e.err(ID)
+	}
+	if len(ce.Params) != fun.PCount {
+		//  fmt.Println("ffffffffffffffff")
+		e.err(ID)
+	}
 
 	fn := FP + ID
 	if ID == "assert" {
@@ -1017,7 +1027,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	} else {
 		e.emit("bl", fn)
 	}
-	e.add(TSP, moffOff(len(ce.Params)))
+	e.add(TSP, moffOff(fun.PSize))
 	if !L {
 		e.pop(LR)
 	}
@@ -1197,7 +1207,7 @@ func (e *emitter) emitDefines() {
 
 var didPrint = false
 
-func (e *emitter) emitF(f *File) {
+func (e *emitter) emitF() {
 	e.emitDefines()
 	e.src += ".global main\n"
 	e.label("main")
@@ -1214,7 +1224,7 @@ func (e *emitter) emitF(f *File) {
 	e.sub(TBP, 0x10000)
 	lab := e.clab()
 	e.ebranch = lab
-	for _, s := range f.SList {
+	for _, s := range e.file.SList {
 		e.emitStmt(s)
 	}
 	e.mov(TR1, 0)
@@ -1222,9 +1232,10 @@ func (e *emitter) emitF(f *File) {
 	e.emit("ret")
 	e.clearL()
 	e.fc = true
-	for _, s := range f.FList {
-
-		e.emitFunc(s)
+	for _, s := range e.file.FList {
+		if s.B != nil {
+			e.emitFunc(s)
+		}
 	}
 	if didPrint {
 		e.emitPrint()

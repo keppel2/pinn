@@ -56,6 +56,7 @@ type scan struct {
 
 func (s *scan) init(src io.Reader) {
 	s.Init(src)
+	s.p = s.Pos()
 }
 
 func (s *scan) _at() {

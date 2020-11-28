@@ -37,6 +37,15 @@ type File struct {
 	node
 }
 
+func (f *File) getFunc(a string) *FuncDecl {
+	for _, v := range f.FList {
+		if v.Wl.Value == a {
+			return v
+		}
+	}
+	return nil
+}
+
 type BlockStmt struct {
 	SList []Stmt
 	stmt
@@ -229,6 +238,7 @@ type FuncDecl struct {
 	Wl     *WLit
 	PList  []*Field
 	PCount int
+	PSize  int
 	K      Kind
 	B      *BlockStmt
 	node

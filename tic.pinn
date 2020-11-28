@@ -1,4 +1,4 @@
-/*EMPTY = 0;
+EMPTY = 0;
 FALSE = 0;
 TRUE = 1;
 TIE = 3;
@@ -129,11 +129,3 @@ func opposite (opx int) int {
  return PLAYER_A;
  }
 
-*/
-SQSIZE = 9      ;
-
-  i5 = 0;
-  for ; i5 < SQSIZE;  {
-  print(2);
-  }
-//print(count);

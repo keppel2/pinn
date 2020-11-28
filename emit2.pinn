@@ -98,7 +98,6 @@ var nar [2]int;
 nar[1] = g;
 x = g;
 g--;
-if g > 0 { f(); }
 assert(nar[1], x);
 }
 far();

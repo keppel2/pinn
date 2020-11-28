@@ -115,10 +115,23 @@ func (p *parser) arrayExpr(d bool) *ArrayExpr {
 	return rt
 }
 
+func (p *parser) pseudoF(ID string, count int) *FuncDecl {
+	fd := new(FuncDecl)
+	fd.Init(p.p)
+	wl := new(WLit)
+	wl.Init(p.p)
+	wl.Value = ID
+	fd.Wl = wl
+	fd.PCount = count
+	fd.PSize = count
+	return fd
+}
+
 func (p *parser) fileA() *File {
 	f := new(File)
 	f.Init(p.p)
 	p.next()
+	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("assert", 2), p.pseudoF("bad", 0))
 
 	for p.tok != "EOF" {
 		if p.tok == "func" {
@@ -220,10 +233,11 @@ func (p *parser) funcDecl() *FuncDecl {
 		for {
 			vd := p.field()
 			if ark, ok := vd.Kind.(*ArKind); ok {
-				rt.PCount += len(vd.List) * p.atoi(ark.Len.(*NumberExpr).Il.Value)
+				rt.PSize += len(vd.List) * p.atoi(ark.Len.(*NumberExpr).Il.Value)
 			} else {
-				rt.PCount += len(vd.List)
+				rt.PSize += len(vd.List)
 			}
+			rt.PCount += len(vd.List)
 			rt.PList = append(rt.PList, vd)
 			if p.got(",") {
 				continue
