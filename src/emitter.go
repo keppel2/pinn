@@ -952,7 +952,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.err(ID)
 	}
 	if len(ce.Params) != fun.PCount {
-		//  fmt.Println("ffffffffffffffff")
 		e.err(ID)
 	}
 
