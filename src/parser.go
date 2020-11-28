@@ -219,7 +219,7 @@ func (p *parser) funcDecl() *FuncDecl {
 	if !p.got(")") {
 		for {
 			vd := p.field()
-			if ark, ok := vd.Kind.(ArKind); ok {
+			if ark, ok := vd.Kind.(*ArKind); ok {
 				rt.PCount += len(vd.List) * p.atoi(ark.Len.(*NumberExpr).Il.Value)
 			} else {
 				rt.PCount += len(vd.List)

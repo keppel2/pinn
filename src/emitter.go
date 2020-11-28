@@ -875,7 +875,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.soff = 0
 	e.mov(TSS, TSP)
 	for _, field := range f.PList {
-		if ark, ok := field.Kind.(ArKind); ok {
+		if ark, ok := field.Kind.(*ArKind); ok {
 			for _, vd2 := range field.List {
 
 				if _, ok := e.rMap[vd2.Value]; ok {
