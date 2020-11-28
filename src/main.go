@@ -40,9 +40,10 @@ func main() {
 			L = true
 		} else if os.Args[2] == "parse" {
 			return
-		} else {
+		} else if os.Args[2] == "visit" {
 
 			visitFile(f)
+			return
 		}
 	}
 	e := emitter{}
