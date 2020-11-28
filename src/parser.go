@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"strconv"
 	//	"os"
 )
 
@@ -200,6 +201,14 @@ func (p *parser) typeStmt() *TypeStmt {
 	return ds
 
 }
+func (e *parser) atoi(s string) int {
+	x, err := strconv.Atoi(s)
+	if err != nil {
+		e.err(err.Error())
+	}
+	return x
+
+}
 
 func (p *parser) funcDecl() *FuncDecl {
 	rt := new(FuncDecl)
@@ -210,7 +219,11 @@ func (p *parser) funcDecl() *FuncDecl {
 	if !p.got(")") {
 		for {
 			vd := p.field()
-			rt.PCount += len(vd.List)
+			if ark, ok := vd.Kind.(ArKind); ok {
+				rt.PCount += len(vd.List) * p.atoi(ark.Len.(*NumberExpr).Il.Value)
+			} else {
+				rt.PCount += len(vd.List)
+			}
 			rt.PList = append(rt.PList, vd)
 			if p.got(",") {
 				continue

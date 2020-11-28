@@ -874,8 +874,23 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.label(FP + f.Wl.Value)
 	e.soff = 0
 	e.mov(TSS, TSP)
-	for _, vd := range f.PList {
-		for _, vd2 := range vd.List {
+	for _, field := range f.PList {
+		if ark, ok := field.Kind.(ArKind); ok {
+			for _, vd2 := range field.List {
+
+				if _, ok := e.rMap[vd2.Value]; ok {
+					e.err(vd2.Value)
+				}
+				ml := new(mloc)
+				ml.init(e.fc)
+				e.soff += e.atoi(ark.Len.(*NumberExpr).Il.Value)
+				ml.i = -(f.PCount - e.soff)
+				e.rMap[vd2.Value] = ml
+			}
+			continue
+
+		}
+		for _, vd2 := range field.List {
 
 			if _, ok := e.rMap[vd2.Value]; ok {
 				e.err(vd2.Value)
@@ -977,9 +992,18 @@ func (e *emitter) emitCall(ce *CallExpr) {
 
 	for _, v := range ce.Params {
 		//		e.push(1 + reg(k))
+		if ie, ok := v.(*VarExpr); ok && e.rMap[ie.Wl.Value].len > 0 {
+			ml := e.rMap[ie.Wl.Value]
+			for i := ml.len - 1; i >= 0; i-- {
+				e.mov(TR6, i)
+				e.iLoad(TR7, TR6, ml)
+				e.push(TR7)
+			}
+		} else {
 
-		e.assignToReg(TR1, v)
-		e.push(TR1)
+			e.assignToReg(TR1, v)
+			e.push(TR1)
+		}
 	}
 
 	if L {

@@ -1,6 +1,6 @@
-func f() {
-var ar[3]int;
-ar[1] = 5;
-return ar[1];
+func f(x [2]int) {
+return x[1];
 }
-return f();
+var ar[2]int;
+ar[1] = 7;
+return f(ar);
