@@ -38,7 +38,7 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "TR11", "TMAIN", "TBP", "TSP", "TSS"}
 
 var irs []string = []string{
 	"ax", "bx", "cx", "dx", "si", "di", "bp", "8", "9", "10", "11", "12", "13", "14", "15"}
@@ -53,6 +53,8 @@ const (
 	TR7
 	TR8
 	TR9
+	TR10
+	TR11
 	TMAIN
 	TBP
 	TSP
@@ -197,6 +199,7 @@ func (e *emitter) popx() {
 	e.add(TSP, 8)
 }
 func (e *emitter) pushAll() {
+
 	for i := TR2; i <= TR9; i++ {
 		if i != TSP {
 			e.push(i)
@@ -427,7 +430,7 @@ func (e *emitter) emitPrint() {
 		e.mov(TR4, 1) //1 byte
 		e.mov(TR5, TSP)
 		e.emit("syscall")
-		e.pop(TR8)
+		e.add(TSP, 8)
 		e.emit("ret")
 	} else {
 		e.mov(TR1, int('\n'))
@@ -437,11 +440,13 @@ func (e *emitter) emitPrint() {
 		e.mov(TR3, 1)
 		e.mov(TR9, 64)
 		e.emitR("svc", 0)
-		e.pop(TR1)
+		e.add(TSP, 8)
 		e.emit("ret")
 	}
 
 	e.label("print")
+	e.mov(TSS, TSP)
+	e.ldr(ATeq, TR1, TSS)
 
 	e.sub(TSP, 17)
 	e.mov(TR3, int(','))
@@ -975,7 +980,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.emit("ret")
 		return
 	} else if ID == "print" {
-		e.assignToReg(TR1, ce.Params[0])
 		fn = ID
 		didPrint = true
 	} else if ID == "println" {

@@ -1,6 +1,1 @@
-func f(x [2]int) {
-return x[1];
-}
-var ar[2]int;
-ar[1] = 7;
-return f(ar);
+print(7);
