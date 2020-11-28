@@ -38,7 +38,7 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TRV", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TMAIN", "TBP", "TSP", "TSS"}
 
 var irs []string = []string{
 	"ax", "bx", "cx", "dx", "si", "di", "bp", "8", "9", "10", "11", "12", "13", "14", "15"}
@@ -53,7 +53,6 @@ const (
 	TR7
 	TR8
 	TR9
-	TRV
 	TMAIN
 	TBP
 	TSP
@@ -198,7 +197,7 @@ func (e *emitter) popx() {
 	e.add(TSP, 8)
 }
 func (e *emitter) pushAll() {
-	for i := TR2; i <= TR7; i++ {
+	for i := TR2; i <= TR9; i++ {
 		if i != TSP {
 			e.push(i)
 		}
@@ -206,7 +205,7 @@ func (e *emitter) pushAll() {
 
 }
 func (e *emitter) popAll() {
-	for i := TR7; i >= TR2; i-- {
+	for i := TR9; i >= TR2; i-- {
 		if i != TSP {
 			e.pop(i)
 		}
@@ -1049,14 +1048,12 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	case *ReturnStmt:
 		if t.E != nil {
-			e.assignToReg(TRV, t.E)
+			e.assignToReg(TR1, t.E)
 		} else {
-			e.mov(TRV, 5)
+			e.mov(TR1, 5)
 		}
 		if L {
-			e.emitR("mov", TRV, TR1)
 		} else {
-			e.mov(TR1, TRV)
 		}
 		e.br(e.ebranch)
 	case *AssignStmt:
