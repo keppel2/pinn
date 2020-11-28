@@ -1,1 +1,1 @@
-print(7);
+return 5;
