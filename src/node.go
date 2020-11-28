@@ -243,3 +243,16 @@ type FuncDecl struct {
 	B      *BlockStmt
 	node
 }
+
+func (fd *FuncDecl) getKind(a int) Kind {
+	index := 0
+	for _, f := range fd.PList {
+		for _ = range f.List {
+			if index == a {
+				return f.Kind
+			}
+			index++
+		}
+	}
+	return nil
+}

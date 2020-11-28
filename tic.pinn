@@ -11,14 +11,13 @@ count = 0;
 
 func minimax (player int, depth int, flob [9]int) int
 {
-count++;
-if count % 10 == 0 {
-  printBoard(flob);
+
+//  printBoard(flob);
   print(player);
   print(depth);
   println();
   println();
-}
+count++;
  i = 0;
  result = 0;
   best = opposite(player);
@@ -136,3 +135,4 @@ func main() {
   
 }
 main();
+print(count);

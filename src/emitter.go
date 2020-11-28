@@ -892,7 +892,9 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 				}
 				ml := new(mloc)
 				ml.init(e.fc)
-				e.soff += e.atoi(ark.Len.(*NumberExpr).Il.Value)
+				plen := e.atoi(ark.Len.(*NumberExpr).Il.Value)
+				e.soff += plen
+				ml.len = plen
 				ml.i = -(f.PSize - e.soff)
 				e.rMap[vd2.Value] = ml
 			}
@@ -1005,9 +1007,13 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.push(LR)
 	}
 
-	for _, v := range ce.Params {
+	for k, v := range ce.Params {
 		//		e.push(1 + reg(k))
+		kind := fun.getKind(k)
 		if ie, ok := v.(*VarExpr); ok && e.rMap[ie.Wl.Value].len > 0 {
+			if e.atoi(kind.(*ArKind).Len.(*NumberExpr).Il.Value) != e.rMap[ie.Wl.Value].len {
+				e.err(ID)
+			}
 			ml := e.rMap[ie.Wl.Value]
 			for i := ml.len - 1; i >= 0; i-- {
 				e.mov(TR6, i)
@@ -1015,6 +1021,11 @@ func (e *emitter) emitCall(ce *CallExpr) {
 				e.push(TR7)
 			}
 		} else {
+			if kind != nil {
+				if _, ok := kind.(*SKind); !ok {
+					e.err(ID)
+				}
+			}
 
 			e.assignToReg(TR1, v)
 			e.push(TR1)

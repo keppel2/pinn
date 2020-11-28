@@ -1,4 +1,10 @@
-i5 = 0;
-  for i5 = 0; i5 < 5; i5++  {
-  print(i5);
-  }
+g = 2;
+func fs(a [4]int) {
+g--;
+if (g == 0) {
+  return;
+}
+fs(a);
+}
+var ar [4]int;
+fs(ar);
