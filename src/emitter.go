@@ -1105,6 +1105,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			if t.Op == ":=" && e.rMap[id] != nil {
 				e.err(id)
 			}
+			if t.Op == "=" && e.rMap[id] == nil {
+				e.err(id)
+			}
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				//lhi := e.fillReg(id, false)
 				//e.forceReg(id, TR5)
@@ -1131,6 +1134,23 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.storeId(id, TR3)
 				return
 			}
+			if ae, ok := t.RHSa[0].(*ArrayExpr); ok {
+				k := new(ArKind)
+				k.Init(e.st.Gpos())
+				aLen := new(NumberExpr)
+				aLen.Il = new(ILit)
+				aLen.Il.Value = fmt.Sprint(len(ae.EL))
+				k.Len = aLen
+				e.newVar(id, k)
+				for key, expr := range ae.EL {
+					e.assignToReg(TR7, expr)
+					e.mov(TR2, key)
+					e.iStore(TR7, TR2, e.rMap[id])
+				}
+				return
+
+			}
+
 			//lhi := e.fillReg(id, true)
 			//e.assignToReg(lhi, t.RHSa[0])
 			e.assignToReg(TR7, t.RHSa[0])

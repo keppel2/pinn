@@ -197,8 +197,9 @@ type SlKind struct {
 }
 
 type ArKind struct {
-	Len Expr
-	K   Kind
+	ilen int
+	Len  Expr
+	K    Kind
 	kind
 }
 
