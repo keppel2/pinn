@@ -33,7 +33,7 @@ assert(ar[2], 46);
 ar[2] %= 10;
 assert(ar[2], 6);
 */
-a = 12;
+a := 12;
 a -= 8;
 assert(a, 4);
 a += 2;
@@ -47,12 +47,12 @@ func g(a1, b1 int) int {
 
 z := g(1, 3);
 assert(z, 12);
-
-fl();
 func fl() {
 a = 5;
 }
 
+
+fl();
 glob := 10;
 func fg2(fa int) int{
   glob = fa + 3;
