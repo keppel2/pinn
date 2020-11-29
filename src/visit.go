@@ -81,9 +81,11 @@ func visitFuncDecl(n *FuncDecl) {
 	if n.K != nil {
 		visitKind(n.K)
 	}
-	pnode(n.B)
-	defer iminus()
-	visitBlockStmt(n.B)
+	if n.B != nil {
+		defer iminus()
+		pnode(n.B)
+		visitBlockStmt(n.B)
+	}
 }
 
 func visitKind(n Kind) {

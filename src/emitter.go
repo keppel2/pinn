@@ -834,10 +834,7 @@ func localCond(a string) string {
 	return rt
 }
 
-func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
-	e.lst = e.st
-	e.st = be
-	defer func() { e.st = e.lst }()
+func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR5, be.LHS)
 		e.assignToReg(TR6, be.RHS)
@@ -860,24 +857,10 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 		e.br(branch(dest), bi)
 		return
 	}
-	/*
-		switch t := be.LHS.(type) {
-		case *NumberExpr, *VarExpr:
-			e.assignToReg(dest, t)
-		case *BinaryExpr:
-			e.binaryExpr(dest, t)
-		case *CallExpr:
-			e.emitCall(t)
-			e.mov(dest, TR1)
-		}
-		//	op := ""
-		if t, ok := be.RHS.(*CallExpr); ok {
-			e.emitCall(t)
-			e.mov(TR3, TR1)
-		} else {
-			e.assignToReg(TR3, be.RHS)
-		}
-	*/
+
+}
+
+func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	e.assignToReg(dest, be.LHS)
 	e.assignToReg(TR8, be.RHS)
 	e.doOp(dest, TR8, be.op)
@@ -929,6 +912,9 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 }
 
 func (e *emitter) assignToReg(r reg, ex Expr) {
+	e.lst = e.st
+	e.st = ex
+	defer func() { e.st = e.lst }()
 	switch t2 := ex.(type) {
 	case *NumberExpr:
 		e.mov(r, e.atoi(t2.Il.Value))
@@ -1080,7 +1066,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.makeLabel(lab)
 		lab2 := e.clab()
 		e.pushloop(lab, lab2)
-		e.binaryExpr(reg(lab2), t.Cond.(*BinaryExpr))
+		e.condExpr(lab2, t.Cond.(*BinaryExpr))
 		e.emitStmt(t.B)
 		e.br(lab)
 		e.makeLabel(lab2)
@@ -1088,11 +1074,11 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *IfStmt:
 		lab := e.clab()
 		if t.Else == nil {
-			e.binaryExpr(reg(lab), t.Cond.(*BinaryExpr))
+			e.condExpr(lab, t.Cond.(*BinaryExpr))
 			e.emitStmt(t.Then)
 		} else {
 			lab2 := e.clab()
-			e.binaryExpr(reg(lab2), t.Cond.(*BinaryExpr))
+			e.condExpr(lab2, t.Cond.(*BinaryExpr))
 			e.emitStmt(t.Then)
 			e.br(lab)
 			e.makeLabel(lab2)
@@ -1196,7 +1182,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.makeLabel(lab3)
 
 		if t.E != nil {
-			e.binaryExpr(reg(lab2), t.E.(*BinaryExpr))
+			e.condExpr(lab2, t.E.(*BinaryExpr))
 		}
 		e.emitStmt(t.B)
 		e.br(lab)
