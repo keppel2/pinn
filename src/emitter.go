@@ -1111,6 +1111,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		switch lh2 := lh.(type) {
 		case *VarExpr:
 			id := lh2.Wl.Value
+			if t.Op == ":=" && e.rMap[id] != nil {
+				e.err(id)
+			}
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
 				//lhi := e.fillReg(id, false)
 				//e.forceReg(id, TR5)
