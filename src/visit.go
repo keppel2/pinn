@@ -56,15 +56,6 @@ func visitForStmt(n *ForStmt) {
 	visitBlockStmt(n.B)
 }
 
-func visitForrStmt(n *ForrStmt) {
-	for _, e := range n.LH {
-		visitExpr(e)
-	}
-	prn("forr op: ", n.Op)
-	visitExpr(n.RH)
-	visitBlockStmt(n.B)
-
-}
 func visitReturnStmt(n *ReturnStmt) {
 	if n.E != nil {
 		visitExpr(n.E)
@@ -228,8 +219,6 @@ func visitStmt(s Stmt) {
 	switch t := s.(type) {
 	case *ForStmt:
 		visitForStmt(t)
-	case *ForrStmt:
-		visitForrStmt(t)
 	case *BlockStmt:
 		visitBlockStmt(t)
 	case *VarStmt:

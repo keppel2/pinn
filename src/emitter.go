@@ -299,7 +299,7 @@ func (e *emitter) freeReg() reg {
 }
 
 func (e emitter) dString() string {
-	return fmt.Sprint(e.rMap, e.rAlloc, e.st, reflect.TypeOf(e.st))
+	return fmt.Sprint(e.st, reflect.TypeOf(e.st))
 }
 
 func (e *emitter) emit(i string, ops ...string) {
@@ -1070,6 +1070,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.emitStmt(t.B)
 		e.br(lab)
 		e.makeLabel(lab2)
+		e.poploop()
 
 	case *IfStmt:
 		lab := e.clab()
@@ -1188,6 +1189,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.br(lab)
 
 		e.makeLabel(lab2)
+		e.poploop()
 
 	default:
 		e.err("")

@@ -62,10 +62,10 @@ a << b >> c & d | e ^ f;
 1 == 2 != 3 > 4 < 5 >= 6 <= 7;
 a && b || c;
 
-forr a, b  := range 24 { 25; }
-forr a := range 10 { 101; }
-forr z = range 23 {}
-forr z, s := range 2233 {}
+for a, b  := range 24 { 25; }
+for a := range 10 { 101; }
+for z = range 23 {}
+for z, s := range 2233 {}
 for a := 10; a < 20; a++ {
 f(42);
 }

@@ -72,14 +72,6 @@ type ForStmt struct {
 	stmt
 }
 
-type ForrStmt struct {
-	LH []Expr
-	Op string
-	RH Expr
-	B  *BlockStmt
-	stmt
-}
-
 type ExprStmt struct {
 	Expr
 	stmt

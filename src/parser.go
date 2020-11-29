@@ -282,28 +282,17 @@ func (p *parser) returnStmt() *ReturnStmt {
 	return rt
 }
 
-func (p *parser) forrStmt() *ForrStmt {
-	rt := new(ForrStmt)
-	rt.Init(p.p)
-	p.want("forr")
-	rt.LH = p.exprList()
-
-	if p.tok != "=" && p.tok != ":=" {
-		p.err("")
-	}
-	rt.Op = p.tok
-	p.next()
-	rt.RH = p.uexpr()
-	rt.B = p.blockStmt()
-	return rt
-}
-
 func (p *parser) forStmt() *ForStmt {
 	rt := new(ForStmt)
 	rt.Init(p.p)
 	p.want("for")
 	if !p.got(";") {
-		rt.Inits = p.stmt()
+		rt.Inits = p.assignOrExprStmt()
+		if p.tok == "{" {
+			rt.B = p.blockStmt()
+			return rt
+		}
+		p.want(";")
 	}
 	if !p.got(";") {
 		rt.E = p.uexpr()
@@ -335,8 +324,6 @@ func (p *parser) stmt() Stmt {
 	switch p.tok {
 	case "for":
 		rt = p.forStmt()
-	case "forr":
-		rt = p.forrStmt()
 	case "return":
 		rt = p.returnStmt()
 	case "break":
