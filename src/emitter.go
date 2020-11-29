@@ -860,23 +860,27 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 		e.br(branch(dest), bi)
 		return
 	}
-	switch t := be.LHS.(type) {
-	case *NumberExpr, *VarExpr:
-		e.assignToReg(dest, t)
-	case *BinaryExpr:
-		e.binaryExpr(dest, t)
-	case *CallExpr:
-		e.emitCall(t)
-		e.mov(dest, TR1)
-	}
-	//	op := ""
-	if t, ok := be.RHS.(*CallExpr); ok {
-		e.emitCall(t)
-		e.mov(TR3, TR1)
-	} else {
-		e.assignToReg(TR3, be.RHS)
-	}
-	e.doOp(dest, TR3, be.op)
+	/*
+		switch t := be.LHS.(type) {
+		case *NumberExpr, *VarExpr:
+			e.assignToReg(dest, t)
+		case *BinaryExpr:
+			e.binaryExpr(dest, t)
+		case *CallExpr:
+			e.emitCall(t)
+			e.mov(dest, TR1)
+		}
+		//	op := ""
+		if t, ok := be.RHS.(*CallExpr); ok {
+			e.emitCall(t)
+			e.mov(TR3, TR1)
+		} else {
+			e.assignToReg(TR3, be.RHS)
+		}
+	*/
+	e.assignToReg(dest, be.LHS)
+	e.assignToReg(TR8, be.RHS)
+	e.doOp(dest, TR8, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -1142,8 +1146,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 			//lhi := e.fillReg(id, true)
 			//e.assignToReg(lhi, t.RHSa[0])
-			e.assignToReg(TR4, t.RHSa[0])
-			e.storeId(id, TR4)
+			e.assignToReg(TR7, t.RHSa[0])
+			e.storeId(id, TR7)
 			//e.storeAll()
 			//e.toStore(id)
 

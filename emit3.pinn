@@ -1,10 +1,4 @@
-g = 2;
-func fs(a [4]int) {
-g--;
-if (g == 0) {
-  return;
-}
-fs(a);
-}
-var ar [4]int;
-fs(ar);
+var ar[2] int;
+ar[1] = 5;
+x := ar[1] + 1;
+return x;//print(x);
