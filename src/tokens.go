@@ -28,7 +28,6 @@ var tokenMap = map[string]int{
 	"#":           2,
 	".":           0,
 	"...":         0,
-	"..<":         0,
 	"break":       0,
 	"case":        0,
 	"const":       0,
