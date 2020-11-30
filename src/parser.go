@@ -351,7 +351,7 @@ func (p *parser) stmt() Stmt {
 	case "loop":
 		rt = p.loopStmt()
 
-	case "literal", "name": //, "-", "+":
+	case "literal", "name", "(": //, "-", "+":
 		rt = p.assignOrExprStmt()
 		p.want(";")
 	case "{":

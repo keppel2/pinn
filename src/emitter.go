@@ -761,8 +761,19 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 }
 
 func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
-	e.assignToReg(dest, be.LHS)
-	e.assignToReg(dest+1, be.RHS)
+	_, okL := be.LHS.(*BinaryExpr)
+	_, okR := be.RHS.(*BinaryExpr)
+	var first, second Expr
+	if okR && !okL {
+		first = be.RHS
+		second = be.LHS
+	} else {
+		first = be.LHS
+		second = be.RHS
+	}
+
+	e.assignToReg(dest, first)
+	e.assignToReg(dest+1, second)
 	e.doOp(dest, dest+1, be.op)
 }
 
