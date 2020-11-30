@@ -79,3 +79,9 @@ if 2 < 3 && 3 < 4 {
 }
 
 assert(trig, 2);
+
+oo2 := 1 + (2 * 3);
+assert(oo2, 7);
+
+nx := -2;
+assert(nx, -2);

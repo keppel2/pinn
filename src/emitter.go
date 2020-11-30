@@ -833,6 +833,9 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.loadId(t2.Wl.Value, r)
 	case *BinaryExpr:
 		e.binaryExpr(r, t2)
+	case *UnaryExpr:
+		e.assignToReg(r, t2.E)
+		e.mul(r, -1)
 	case *TrinaryExpr:
 		lab := e.clab()
 		lab2 := e.clab()
