@@ -4,46 +4,29 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
+	//	"io/ioutil"
+	//	"log"
 	//	"os"
 	"text/scanner"
-
-	"strings"
+	//	"strings"
 )
 
-func tok(s string) {
-	var got scan
-	got.init(strings.NewReader(s))
+func (s *scan) tokenize() {
 	for {
-		got.next()
-		fmt.Println(_prn(got))
-		if got.tok == "EOF" {
+		s.next()
+		fmt.Println(s.prn())
+		if s.tok == "EOF" {
 			break
 		}
 	}
 
 }
 
-func _prn(s scan) string {
+func (s *scan) prn() string {
 	return fmt.Sprintf("%v,%v,%v\n", s.tok, s.lit, s.kind)
 }
 
 var TD = "../pinn/"
-
-func f() {
-	rd, err := ioutil.ReadDir(TD)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, ofi := range rd {
-		bs, _ := ioutil.ReadFile(TD + ofi.Name())
-		_ = bs
-		src := string(bs)
-		tok(src)
-
-	}
-}
 
 type scan struct {
 	scanner.Scanner

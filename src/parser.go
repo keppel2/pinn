@@ -9,6 +9,7 @@ import (
 
 type parser struct {
 	scan
+	dm map[string]string
 }
 
 func (p *parser) err(msg string) {
@@ -18,6 +19,7 @@ func (p *parser) err(msg string) {
 func (p *parser) init(r io.Reader) {
 	p.scan.init(
 		r)
+	p.dm = make(map[string]string)
 }
 
 func (p *parser) got(tok string) bool {
@@ -131,6 +133,14 @@ func (p *parser) fileA() *File {
 	f := new(File)
 	f.Init(p.p)
 	p.next()
+	for p.got("#") {
+		p.want("define")
+		str := p.lit
+		p.next()
+		rep := p.lit
+		p.next()
+		p.dm[str] = rep
+	}
 	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("assert", 2), p.pseudoF("bad", 0))
 
 	for p.tok != "EOF" {
@@ -583,7 +593,21 @@ func (p *parser) wLit() *WLit {
 func (p *parser) varExpr() Expr {
 	rt := new(VarExpr)
 	rt.Init(p.p)
-	rt.Wl = p.wLit()
+	w := p.wLit().Value
+	if rep, ok := p.dm[w]; ok {
+		nrt := new(NumberExpr)
+		nrt.Init(p.p)
+		il := new(ILit)
+		il.Init(p.p)
+		il.Value = rep
+		nrt.Il = il
+		return nrt
+	} else {
+		wl := new(WLit)
+		wl.Init(p.p)
+		wl.Value = w
+		rt.Wl = wl
+	}
 	return rt
 }
 

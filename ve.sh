@@ -1,1 +1,1 @@
-go run ./src $1 visit
+./gr.sh $1 visit

@@ -32,6 +32,14 @@ func main() {
 	}
 	ssrc := string(src)
 	//	tok(ssrc)
+	if len(os.Args) == 3 && os.Args[2] == "scan" {
+		s := new(scan)
+		s.init(strings.NewReader(ssrc))
+		s.tokenize()
+
+		return
+
+	}
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
 	f := p.fileA()
