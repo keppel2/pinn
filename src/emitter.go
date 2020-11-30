@@ -835,6 +835,18 @@ func localCond(a string) string {
 }
 
 func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
+	if be.op == "||" {
+		lab := e.clab()
+		lab2 := e.clab()
+		e.condExpr(lab, be.LHS.(*BinaryExpr))
+		e.br(lab2)
+		e.makeLabel(lab)
+		e.condExpr(dest, be.RHS.(*BinaryExpr))
+		e.makeLabel(lab2)
+	} else if be.op == "&&" {
+		e.condExpr(dest, be.LHS.(*BinaryExpr))
+		e.condExpr(dest, be.RHS.(*BinaryExpr))
+	}
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR4, be.LHS)
 		e.assignToReg(TR2, be.RHS)

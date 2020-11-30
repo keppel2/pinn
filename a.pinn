@@ -1,4 +1,3 @@
-x := 10;
-var ar[4] int;
-ar[2] = 5;
-return ar[2];
+if 2 < 3 || 3 < 4 {
+  return 5;
+}

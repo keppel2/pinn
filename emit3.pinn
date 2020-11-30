@@ -22,9 +22,60 @@ if n4() > n7() {
   bad();
 }
 
+
+if n4() + 3 != n7() {
+  bad();
+}
+
+if n4() != n7() - 3 {
+  bad();
+}
+
 gar := [1, 5, 10];
 func afu(lar [3]int) {
   assert(lar[0], 1);
   assert(lar[2], 10);
 }
 afu(gar);
+
+if n4() < 1 || n7() != 7 {
+  bad();
+}
+
+trig := 1;
+if n4() == 4 || n7() != 7 {
+  trig = 2;
+}
+assert(trig, 2);
+
+trig = 1;
+if n7() != 7 || n4() == 4 {
+  trig = 2;
+}
+assert(trig, 2);
+
+trig = 1;
+if n4() < 1 || n7() == 7 {
+ trig = 2;
+}
+assert(trig, 2);
+
+if 2 < 3 && 4 < 3 {
+  bad();
+}
+
+if 4 < 3 && 2 < 3 {
+  bad();
+}
+
+if 2 > 3 && 3 > 4 {
+  bad();
+}
+
+trig = 1;
+
+if 2 < 3 && 3 < 4 {
+  trig = 2;
+}
+
+assert(trig, 2);
