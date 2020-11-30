@@ -836,9 +836,9 @@ func localCond(a string) string {
 
 func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-		e.assignToReg(TR5, be.LHS)
-		e.assignToReg(TR6, be.RHS)
-		e.cmp(TR5, TR6)
+		e.assignToReg(TR4, be.LHS)
+		e.assignToReg(TR5, be.RHS)
+		e.cmp(TR4, TR5)
 		bi := ""
 		switch be.op {
 		case "==":
@@ -853,6 +853,8 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 			bi = "le"
 		case ">=":
 			bi = "lt"
+		default:
+			e.err(be.op)
 		}
 		e.br(branch(dest), bi)
 		return
@@ -862,8 +864,8 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 
 func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	e.assignToReg(dest, be.LHS)
-	e.assignToReg(TR8, be.RHS)
-	e.doOp(dest, TR8, be.op)
+	e.assignToReg(dest+1, be.RHS)
+	e.doOp(dest, dest+1, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -938,8 +940,8 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
-		e.assignToReg(TR1, t2.E)
-		e.iLoad(r, TR1, ml)
+		e.assignToReg(r, t2.E)
+		e.iLoad(r, r, ml)
 	default:
 		e.err("")
 	}
@@ -975,7 +977,8 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.makeLabel(lab)
 		return
 	} else if ID == "bad" {
-		e.mov(TR1, 7)
+		ln := e.st.Gpos().Line
+		e.mov(TR1, ln)
 		if L {
 			e.emitR("push", TMAIN)
 		} else {
@@ -1053,7 +1056,7 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
-		e.assignToReg(TR8, t.Expr)
+		e.assignToReg(TR1, t.Expr)
 	case *BlockStmt:
 		for _, s := range t.SList {
 			e.emitStmt(s)
@@ -1119,29 +1122,24 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.err(id)
 			}
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-				//lhi := e.fillReg(id, false)
-				//e.forceReg(id, TR5)
 				e.loadId(id, TR2)
 				e.assignToReg(TR3, t.RHSa[0])
-				//				e.mov(TR2, lhi)
 				e.doOp(TR2, TR3, t.Op[0:1])
 				e.storeId(id, TR2)
-				//				e.toStore(id)
-
 				return
 			}
 			if t.Op == "++" {
-				e.loadId(id, TR3)
+				e.loadId(id, TR2)
 				//			lhi := e.fillReg(id, false)
-				e.mov(TR1, 1)
-				e.doOp(TR3, TR1, "+")
-				e.storeId(id, TR3)
+				e.mov(TR3, 1)
+				e.doOp(TR2, TR3, "+")
+				e.storeId(id, TR2)
 				return
 			} else if t.Op == "--" {
-				e.loadId(id, TR3)
-				e.mov(TR1, 1)
-				e.doOp(TR3, TR1, "-")
-				e.storeId(id, TR3)
+				e.loadId(id, TR2)
+				e.mov(TR3, 1)
+				e.doOp(TR2, TR3, "-")
+				e.storeId(id, TR2)
 				return
 			}
 			if ae, ok := t.RHSa[0].(*ArrayExpr); ok {
@@ -1153,20 +1151,16 @@ func (e *emitter) emitStmt(s Stmt) {
 				k.Len = aLen
 				e.newVar(id, k)
 				for key, expr := range ae.EL {
-					e.assignToReg(TR7, expr)
-					e.mov(TR2, key)
-					e.iStore(TR7, TR2, e.rMap[id])
+					e.assignToReg(TR2, expr)
+					e.mov(TR3, key)
+					e.iStore(TR2, TR3, e.rMap[id])
 				}
 				return
 
 			}
 
-			//lhi := e.fillReg(id, true)
-			//e.assignToReg(lhi, t.RHSa[0])
-			e.assignToReg(TR7, t.RHSa[0])
-			e.storeId(id, TR7)
-			//e.storeAll()
-			//e.toStore(id)
+			e.assignToReg(TR2, t.RHSa[0])
+			e.storeId(id, TR2)
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
@@ -1176,11 +1170,11 @@ func (e *emitter) emitStmt(s Stmt) {
 			} else if t.Op == "++" || t.Op == "--" {
 				e.assignToReg(TR4, lh2)
 				if t.Op == "++" {
-					e.mov(TR1, 1)
-					e.doOp(TR4, TR1, "+")
+					e.mov(TR3, 1)
+					e.doOp(TR4, TR3, "+")
 				} else {
-					e.mov(TR1, 1)
-					e.doOp(TR4, TR1, "-")
+					e.mov(TR3, 1)
+					e.doOp(TR4, TR3, "-")
 				}
 			} else {
 				e.assignToReg(TR4, t.RHSa[0])
@@ -1188,8 +1182,8 @@ func (e *emitter) emitStmt(s Stmt) {
 
 			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
-			e.assignToReg(TR1, lh2.E)
-			e.iStore(TR4, TR1, ml)
+			e.assignToReg(TR3, lh2.E)
+			e.iStore(TR4, TR3, ml)
 		}
 
 	case *VarStmt:

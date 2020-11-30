@@ -5,3 +5,19 @@ x := 12 < 4 ? 10 : 5;
 assert(x, 5);
 x = 12 > 4 ? 10 : 5;
 assert(x, 10);
+
+func n4() int {
+return 4;
+}
+
+func n7() int {
+return 7;
+}
+
+if n7() < n4() {
+  bad();
+}
+
+if n4() > n7() {
+  bad();
+}

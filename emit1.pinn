@@ -133,9 +133,9 @@ assert(f, 202);
 
 
 
-ar := 0 + g1();
+ar := g1() + 0;
 assert(ar, 101);
-ar = g1() + 0;
+ar = 0 + g1();
 assert(ar, 101);
 func fact(fa int) int {
   if fa == 1 {
