@@ -21,3 +21,10 @@ if n7() < n4() {
 if n4() > n7() {
   bad();
 }
+
+gar := [1, 5, 10];
+func afu(lar [3]int) {
+  assert(lar[0], 1);
+  assert(lar[2], 10);
+}
+afu(gar);
