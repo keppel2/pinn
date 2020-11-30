@@ -133,24 +133,10 @@ func (m *mloc) init(fc bool) {
 	m.fc = fc
 }
 
-func (e *emitter) findReg() reg {
-	for k, v := range e.rAlloc[RB:] {
-		if v == "" {
-			return reg(k) + RB
-		}
-	}
-	return e.freeReg()
-}
-
 func moffOff(a int) int {
 	return a * 8
 }
 
-func (e *emitter) storeAll() {
-	for k, _ := range e.rMap {
-		e.toStore(k)
-	}
-}
 func (e *emitter) clearL() {
 	for k, v := range e.rAlloc {
 		_ = v
@@ -263,39 +249,6 @@ func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 
 func offSet(a, b string) string {
 	return fmt.Sprintf("[%v%v%v]", a, OS, b)
-}
-
-func (e *emitter) toStore(id string) {
-	ml := e.rMap[id]
-	if ml.r == IR {
-		return //e.err("")
-	}
-	if ml.i == -1 {
-		if ml.fc {
-			e.pushReg(ml)
-		} else {
-			ml.i = e.moff
-			e.str(ATeq, ml.r, TBP, moffOff(ml.i))
-			e.moff++
-		}
-	} else {
-
-		if ml.fc {
-			e.str(ATeq, ml.r, TSS, -moffOff(ml.i))
-		} else {
-			e.str(ATeq, ml.r, TBP, moffOff(ml.i))
-		}
-	}
-	e.rAlloc[ml.r] = ""
-	ml.r = IR
-}
-
-func (e *emitter) freeReg() reg {
-	k := rand.Intn(int(RMAX + 1 - RB))
-	k += int(RB)
-	s := e.rAlloc[k]
-	e.toStore(s)
-	return reg(k)
 }
 
 func (e emitter) dString() string {
@@ -543,53 +496,6 @@ func (e *emitter) storeId(v string, r reg) {
 
 }
 
-func (e *emitter) forceReg(v string, r reg) {
-	if _, ok := e.rMap[v]; ok {
-		e.err(v)
-	}
-	if e.rAlloc[r] != "" {
-		e.err(v)
-	}
-	e.rAlloc[r] = v
-	ml := new(mloc)
-	ml.init(e.fc)
-	if !e.fc {
-		e.err("")
-	}
-	ml.r = r
-	e.pushReg(ml)
-	e.rMap[v] = ml
-
-}
-
-func (e *emitter) fillReg(s string, create bool) reg {
-	ml, ok := e.rMap[s]
-	if ok && ml.r != IR {
-		//    e.rAlloc[ml.r] = ""
-		//    ml.r = IR
-		return ml.r
-	}
-	if !ok && !create {
-		e.err(s)
-	}
-	k := e.findReg()
-	e.rAlloc[k] = s
-	if !ok {
-		ml = new(mloc)
-		ml.init(e.fc)
-		ml.r = k
-		e.rMap[s] = ml
-	} else {
-		if ml.fc {
-			e.ldr(ATeq, k, TSS, -moffOff(ml.i))
-		} else {
-			e.ldr(ATeq, k, TBP, moffOff(ml.i))
-		}
-		ml.r = k
-	}
-	return k
-}
-
 func makeRC(a regOrConst, pref bool) string {
 	if a2, ok := a.(reg); ok {
 		return makeReg(a2)
@@ -775,22 +681,6 @@ func (e *emitter) mov(a regi, b regOrConst) {
 	//	e.emit("mov", makeReg(a.(reg)), sb)//.(reg)), sb)
 }
 
-func (e *emitter) regLoad(ex Expr) reg {
-	var rt reg
-	switch t := ex.(type) {
-	case *NumberExpr:
-		e.mov(TR1, e.atoi(t.Il.Value))
-		rt = TR1
-	case *VarExpr:
-		i := e.fillReg(t.Wl.Value, false)
-		rt = i
-	default:
-		e.err("")
-	}
-	return rt
-
-}
-
 func (e *emitter) doOp(dest, b reg, op string) {
 	switch op {
 	case "+":
@@ -808,14 +698,9 @@ func (e *emitter) doOp(dest, b reg, op string) {
 	case "%":
 		e.rem(dest, b)
 		return
-	}
-	switch op {
-	case "%":
-		return
 	default:
 		e.err(op)
 	}
-
 }
 
 func localCond(a string) string {
@@ -846,8 +731,7 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 	} else if be.op == "&&" {
 		e.condExpr(dest, be.LHS.(*BinaryExpr))
 		e.condExpr(dest, be.RHS.(*BinaryExpr))
-	}
-	if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
+	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR4, be.LHS)
 		e.assignToReg(TR2, be.RHS)
 		e.cmp(TR4, TR2)
@@ -870,6 +754,8 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		}
 		e.br(branch(dest), bi)
 		return
+	} else {
+		e.err(be.op)
 	}
 
 }
@@ -1064,7 +950,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
-	e.storeAll()
 	e.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
