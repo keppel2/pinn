@@ -47,7 +47,7 @@ func contains(s []string, t string) bool {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
-	case "-", "+", "!", "@", "#", "range":
+	case "-", "+", "!", "@", "#", "range", "*", "&":
 		ue := new(UnaryExpr)
 		ue.Init(p.p)
 		ue.op = p.tok
@@ -351,7 +351,7 @@ func (p *parser) stmt() Stmt {
 	case "loop":
 		rt = p.loopStmt()
 
-	case "literal", "name", "(": //, "-", "+":
+	case "literal", "name", "(", "-": //, "-", "+":
 		rt = p.assignOrExprStmt()
 		p.want(";")
 	case "{":
