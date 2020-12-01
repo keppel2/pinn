@@ -835,7 +835,8 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.binaryExpr(r, t2)
 	case *UnaryExpr:
 		e.assignToReg(r, t2.E)
-		e.mul(r, -1)
+		e.mov(TR11, -1)
+		e.mul(r, TR11)
 	case *TrinaryExpr:
 		lab := e.clab()
 		lab2 := e.clab()
