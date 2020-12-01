@@ -1,5 +1,6 @@
 i := 0;
-pi := &i;
-*pi = 10;
+var par [2]int;
+par[1] = &i;
+*par[1] = 10;
 print(i);
 

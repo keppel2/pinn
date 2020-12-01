@@ -1,24 +1,2 @@
-func f() {
-ar := [2, 5, 10];
 i := 0;
 
-var headp int;
-var curp int;
-
-for i = 0; i < 3; i++ {
-  var node [2]int;
-  node[0] = ar[i];
-  if i == 0 {
-    headp = &node;
-  } else {
-    curp[1] = &node;
-  }
-  curp = &node;
-}
-
-while headp != 0 {
-  print(*headp);
-  headp = *(headp + 8);
-}
-}
-f();

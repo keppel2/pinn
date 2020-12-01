@@ -103,3 +103,13 @@ func zxf() {
   assert(fx, 0);
 }
 zxf();
+
+si := 2;
+psi := &si;
+*psi = 7;
+assert(si, 7);
+
+var arp [2] int;
+arp[1] = &si;
+*arp[1] = 3;
+assert(si, 3);

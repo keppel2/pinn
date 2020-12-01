@@ -1050,9 +1050,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			if lh2.op != "*" {
 				e.err(lh2.op)
 			}
-			lh3 := lh2.E.(*VarExpr)
+			e.assignToReg(TR3, lh2.E)
 			e.assignToReg(TR2, t.RHSa[0])
-			e.loadId(lh3.Wl.Value, TR3)
 			e.str(ATeq, TR2, TR3)
 		case *VarExpr:
 			id := lh2.Wl.Value
