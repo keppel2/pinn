@@ -104,13 +104,11 @@ type mloc struct {
 	fc  bool
 	i   int
 	len int
-	r   reg
 }
 
 type emitter struct {
 	src     string
 	rMap    map[string]*mloc
-	rAlloc  [LR + 1]string
 	cbranch branch
 	ebranch branch
 	moff    int
@@ -129,7 +127,6 @@ func (m *mloc) String() string {
 }
 
 func (m *mloc) init(fc bool) {
-	m.r = IR
 	m.fc = fc
 }
 
@@ -138,15 +135,9 @@ func moffOff(a int) int {
 }
 
 func (e *emitter) clearL() {
-	for k, v := range e.rAlloc {
-		_ = v
-		e.rAlloc[k] = ""
-	}
 	for k, v := range e.rMap {
 		if v.fc {
 			delete(e.rMap, k)
-		} else {
-			v.r = IR
 		}
 	}
 }
@@ -258,7 +249,7 @@ func offSet(a, b string) string {
 }
 
 func (e emitter) dString() string {
-	return fmt.Sprint(e.st, reflect.TypeOf(e.st))
+	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
 }
 
 func (e *emitter) emit(i string, ops ...string) {
@@ -457,12 +448,6 @@ func (e *emitter) emitPrint() {
 	}
 	e.add(TSP, 17)
 	e.emit("ret")
-}
-
-func (e *emitter) pushReg(m *mloc) {
-	e.soff++
-	m.i = e.soff
-	e.push(m.r)
 }
 
 func (e *emitter) loadId(v string, r reg) {

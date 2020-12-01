@@ -1,4 +1,22 @@
-var ar[2]int;
-var p int;
-ar[0] = 2;
-ar[1] = &nar;
+ar := [2];
+i := 0;
+
+var headp int;
+var curp int;
+
+for i = 0; i < 1; i++ {
+  var node [2]int;
+  node[0] = ar[i];
+  if i == 0 {
+    headp = &node;
+  } else {
+    curp[1] = &node;
+  }
+  curp = &node;
+}
+
+while headp != 0 {
+  print(*headp);
+  headp = *(headp + 8);
+}
+

@@ -1,1 +1,6 @@
-5;
+i := 0;
+loop {
+var ar[2] int;
+i++;
+if i == 2 break;
+}
