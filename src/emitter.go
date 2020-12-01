@@ -841,12 +841,17 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		} else if t2.op == "&" {
 			v := t2.E.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
+			e.mov(r, 0)
 			e.setIndex(r, ml)
 			if ml.fc {
 				e.add(r, TSS)
 			} else {
 				e.add(r, TBP)
 			}
+		} else if t2.op == "*" {
+			v := t2.E.(*VarExpr).Wl.Value
+			e.loadId(v, r)
+			e.ldr(ATeq, r, r)
 		}
 	case *TrinaryExpr:
 		lab := e.clab()
