@@ -170,6 +170,8 @@ func (e *emitter) newVar(s string, k Kind) {
 			e.moff += ml.len
 		}
 		e.rMap[s] = ml
+	default:
+		e.err(s)
 	}
 }
 
@@ -1044,6 +1046,14 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *AssignStmt:
 		lh := t.LHSa[0]
 		switch lh2 := lh.(type) {
+		case *UnaryExpr:
+			if lh2.op != "*" {
+				e.err(lh2.op)
+			}
+			lh3 := lh2.E.(*VarExpr)
+			e.assignToReg(TR2, t.RHSa[0])
+			e.loadId(lh3.Wl.Value, TR3)
+			e.str(ATeq, TR2, TR3)
 		case *VarExpr:
 			id := lh2.Wl.Value
 			if t.Op == ":=" && e.rMap[id] != nil {
@@ -1100,6 +1110,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.rMap[v]
 			e.assignToReg(TR3, lh2.E)
 			e.iStore(TR2, TR3, ml)
+		default:
+			e.err("")
 		}
 
 	case *VarStmt:
