@@ -85,3 +85,21 @@ assert(oo2, 7);
 
 nx := -2;
 assert(nx, -2);
+
+n := 5;
+pn := &n;
+assert(*pn, 5);
+
+var par[3] int;
+par[2] = 7;
+ppar := &par[2];
+assert(*ppar, 7);
+
+var zx int;
+assert(zx, 0);
+
+func zxf() {
+  var fx int;
+  assert(fx, 0);
+}
+zxf();

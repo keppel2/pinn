@@ -1,3 +1,4 @@
-x := 5;
-y := &x;
-print(*y);
+var ar[2]int;
+var p int;
+ar[0] = 2;
+ar[1] = &nar;

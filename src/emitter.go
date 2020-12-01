@@ -154,6 +154,12 @@ func (e *emitter) clearL() {
 func (e *emitter) newVar(s string, k Kind) {
 	switch t := k.(type) {
 	case *SKind:
+		if _, ok := e.rMap[s]; ok {
+			e.err(s)
+		}
+		e.mov(TR2, 0)
+		e.storeId(s, TR2)
+
 	case *ArKind:
 		if _, ok := e.rMap[s]; ok {
 			e.err(s)
@@ -839,18 +845,30 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 			e.mov(TR11, -1)
 			e.mul(r, TR11)
 		} else if t2.op == "&" {
-			v := t2.E.(*VarExpr).Wl.Value
-			ml := e.rMap[v]
-			e.mov(r, 0)
-			e.setIndex(r, ml)
-			if ml.fc {
-				e.add(r, TSS)
-			} else {
-				e.add(r, TBP)
+			switch t3 := t2.E.(type) {
+			case *VarExpr:
+				v := t3.Wl.Value
+				ml := e.rMap[v]
+				e.mov(r, 0)
+				e.setIndex(r, ml)
+				if ml.fc {
+					e.add(r, TSS)
+				} else {
+					e.add(r, TBP)
+				}
+			case *IndexExpr:
+				v := t3.X.(*VarExpr).Wl.Value
+				ml := e.rMap[v]
+				e.assignToReg(r, t3.E)
+				e.setIndex(r, ml)
+				if ml.fc {
+					e.add(r, TSS)
+				} else {
+					e.add(r, TBP)
+				}
 			}
 		} else if t2.op == "*" {
-			v := t2.E.(*VarExpr).Wl.Value
-			e.loadId(v, r)
+			e.assignToReg(r, t2.E)
 			e.ldr(ATeq, r, r)
 		}
 	case *TrinaryExpr:
