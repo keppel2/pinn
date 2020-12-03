@@ -150,6 +150,9 @@ func (e *emitter) newVar(s string, k Kind) {
 		}
 		e.mov(TR2, 0)
 		e.storeId(s, TR2)
+		if t.Wl.Value == "void" {
+			e.rMap[s].len = -1
+		}
 
 	case *ArKind:
 		if _, ok := e.rMap[s]; ok {
@@ -714,6 +717,9 @@ func localCond(a string) string {
 
 func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 	if be.op == "||" {
+		e.condExpr(dest, be.LHS.(*BinaryExpr))
+		e.condExpr(dest, be.RHS.(*BinaryExpr))
+	} else if be.op == "&&" {
 		lab := e.clab()
 		lab2 := e.clab()
 		e.condExpr(lab, be.LHS.(*BinaryExpr))
@@ -721,9 +727,6 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		e.makeLabel(lab)
 		e.condExpr(dest, be.RHS.(*BinaryExpr))
 		e.makeLabel(lab2)
-	} else if be.op == "&&" {
-		e.condExpr(dest, be.LHS.(*BinaryExpr))
-		e.condExpr(dest, be.RHS.(*BinaryExpr))
 	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR4, be.LHS)
 		e.assignToReg(TR2, be.RHS)
@@ -731,17 +734,17 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		bi := ""
 		switch be.op {
 		case "==":
-			bi = "ne"
-		case "!=":
 			bi = "eq"
+		case "!=":
+			bi = "ne"
 		case "<":
-			bi = "ge"
-		case "<=":
-			bi = "gt"
-		case ">":
-			bi = "le"
-		case ">=":
 			bi = "lt"
+		case "<=":
+			bi = "le"
+		case ">":
+			bi = "gt"
+		case ">=":
+			bi = "ge"
 		default:
 			e.err(be.op)
 		}
@@ -861,10 +864,13 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 	case *TrinaryExpr:
 		lab := e.clab()
 		lab2 := e.clab()
+		lab3 := e.clab()
 		e.condExpr(lab, t2.LHS.(*BinaryExpr))
+		e.br(lab3)
+		e.makeLabel(lab)
 		e.assignToReg(r, t2.MS)
 		e.br(lab2)
-		e.makeLabel(lab)
+		e.makeLabel(lab3)
 		e.assignToReg(r, t2.RHS)
 		e.makeLabel(lab2)
 
@@ -875,6 +881,12 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
 		e.assignToReg(r, t2.E)
+		/*
+		   e.cmp(r, ml.len)
+		   e.br(e.AE, "
+		   e.br
+		*/
+
 		e.iLoad(r, r, ml)
 	default:
 		e.err("")
@@ -1000,8 +1012,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.br(e.peekloop()[1])
 	case *LoopStmt:
 		lab := e.clab()
-		e.makeLabel(lab)
 		lab2 := e.clab()
+		e.makeLabel(lab)
 		e.pushloop(lab, lab2)
 		e.emitStmt(t.B)
 		e.br(lab)
@@ -1009,10 +1021,13 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.poploop()
 	case *WhileStmt:
 		lab := e.clab()
-		e.makeLabel(lab)
 		lab2 := e.clab()
+		lab3 := e.clab()
+		e.makeLabel(lab)
 		e.pushloop(lab, lab2)
-		e.condExpr(lab2, t.Cond.(*BinaryExpr))
+		e.condExpr(lab3, t.Cond.(*BinaryExpr))
+		e.br(lab2)
+		e.makeLabel(lab3)
 		e.emitStmt(t.B)
 		e.br(lab)
 		e.makeLabel(lab2)
@@ -1021,14 +1036,20 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *IfStmt:
 		lab := e.clab()
 		if t.Else == nil {
-			e.condExpr(lab, t.Cond.(*BinaryExpr))
+			lab2 := e.clab()
+			e.condExpr(lab2, t.Cond.(*BinaryExpr))
+			e.br(lab)
+			e.makeLabel(lab2)
 			e.emitStmt(t.Then)
 		} else {
 			lab2 := e.clab()
+			lab3 := e.clab()
 			e.condExpr(lab2, t.Cond.(*BinaryExpr))
+			e.br(lab3)
+			e.makeLabel(lab2)
 			e.emitStmt(t.Then)
 			e.br(lab)
-			e.makeLabel(lab2)
+			e.makeLabel(lab3)
 			e.emitStmt(t.Else)
 		}
 		e.makeLabel(lab)
@@ -1125,19 +1146,26 @@ func (e *emitter) emitStmt(s Stmt) {
 		lab := e.clab()
 		lab2 := e.clab()
 		lab3 := e.clab()
+		lab4 := e.clab()
+		lab5 := e.clab()
+		e.makeLabel(lab)
 		e.pushloop(lab, lab2)
 		e.br(lab3)
-		e.makeLabel(lab)
+		e.makeLabel(lab5)
 		if t.Loop != nil {
 			e.emitStmt(t.Loop)
 		}
 		e.makeLabel(lab3)
 
 		if t.E != nil {
-			e.condExpr(lab2, t.E.(*BinaryExpr))
+			e.condExpr(lab4, t.E.(*BinaryExpr))
+		} else {
+			e.br(lab4)
 		}
+		e.br(lab2)
+		e.makeLabel(lab4)
 		e.emitStmt(t.B)
-		e.br(lab)
+		e.br(lab5)
 
 		e.makeLabel(lab2)
 		e.poploop()
