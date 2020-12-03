@@ -381,9 +381,9 @@ func (e *emitter) emitPrint() {
 	if L {
 		e.mov(TR8, int('\n'))
 		e.push(TR8)
-		e.mov(TR1, 1) //SYSCALL
-		e.mov(TR6, 1) //STDOUT
-		e.mov(TR4, 1) //1 byte
+		e.mov(TR1, 0x2000004) //SYSCALL 1 on linux
+		e.mov(TR6, 1)         //STDOUT
+		e.mov(TR4, 1)         //1 byte
 		e.mov(TR5, TSP)
 		e.emit("syscall")
 		e.add(TSP, 8)
@@ -434,7 +434,7 @@ func (e *emitter) emitPrint() {
 	e.br(lab, "ne")
 	e.str(ATeq, TR2, TSP, 1)
 	if L {
-		e.mov(TR1, 1)
+		e.mov(TR1, 0x2000004)
 		e.mov(TR6, 1)
 		e.mov(TR4, 17)
 		e.mov(TR5, TSP)
@@ -1165,8 +1165,8 @@ var didPrint = false
 
 func (e *emitter) emitF() {
 	e.emitDefines()
-	e.src += ".global main\n"
-	e.label("main")
+	e.src += ".global _main\n"
+	e.label("_main")
 	if L {
 		e.emitR("pop", TMAIN)
 		e.emitR("push", TMAIN)
