@@ -216,7 +216,7 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	if m.len == -1 {
-		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, TR11, makeReg(index)))
+		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR11), makeReg(index)))
 		return
 	}
 	if m.fc {
@@ -902,9 +902,8 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.rangeCheck(ml, r)
 		if ml.len == -1 {
 			e.loadId(v, TR11)
-		} else {
-			e.iLoad(r, r, ml)
 		}
+		e.iLoad(r, r, ml)
 	default:
 		e.err("")
 	}
