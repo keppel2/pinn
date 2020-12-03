@@ -1165,12 +1165,14 @@ var didPrint = false
 
 func (e *emitter) emitF() {
 	e.emitDefines()
-	e.src += ".global _main\n"
-	e.label("_main")
 	if L {
+		e.src += ".global _main\n"
+		e.label("_main")
 		e.emitR("pop", TMAIN)
 		e.emitR("push", TMAIN)
 	} else {
+		e.src += ".global main\n"
+		e.label("main")
 		e.mov(TMAIN, LR)
 	}
 	e.mov(TSP, SP)
