@@ -215,6 +215,10 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 }
 
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
+	if m.len == -1 {
+		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, TR11, makeReg(index)))
+		return
+	}
 	if m.fc {
 		if L {
 			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)))
@@ -232,6 +236,10 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	}
 }
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
+	if m.len == -1 {
+		e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR11), makeReg(index)), makeReg(dest))
+		return
+	}
 	if m.fc {
 		if L {
 			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)), makeReg(dest))
@@ -255,6 +263,14 @@ func offSet(a, b string) string {
 
 func (e emitter) dString() string {
 	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
+}
+
+func (e *emitter) rangeCheck(ml *mloc, r regi) {
+	if ml.len == -1 {
+		return
+	}
+	e.cmp(r, ml.len)
+	e.br(e.fexit, "ge")
 }
 
 func (e *emitter) emit(i string, ops ...string) {
@@ -287,6 +303,7 @@ func (e *emitter) init(f *File) {
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
+	e.fexit = e.clab()
 	e.file = f
 }
 
@@ -850,6 +867,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 				v := t3.X.(*VarExpr).Wl.Value
 				ml := e.rMap[v]
 				e.assignToReg(r, t3.E)
+				e.rangeCheck(ml, r)
 				e.setIndex(r, ml)
 				if ml.fc {
 					e.add(r, TSS)
@@ -881,13 +899,12 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
 		e.assignToReg(r, t2.E)
-		/*
-		   e.cmp(r, ml.len)
-		   e.br(e.AE, "
-		   e.br
-		*/
-
-		e.iLoad(r, r, ml)
+		e.rangeCheck(ml, r)
+		if ml.len == -1 {
+			e.loadId(v, TR11)
+		} else {
+			e.iLoad(r, r, ml)
+		}
 	default:
 		e.err("")
 	}
@@ -1129,6 +1146,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 			e.assignToReg(TR3, lh2.E)
+			e.rangeCheck(ml, TR3)
+			e.loadId(v, TR11)
 			e.iStore(TR2, TR3, ml)
 		default:
 			e.err("")
@@ -1226,4 +1245,8 @@ func (e *emitter) emitF() {
 	if didPrint {
 		e.emitPrint()
 	}
+	e.makeLabel(e.fexit)
+	e.mov(TR1, 7)
+	e.emit("ret")
+
 }

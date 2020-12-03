@@ -1,4 +1,5 @@
-i := [1, 5];
 var v void;
-v = &i;
-print(i[5]);
+var ar[2]int;
+ar[1] = 24;
+v = &ar;
+return v[1];
