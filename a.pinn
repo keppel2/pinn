@@ -1,1 +1,53 @@
+var hp void;
+var p void;
+p = hp;
+p = malloc(2);
+p[0] = 2;
+p[1] = malloc(2);
+p = p[1];
+p[0] = 4;
+p[1] = malloc(2);
+p = p[1];
+p[0] = 7;
+p[1] = 0;
+p = hp;
+println();
+while p != 0 {
+  print(p[0]);
+  println();
+  p = p[1];
+}
+
+
+/*
+p = hp;
+
+ar := [2, 4, 7];
+print(len(ar));
+println();
+
+var i int;
+for i = 0; i < len(ar); i++ {
+print(i);print(ar[i]);
+  if i == 0 {
+  p = malloc(2);
+  println();
+  } else {
+  
+    p[1] = malloc(2);
+    p = p[1];
+  }
+  println();
+  print(ar[i]);
+  //p[0] = 5;//ar[i];
+  println();
+}
+*/
+p = hp;
+
+while p != 0 {
+  print(p[0]);
+  println();
+  p = p[1];
+}
 
