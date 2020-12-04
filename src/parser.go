@@ -141,7 +141,7 @@ func (p *parser) fileA() *File {
 		p.next()
 		p.dm[str] = rep
 	}
-	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("assert", 2), p.pseudoF("bad", 0), p.pseudoF("exit", 1))
+	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("assert", 2), p.pseudoF("bad", 0), p.pseudoF("exit", 1), p.pseudoF("malloc", 1), p.pseudoF("len", 1))
 
 	for p.tok != "EOF" {
 		if p.tok == "func" {

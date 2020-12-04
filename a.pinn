@@ -1,6 +1,1 @@
-var v void;
-var ar[2]int;
-ar[1] = 24;
-v = &ar;
-v[1] = 11;
-return ar[1];
+

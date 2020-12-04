@@ -95,4 +95,5 @@ func zxf() {
 }
 zxf();
 
-
+var mar [4]int;
+assert(len(mar), 4);

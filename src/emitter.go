@@ -38,7 +38,7 @@ func (e *emitter) _f() {
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "TR11", "TMAIN", "TBP", "TSP", "TSS"}
+var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "THP", "TMAIN", "TBP", "TSP", "TSS"}
 
 var irs []string = []string{
 	"ax", "bx", "cx", "dx", "si", "di", "bp", "8", "9", "10", "11", "12", "13", "14", "15"}
@@ -56,7 +56,7 @@ const (
 	TR8
 	TR9
 	TR10
-	TR11
+	THP
 	TMAIN
 	TBP
 	TSP
@@ -216,7 +216,7 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	if m.len == -1 {
-		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR11), makeReg(index)))
+		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		return
 	}
 	if m.fc {
@@ -237,7 +237,7 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 }
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	if m.len == -1 {
-		e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR11), makeReg(index)), makeReg(dest))
+		e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		return
 	}
 	if m.fc {
@@ -849,8 +849,8 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 	case *UnaryExpr:
 		if t2.op == "-" {
 			e.assignToReg(r, t2.E)
-			e.mov(TR11, -1)
-			e.mul(r, TR11)
+			e.mov(TR10, -1)
+			e.mul(r, TR10)
 		} else if t2.op == "&" {
 			switch t3 := t2.E.(type) {
 			case *VarExpr:
@@ -901,7 +901,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.assignToReg(r, t2.E)
 		e.rangeCheck(ml, r)
 		if ml.len == -1 {
-			e.loadId(v, TR11)
+			e.loadId(v, TR10)
 		}
 		e.iLoad(r, r, ml)
 	default:
@@ -922,6 +922,18 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	fn := FP + ID
+	if ID == "malloc" {
+		e.mov(TR1, THP)
+		e.assignToReg(TR2, ce.Params[0])
+		e.lsl(TR2, 3)
+		e.add(THP, TR2)
+		return
+	} else if ID == "len" {
+		v := ce.Params[0].(*VarExpr).Wl.Value
+		ml := e.rMap[v]
+		e.mov(TR1, ml.len)
+		return
+	}
 	if ID == "assert" {
 		e.assignToReg(TR2, ce.Params[0])
 		e.assignToReg(TR3, ce.Params[1])
@@ -1146,7 +1158,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.rMap[v]
 			e.assignToReg(TR3, lh2.E)
 			e.rangeCheck(ml, TR3)
-			e.loadId(v, TR11)
+			e.loadId(v, TR10)
 			e.iStore(TR2, TR3, ml)
 		default:
 			e.err("")
@@ -1226,6 +1238,8 @@ func (e *emitter) emitF() {
 	e.mov(TSS, TSP)
 	e.mov(TBP, TSP)
 	e.sub(TBP, 0x10000)
+	e.mov(THP, TBP)
+	e.sub(THP, 0x10000)
 	lab := e.clab()
 	e.ebranch = lab
 	for _, s := range e.file.SList {
