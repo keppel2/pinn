@@ -10,8 +10,9 @@ p[1] = malloc(2);
 p = p[1];
 p[0] = 7;
 p[1] = 0;
-p = hp;
-println();
+print(hp[1]);
+
+/*
 while p != 0 {
   print(p[0]);
   println();
@@ -19,7 +20,6 @@ while p != 0 {
 }
 
 
-/*
 p = hp;
 
 ar := [2, 4, 7];
@@ -37,10 +37,8 @@ print(i);print(ar[i]);
     p[1] = malloc(2);
     p = p[1];
   }
-  println();
-  print(ar[i]);
-  //p[0] = 5;//ar[i];
-  println();
+  p[0] = 5;
+  p[1] = 0;
 }
 */
 p = hp;

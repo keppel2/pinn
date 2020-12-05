@@ -1,6 +1,8 @@
-i := 0;
-var par [2]int;
-par[1] = &i;
-*par[1] = 10;
-print(i);
-
+var i, i2 void;
+i = malloc(2);
+i[0] = 42;
+i[1] = malloc(2);
+i2 = i[1];
+i2[0] = 3;
+print(i[0]);
+print(i2[0]);

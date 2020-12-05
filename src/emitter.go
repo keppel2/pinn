@@ -1237,9 +1237,9 @@ func (e *emitter) emitF() {
 	e.sub(TSP, 0x100)
 	e.mov(TSS, TSP)
 	e.mov(TBP, TSP)
-	e.sub(TBP, 0x10000)
+	e.sub(TBP, 0x1000)
 	e.mov(THP, TBP)
-	e.sub(THP, 0x10000)
+	e.sub(THP, 0x1000)
 	lab := e.clab()
 	e.ebranch = lab
 	for _, s := range e.file.SList {
