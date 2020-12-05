@@ -130,7 +130,7 @@ func (e *emitter) newVar(s string, k Kind) {
 		}
 		ml := new(mloc)
 		ml.init(e.fc)
-		ml.len = e.atoi(t.Len.(*NumberExpr).Il.Value)
+		ml.len = atoi(e, t.Len.(*NumberExpr).Il.Value)
 		if e.fc {
 			e.soff += ml.len
 			ml.i = e.soff
@@ -304,13 +304,12 @@ func makeReg(i regi) string {
 	return fmt.Sprintf("%v%v", RP, i)
 }
 
-func (e *emitter) atoi(s string) int {
+func atoi(e errp, s string) int {
 	x, err := strconv.Atoi(s)
 	if err != nil {
 		e.err(err.Error())
 	}
 	return x
-
 }
 
 func makeConst(i int, pref bool) string {
@@ -753,7 +752,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 				}
 				ml := new(mloc)
 				ml.init(e.fc)
-				plen := e.atoi(ark.Len.(*NumberExpr).Il.Value)
+				plen := atoi(e, ark.Len.(*NumberExpr).Il.Value)
 				e.soff += plen
 				ml.len = plen
 				ml.i = -(f.PSize - e.soff)
@@ -791,7 +790,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 	defer func() { e.st = e.lst }()
 	switch t2 := ex.(type) {
 	case *NumberExpr:
-		e.mov(r, e.atoi(t2.Il.Value))
+		e.mov(r, atoi(e, t2.Il.Value))
 	case *VarExpr:
 		e.loadId(t2.Wl.Value, r)
 	case *BinaryExpr:
@@ -938,7 +937,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		//		e.push(1 + reg(k))
 		kind := fun.getKind(k)
 		if ie, ok := v.(*VarExpr); ok && e.rMap[ie.Wl.Value].len > 0 {
-			if e.atoi(kind.(*ArKind).Len.(*NumberExpr).Il.Value) != e.rMap[ie.Wl.Value].len {
+			if atoi(e, kind.(*ArKind).Len.(*NumberExpr).Il.Value) != e.rMap[ie.Wl.Value].len {
 				e.err(ID)
 			}
 			ml := e.rMap[ie.Wl.Value]

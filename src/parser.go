@@ -3,9 +3,13 @@ package main
 import (
 	"fmt"
 	"io"
-	"strconv"
+	//	"strconv"
 	//	"os"
 )
+
+type errp interface {
+	err(string)
+}
 
 type parser struct {
 	scan
@@ -215,15 +219,6 @@ func (p *parser) typeStmt() *TypeStmt {
 	return ds
 
 }
-func (e *parser) atoi(s string) int {
-	x, err := strconv.Atoi(s)
-	if err != nil {
-		e.err(err.Error())
-	}
-	return x
-
-}
-
 func (p *parser) funcDecl() *FuncDecl {
 	rt := new(FuncDecl)
 	rt.Init(p.p)
@@ -234,7 +229,7 @@ func (p *parser) funcDecl() *FuncDecl {
 		for {
 			vd := p.field()
 			if ark, ok := vd.Kind.(*ArKind); ok {
-				rt.PSize += len(vd.List) * p.atoi(ark.Len.(*NumberExpr).Il.Value)
+				rt.PSize += len(vd.List) * atoi(p, ark.Len.(*NumberExpr).Il.Value)
 			} else {
 				rt.PSize += len(vd.List)
 			}
