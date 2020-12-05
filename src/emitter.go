@@ -70,12 +70,6 @@ const FP = ".f"
 
 var IR reg = -1
 
-type mloc struct {
-	fc  bool
-	i   int
-	len int
-}
-
 type emitter struct {
 	src     string
 	rMap    map[string]*mloc
@@ -90,14 +84,6 @@ type emitter struct {
 	lst     Node
 	st      Node
 	file    *File
-}
-
-func (m *mloc) String() string {
-	return fmt.Sprintf("%#v", m)
-}
-
-func (m *mloc) init(fc bool) {
-	m.fc = fc
 }
 
 func moffOff(a int) int {
