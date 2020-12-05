@@ -30,12 +30,6 @@ type regOrConst interface {
 
 func ff(a reg) {}
 
-/*
-func (e *emitter) _f() {
-	e.mov(5, TR1)
-}
-*/
-
 func (r reg) aReg() {}
 
 var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "THP", "TMAIN", "TBP", "TSP", "TSS"}
@@ -71,34 +65,10 @@ const (
 	XZR
 )
 
-/*
-const (
-	R0 reg = iota
-	R1
-	R2
-	R3
-	R4
-	R5
-	R6
-	R7
-	R8
-)
-*/
-
 const BP = ".br"
 const FP = ".f"
 
-var RB reg = TSS + 1
 var IR reg = -1
-
-/*
-const (
-	MLinvalid = iota
-	MLreg
-	MLstack
-	MLheap
-)
-*/
 
 type mloc struct {
 	fc  bool
@@ -306,17 +276,6 @@ func (e *emitter) init(f *File) {
 	e.fexit = e.clab()
 	e.file = f
 }
-
-/*
-func (e *emitter) varAt(i int) string {
-	for k, v := range e.rMap {
-		if v == i {
-			return k
-		}
-	}
-	return ""
-}
-*/
 
 func (e *emitter) clab() branch {
 	rt := e.cbranch
@@ -683,15 +642,6 @@ func (e *emitter) mov(a regi, b regOrConst) {
 	} else {
 		e.emitR("mov", a, b)
 	}
-	/*
-		a2, ok := a.(reg)
-		if !ok {
-			e.err("")
-		}
-	*/
-
-	//	sb := makeRC(b)
-	//	e.emit("mov", makeReg(a.(reg)), sb)//.(reg)), sb)
 }
 
 func (e *emitter) doOp(dest, b reg, op string) {

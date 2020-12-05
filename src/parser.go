@@ -36,15 +36,6 @@ func (p *parser) want(tok string) {
 	}
 }
 
-func contains(s []string, t string) bool {
-	for _, v := range s {
-		if v == t {
-			return true
-		}
-	}
-	return false
-}
-
 func (p *parser) unaryExpr() Expr {
 	switch p.tok {
 	case "-", "+", "!", "@", "#", "range", "*", "&":
@@ -453,12 +444,9 @@ func (p *parser) exprStmt(LHS Expr) *ExprStmt {
 }
 
 func (p *parser) pexpr(prec int) Expr {
-	//	if p.tok == "+" || p.tok == "-" || p.tok == "/" || p.tok == "*" || p.tok == "%" || p.tok == "<" || p.tok == "<=" || p.tok == ">=" || p.tok == ">" || p.tok == "==" || p.tok == "!=" || p.tok == "&&" || p.tok == "||" || p.tok == ">>" || p.tok == "<<" || p.tok == "&" || p.tok == "|" || p.tok == "^" {
 	rt := p.unaryExpr()
-	//	fmt.Println(prec, p.tok, p.lit, tokenMap[p.tok])
 
 	for tokenMap[p.tok] > prec {
-		//		fmt.Println(p.tok, "in")
 
 		if p.tok == "?" {
 			return p.trinaryExpr(rt)
@@ -478,16 +466,6 @@ func (p *parser) pexpr(prec int) Expr {
 	}
 	return rt
 
-	/*
-
-
-
-		}
-		if p.tok == "?" {
-			return p.trinaryExpr(LHS)
-		}
-		return LHS
-	*/
 }
 
 func (p *parser) uexpr() Expr {
@@ -505,19 +483,6 @@ func (p *parser) trinaryExpr(lhs Expr) Expr {
 	return rt
 }
 
-/*
-func (p *parser) binaryExpr(lhs Expr) Expr {
-	op := p.tok
-	p.next()
-	rt := BinaryExpr{}
-	rt.LHS = lhs
-	rt.op = op
-	rt.RHS = p.uexpr()
-
-	return rt
-}
-*/
-
 func (p *parser) indexExpr(lhs Expr) Expr {
 	p.want("[")
 	rt := new(IndexExpr)
@@ -529,25 +494,6 @@ func (p *parser) indexExpr(lhs Expr) Expr {
 	rt.E = p.uexpr()
 	p.want("]")
 	return rt
-	/*
-
-		if p.tok != ("#") && p.tok != ("@") {
-			rt.Start = p.uexpr()
-			if p.got("]") {
-				return rt
-			}
-		}
-		if p.tok == "@" {
-			rt.Inc = true
-		}
-		p.next()
-		if p.got("]") {
-			return rt
-		}
-		rt.End = p.uexpr()
-		p.want("]")
-		return rt
-	*/
 }
 
 func (p *parser) callExpr(lhs Expr) Expr {
