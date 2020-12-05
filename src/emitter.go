@@ -156,9 +156,6 @@ func (e *emitter) pop(r reg) {
 	e.ldr(ATpost, r, TSP, 8)
 }
 
-func (e *emitter) popx() {
-	e.add(TSP, 8)
-}
 func (e *emitter) pushAll() {
 
 	for i := TR2; i <= TR9; i++ {
@@ -856,7 +853,6 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 	default:
 		e.err("")
 	}
-
 }
 
 func (e *emitter) emitCall(ce *CallExpr) {
@@ -882,8 +878,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		ml := e.rMap[v]
 		e.mov(TR1, ml.len)
 		return
-	}
-	if ID == "assert" {
+	} else if ID == "assert" {
 		e.assignToReg(TR2, ce.Params[0])
 		e.assignToReg(TR3, ce.Params[1])
 		e.cmp(TR2, TR3)
@@ -918,15 +913,11 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		}
 		e.emit("ret")
 		return
-	} else if ID == "print" {
-		fn = ID
-		didPrint = true
-	} else if ID == "println" {
+	} else if ID == "print" || ID == "println" {
 		didPrint = true
 		fn = ID
 	}
 
-	// e.pushP()
 	e.pushAll()
 	e.push(TSS)
 	if !L {
@@ -934,7 +925,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	for k, v := range ce.Params {
-		//		e.push(1 + reg(k))
 		kind := fun.getKind(k)
 		if ie, ok := v.(*VarExpr); ok && e.rMap[ie.Wl.Value].len > 0 {
 			if atoi(e, kind.(*ArKind).Len.(*NumberExpr).Il.Value) != e.rMap[ie.Wl.Value].len {
@@ -952,7 +942,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 					e.err(ID)
 				}
 			}
-
 			e.assignToReg(TR2, v)
 			e.push(TR2)
 		}
