@@ -107,6 +107,7 @@ func (e *emitter) newVar(s string, k Kind) {
 		e.mov(TR2, 0)
 		e.storeId(s, TR2)
 		if t.Wl.Value == "void" {
+			e.rMap[s].mlt = mlVoid
 			e.rMap[s].len = -1
 		}
 
@@ -115,7 +116,7 @@ func (e *emitter) newVar(s string, k Kind) {
 			e.err(s)
 		}
 		ml := new(mloc)
-		ml.init(e.fc)
+		ml.init(e.fc, mlArray)
 		ml.len = atoi(e, t.Len.(*NumberExpr).Il.Value)
 		if e.fc {
 			e.soff += ml.len
@@ -168,7 +169,7 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 }
 
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
-	if m.len == -1 {
+	if m.mlt == mlVoid {
 		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		return
 	}
@@ -189,7 +190,7 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	}
 }
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
-	if m.len == -1 {
+	if m.mlt == mlVoid {
 		e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		return
 	}
@@ -219,7 +220,7 @@ func (e emitter) dString() string {
 }
 
 func (e *emitter) rangeCheck(ml *mloc, r regi) {
-	if ml.len == -1 {
+	if ml.mlt == mlVoid {
 		return
 	}
 	e.cmp(r, ml.len)
@@ -338,7 +339,7 @@ func (e *emitter) err(msg string) {
 }
 
 func (e *emitter) emitPrint() {
-	e.label("println")
+	e.label(FP + "println")
 	if L {
 		e.mov(TR8, int('\n'))
 		e.push(TR8)
@@ -361,7 +362,7 @@ func (e *emitter) emitPrint() {
 		e.emit("ret")
 	}
 
-	e.label("print")
+	e.label(FP + "print")
 	e.mov(TSS, TSP)
 	e.ldr(ATeq, TR5, TSS)
 
@@ -435,7 +436,7 @@ func (e *emitter) storeId(v string, r reg) {
 		}
 	} else {
 		ml := new(mloc)
-		ml.init(e.fc)
+		ml.init(e.fc, mlInt)
 		if ml.fc {
 			e.push(r)
 			e.soff++
@@ -734,7 +735,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 					e.err(vd2.Value)
 				}
 				ml := new(mloc)
-				ml.init(e.fc)
+				ml.init(e.fc, mlArray)
 				plen := atoi(e, ark.Len.(*NumberExpr).Il.Value)
 				e.soff += plen
 				ml.len = plen
@@ -750,7 +751,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 				e.err(vd2.Value)
 			}
 			ml := new(mloc)
-			ml.init(e.fc)
+			ml.init(e.fc, mlInt)
 			e.soff++
 			ml.i = -(f.PSize - e.soff)
 			e.rMap[vd2.Value] = ml
@@ -832,7 +833,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		ml := e.rMap[v]
 		e.assignToReg(r, t2.E)
 		e.rangeCheck(ml, r)
-		if ml.len == -1 {
+		if ml.mlt == mlVoid {
 			e.loadId(v, TR10)
 		}
 		e.iLoad(r, r, ml)
@@ -901,7 +902,6 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		return
 	} else if ID == "print" || ID == "println" {
 		didPrint = true
-		fn = ID
 	}
 
 	e.pushAll()
