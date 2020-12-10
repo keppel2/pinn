@@ -39,6 +39,8 @@ var irs []string = []string{
 var ars []string = []string{
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "19", "20", "21", "22"}
 
+var fmap = make(map[string]func(*emitter, *CallExpr))
+
 const (
 	TR1 reg = iota
 	TR2
@@ -252,6 +254,23 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 func (e *emitter) init(f *File) {
 	if L {
 		RP = "%r"
+	}
+	fmap["assert"] = func(e *emitter, ce *CallExpr) {
+		e.assignToReg(TR2, ce.Params[0])
+		e.assignToReg(TR3, ce.Params[1])
+		e.cmp(TR2, TR3)
+		lab := e.clab()
+		e.br(lab, "eq")
+		ln := e.st.Gpos().Line
+		e.mov(TR1, ln)
+		if L {
+			e.emitR("push", TMAIN)
+		} else {
+			e.mov(LR, TMAIN)
+		}
+		e.emit("ret")
+		e.makeLabel(lab)
+		return
 	}
 	rand.Seed(42)
 	e.rMap = make(map[string]*mloc)
@@ -866,20 +885,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		e.mov(TR1, ml.len)
 		return
 	} else if ID == "assert" {
-		e.assignToReg(TR2, ce.Params[0])
-		e.assignToReg(TR3, ce.Params[1])
-		e.cmp(TR2, TR3)
-		lab := e.clab()
-		e.br(lab, "eq")
-		ln := e.st.Gpos().Line
-		e.mov(TR1, ln)
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
-		e.makeLabel(lab)
+		fmap["assert"](e, ce)
 		return
 	} else if ID == "bad" {
 		ln := e.st.Gpos().Line
