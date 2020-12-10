@@ -1,0 +1,20 @@
+egoF := 42;
+
+var em [4] int;
+
+func score(ems [4]int) int {
+  var i int;
+  rt := 0;
+  for i = 0; i < len(ems); i++ {
+    rt += ems[i] + egoF;
+  }
+  return rt;
+}
+var x int;
+for x = 0; x < len(em); x++ {
+  em[x] = x;
+}
+
+
+print(score(em));
+
