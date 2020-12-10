@@ -172,7 +172,12 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
-		e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
+		if L {
+			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
+		} else {
+			e.lsl(index, 3)
+			e.str(ATeq, dest, TR10, index)
+		}
 		return
 	}
 	if m.fc {
@@ -193,7 +198,12 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 }
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
-		e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
+		if L {
+			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
+		} else {
+			e.lsl(index, 3)
+			e.ldr(ATeq, dest, TR10, index)
+		}
 		return
 	}
 	if m.fc {
