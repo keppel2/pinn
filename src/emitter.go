@@ -251,11 +251,11 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 	e.emit(i, sa...)
 }
 
-func (e *emitter) init(f *File) {
-	if L {
-		RP = "%r"
-	}
+func init() {
 	fmap["assert"] = func(e *emitter, ce *CallExpr) {
+		if len(ce.Params) != 2 {
+			e.err("")
+		}
 		e.assignToReg(TR2, ce.Params[0])
 		e.assignToReg(TR3, ce.Params[1])
 		e.cmp(TR2, TR3)
@@ -270,7 +270,59 @@ func (e *emitter) init(f *File) {
 		}
 		e.emit("ret")
 		e.makeLabel(lab)
-		return
+	}
+	fmap["malloc"] = func(e *emitter, ce *CallExpr) {
+		if len(ce.Params) != 1 {
+			e.err("")
+		}
+		e.mov(TR1, THP)
+		e.assignToReg(TR2, ce.Params[0])
+		e.lsl(TR2, 3)
+		e.add(THP, TR2)
+	}
+	fmap["bad"] = func(e *emitter, ce *CallExpr) {
+		if len(ce.Params) != 0 {
+			e.err("")
+		}
+		ln := e.st.Gpos().Line
+		e.mov(TR1, ln)
+		if L {
+			e.emitR("push", TMAIN)
+		} else {
+			e.mov(LR, TMAIN)
+		}
+		e.emit("ret")
+	}
+
+	fmap["len"] = func(e *emitter, ce *CallExpr) {
+
+		if len(ce.Params) != 1 {
+			e.err("")
+		}
+		v := ce.Params[0].(*VarExpr).Wl.Value
+		ml := e.rMap[v]
+		e.mov(TR1, ml.len)
+	}
+	fmap["exit"] = func(e *emitter, ce *CallExpr) {
+
+		if len(ce.Params) != 1 {
+			e.err("")
+		}
+		e.assignToReg(TR1, ce.Params[0])
+		if L {
+			e.emitR("push", TMAIN)
+		} else {
+			e.mov(LR, TMAIN)
+		}
+		e.emit("ret")
+
+	}
+
+}
+
+func (e *emitter) init(f *File) {
+	if L {
+		RP = "%r"
 	}
 	rand.Seed(42)
 	e.rMap = make(map[string]*mloc)
@@ -864,50 +916,21 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 func (e *emitter) emitCall(ce *CallExpr) {
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
+	if ff, ok := fmap[ID]; ok {
+		ff(e, ce)
+		return
+	}
+
+	if ID == "print" || ID == "println" {
+		didPrint = true
+	}
+	fn := FP + ID
 	fun := e.file.getFunc(ID)
 	if fun == nil {
 		e.err(ID)
 	}
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
-	}
-
-	fn := FP + ID
-	if ID == "malloc" {
-		e.mov(TR1, THP)
-		e.assignToReg(TR2, ce.Params[0])
-		e.lsl(TR2, 3)
-		e.add(THP, TR2)
-		return
-	} else if ID == "len" {
-		v := ce.Params[0].(*VarExpr).Wl.Value
-		ml := e.rMap[v]
-		e.mov(TR1, ml.len)
-		return
-	} else if ID == "assert" {
-		fmap["assert"](e, ce)
-		return
-	} else if ID == "bad" {
-		ln := e.st.Gpos().Line
-		e.mov(TR1, ln)
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
-		return
-	} else if ID == "exit" {
-		e.assignToReg(TR1, ce.Params[0])
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
-		return
-	} else if ID == "print" || ID == "println" {
-		didPrint = true
 	}
 
 	e.pushAll()

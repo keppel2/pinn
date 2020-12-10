@@ -136,7 +136,7 @@ func (p *parser) fileA() *File {
 		p.next()
 		p.dm[str] = rep
 	}
-	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("assert", 2), p.pseudoF("bad", 0), p.pseudoF("exit", 1), p.pseudoF("malloc", 1), p.pseudoF("len", 1))
+	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0))
 
 	for p.tok != "EOF" {
 		if p.tok == "func" {
@@ -224,6 +224,9 @@ func (p *parser) funcDecl() *FuncDecl {
 	rt.Init(p.p)
 	p.want("func")
 	rt.Wl = p.wLit()
+	if fmap[rt.Wl.Value] != nil {
+		p.err(rt.Wl.Value)
+	}
 	p.want("(")
 	if !p.got(")") {
 		for {
