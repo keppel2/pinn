@@ -32,6 +32,15 @@ vp = malloc(1);
 *vp = 8;
 assert(*vp, 8);
 
+func fcf() {
+var vp2 void;
+vp2 = malloc(1);
+*vp2 = 8;
+assert(*vp2, 8);
+
+
+}
+
 var i int;
 var hp, p void;
 

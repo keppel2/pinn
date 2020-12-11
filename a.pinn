@@ -1,8 +1,0 @@
-//ar := 1@4;
-//ar2 := [1,2,3,4];
-//x := malloc(3);
-//print(*x);
-var v void;
-v = malloc(1);
-*v = 5;
-print(*v);
