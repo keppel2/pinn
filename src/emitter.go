@@ -950,7 +950,10 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	for k, v := range ce.Params {
-		kind := fun.getKind(k)
+		var kind Kind
+		if len(fun.NTlist) != 0 {
+			kind = fun.NTlist[k].K
+		}
 		if ie, ok := v.(*VarExpr); ok && e.rMap[ie.Wl.Value].len > 0 {
 			if atoi(e, kind.(*ArKind).Len.(*NumberExpr).Il.Value) != e.rMap[ie.Wl.Value].len {
 				e.err(ID)
