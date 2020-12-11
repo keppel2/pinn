@@ -1109,16 +1109,16 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.mov(TR10, TR3)
 				e.sub(TR10, TR2)
 				e.add(TR10, 1)
-				e.lsl(TR3, 3)
-				e.add(THP, TR3)
-				e.lsr(TR3, 3)
-				e.storeId(id, TR10)
+				e.lsl(TR10, 3)
+				e.add(THP, TR10)
+				e.mov(TR10, 0)
 				lab := e.clab()
 				e.makeLabel(lab)
-				e.iStore(TR10, TR2, e.rMap[id])
+				e.iStore(TR2, TR10, e.rMap[id])
+				e.add(TR10, 1)
 				e.add(TR2, 1)
 				e.cmp(TR2, TR3)
-				e.br(lab, "gt")
+				e.br(lab, "le")
 				return
 			}
 			if ae, ok := t.RHSa[0].(*CallExpr); t.Op == ":=" && ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
