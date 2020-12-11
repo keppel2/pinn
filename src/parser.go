@@ -511,24 +511,9 @@ func (p *parser) callExpr(lhs Expr) Expr {
 	return rt
 }
 
-func (p *parser) iLit() *ILit {
-	il := new(ILit)
-	il.Init(p.p)
-	il.Position = p.p
-	if p.tok != "literal" {
-		p.err("")
-	}
-	il.Value = p.lit
-	p.next()
-	return il
-
-}
 func (p *parser) wLit() *WLit {
 	wl := new(WLit)
 	wl.Init(p.p)
-	if p.tok != "name" {
-		p.err("")
-	}
 	wl.Value = p.lit
 	p.next()
 	return wl
@@ -541,7 +526,7 @@ func (p *parser) varExpr() Expr {
 	if rep, ok := p.dm[w]; ok {
 		nrt := new(NumberExpr)
 		nrt.Init(p.p)
-		il := new(ILit)
+		il := new(WLit)
 		il.Init(p.p)
 		il.Value = rep
 		nrt.Il = il
@@ -559,7 +544,7 @@ func (p *parser) numberExpr() Expr {
 	ne := new(NumberExpr)
 	ne.Init(p.p)
 
-	ne.Il = p.iLit()
+	ne.Il = p.wLit()
 	return ne
 
 }

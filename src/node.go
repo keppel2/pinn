@@ -125,13 +125,8 @@ type WLit struct {
 	lit
 }
 
-type ILit struct {
-	Value string
-	lit
-}
-
 type NumberExpr struct {
-	Il *ILit
+	Il *WLit
 	expr
 }
 

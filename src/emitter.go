@@ -1088,7 +1088,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				k := new(ArKind)
 				k.Init(e.st.Gpos())
 				aLen := new(NumberExpr)
-				aLen.Il = new(ILit)
+				aLen.Il = new(WLit)
 				aLen.Il.Value = fmt.Sprint(len(ae.EL))
 				k.Len = aLen
 				e.newVar(id, k)
