@@ -1,76 +1,8 @@
 package main
 
-import "math/rand"
 import "fmt"
 import "reflect"
-import "strconv"
-
-var L = false
-
-var RP = "x"
-
-const OS = ", "
-
-type branch int
-
-func (_ branch) aBranch() {}
-
-type branchi interface {
-	aBranch()
-}
-
-type reg int
-
-type regi interface {
-	aReg()
-}
-
-type regOrConst interface {
-}
-
-func ff(a reg) {}
-
-func (r reg) aReg() {}
-
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "THP", "TMAIN", "TBP", "TSP", "TSS"}
-
-var irs []string = []string{
-	"ax", "bx", "cx", "dx", "si", "di", "bp", "8", "9", "10", "11", "12", "13", "14", "15"}
-var ars []string = []string{
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "19", "20", "21", "22"}
-
-var fmap = make(map[string]func(*emitter, *CallExpr))
-
-const (
-	TR1 reg = iota
-	TR2
-	TR3
-	TR4
-	TR5
-	TR6
-	TR7
-	TR8
-	TR9
-	TR10
-	THP
-	TMAIN
-	TBP
-	TSP
-	TSS
-
-	RMAX
-)
-
-const (
-	LR reg = 30
-	SP reg = LR + 1 + iota
-	XZR
-)
-
-const BP = ".br"
-const FP = ".f"
-
-var IR reg = -1
+import "math/rand"
 
 type emitter struct {
 	src     string
@@ -86,10 +18,6 @@ type emitter struct {
 	lst     Node
 	st      Node
 	file    *File
-}
-
-func moffOff(a int) int {
-	return a * 8
 }
 
 func (e *emitter) clearL() {
@@ -225,11 +153,6 @@ func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 		}
 	}
 }
-
-func offSet(a, b string) string {
-	return fmt.Sprintf("[%v%v%v]", a, OS, b)
-}
-
 func (e emitter) dString() string {
 	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
 }
@@ -263,76 +186,6 @@ func (e *emitter) emitR(i string, ops ...regOrConst) {
 	}
 	e.emit(i, sa...)
 }
-
-func init() {
-	fmap["assert"] = func(e *emitter, ce *CallExpr) {
-		if len(ce.Params) != 2 {
-			e.err("")
-		}
-		e.assignToReg(TR2, ce.Params[0])
-		e.assignToReg(TR3, ce.Params[1])
-		e.cmp(TR2, TR3)
-		lab := e.clab()
-		e.br(lab, "eq")
-		ln := e.st.Gpos().Line
-		e.mov(TR1, ln)
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
-		e.makeLabel(lab)
-	}
-	fmap["malloc"] = func(e *emitter, ce *CallExpr) {
-		if len(ce.Params) != 1 {
-			e.err("")
-		}
-		e.mov(TR1, THP)
-		e.assignToReg(TR2, ce.Params[0])
-		e.lsl(TR2, 3)
-		e.add(THP, TR2)
-	}
-	fmap["bad"] = func(e *emitter, ce *CallExpr) {
-		if len(ce.Params) != 0 {
-			e.err("")
-		}
-		ln := e.st.Gpos().Line
-		e.mov(TR1, ln)
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
-	}
-
-	fmap["len"] = func(e *emitter, ce *CallExpr) {
-
-		if len(ce.Params) != 1 {
-			e.err("")
-		}
-		v := ce.Params[0].(*VarExpr).Wl.Value
-		ml := e.rMap[v]
-		e.mov(TR1, ml.len)
-	}
-	fmap["exit"] = func(e *emitter, ce *CallExpr) {
-
-		if len(ce.Params) != 1 {
-			e.err("")
-		}
-		e.assignToReg(TR1, ce.Params[0])
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
-
-	}
-
-}
-
 func (e *emitter) init(f *File) {
 	if L {
 		RP = "%r"
@@ -350,51 +203,6 @@ func (e *emitter) clab() branch {
 	e.cbranch++
 	return rt
 }
-
-func makeReg(i regi) string {
-	if i.(reg) >= TR1 && i.(reg) <= TSS {
-		return rs[i.(reg)]
-	}
-
-	if i == LR {
-		return "lr"
-	}
-	if i == SP {
-		if L {
-			return RP + "sp"
-		}
-		return "sp"
-	}
-	if i == XZR {
-		return "xzr"
-	}
-
-	return fmt.Sprintf("%v%v", RP, i)
-}
-
-func atoi(e errp, s string) int {
-	x, err := strconv.Atoi(s)
-	if err != nil {
-		e.err(err.Error())
-	}
-	return x
-}
-
-func makeConst(i int, pref bool) string {
-	if L {
-		if pref {
-			return "$" + fmt.Sprint(i)
-		}
-		return fmt.Sprint(i)
-	} else {
-		return fmt.Sprintf("#%v", i)
-	}
-}
-
-func makeBranch(i branchi) string {
-	return fmt.Sprintf("%v%v", BP, i)
-}
-
 func (e *emitter) label(s string) {
 	e.src += s + ":\n"
 }
@@ -542,14 +350,6 @@ func (e *emitter) storeId(v string, r reg) {
 	}
 
 }
-
-func makeRC(a regOrConst, pref bool) string {
-	if a2, ok := a.(reg); ok {
-		return makeReg(a2)
-	}
-	return makeConst(a.(int), pref)
-}
-
 func (e *emitter) br(b branchi, s ...string) {
 	if L {
 		br := "jmp"
@@ -565,16 +365,6 @@ func (e *emitter) br(b branchi, s ...string) {
 	}
 	e.emit(br, makeBranch(b.(branch)))
 }
-
-type atype int
-
-const (
-	ATinvalid atype = iota
-	ATeq
-	ATpre
-	ATpost
-)
-
 func (e *emitter) str(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
 		switch t {
@@ -740,23 +530,6 @@ func (e *emitter) doOp(dest, b reg, op string) {
 		e.err(op)
 	}
 }
-
-func localCond(a string) string {
-	rt := a
-	if L {
-		switch a {
-		case "eq":
-			rt = "e"
-		case "gt":
-			rt = "g"
-		case "lt":
-			rt = "l"
-
-		}
-	}
-	return rt
-}
-
 func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 	if be.op == "||" {
 		e.condExpr(dest, be.LHS.(*BinaryExpr))
@@ -1242,8 +1015,6 @@ func (e *emitter) emitDefines() {
 		}
 	}
 }
-
-var didPrint = false
 
 func (e *emitter) emitF() {
 	e.emitDefines()
