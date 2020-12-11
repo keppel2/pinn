@@ -173,6 +173,7 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
+			e.loadml(m, TR10)
 			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		} else {
 			e.lsl(index, 3)
@@ -202,6 +203,7 @@ func (e *emitter) vLoad(source reg, index reg, m *mloc) {
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
+			e.loadml(m, TR10)
 			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		} else {
 			e.lsl(index, 3)
@@ -506,6 +508,14 @@ func (e *emitter) loadml(ml *mloc, r reg) {
 	}
 }
 
+func (e *emitter) storeml(ml *mloc, r reg) {
+	if ml.fc {
+		e.str(ATeq, r, TSS, -moffOff(ml.i))
+	} else {
+		e.str(ATeq, r, TBP, moffOff(ml.i))
+	}
+}
+
 func (e *emitter) loadId(v string, r reg) {
 	ml, ok := e.rMap[v]
 	if !ok {
@@ -517,11 +527,7 @@ func (e *emitter) loadId(v string, r reg) {
 func (e *emitter) storeId(v string, r reg) {
 	ml, ok := e.rMap[v]
 	if ok {
-		if ml.fc {
-			e.str(ATeq, r, TSS, -moffOff(ml.i))
-		} else {
-			e.str(ATeq, r, TBP, moffOff(ml.i))
-		}
+		e.storeml(ml, r)
 	} else {
 		ml := new(mloc)
 		ml.init(e.fc, mlInt)
@@ -921,10 +927,6 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		ml := e.rMap[v]
 		e.assignToReg(r, t2.E)
 		e.rangeCheck(ml, r)
-		if ml.mlt == mlVoid {
-			//e.vLoad(r, ml)
-			e.loadId(v, TR10)
-		}
 		e.iLoad(r, r, ml)
 	default:
 		e.err("")
@@ -1159,7 +1161,6 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.rMap[v]
 			e.assignToReg(TR3, lh2.E)
 			e.rangeCheck(ml, TR3)
-			e.loadId(v, TR10)
 			e.iStore(TR2, TR3, ml)
 		default:
 			e.err("")
@@ -1173,13 +1174,19 @@ func (e *emitter) emitStmt(s Stmt) {
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
 				if ue, ok := rs.RHSa[0].(*UnaryExpr); ok && ue.op == "range" {
-					/*
-					   id := ue.E.(*VarExpr).Wl.Value
-					   lab := e.clab()
-					   e.mov(TR10, 0)
-					   e.iLoad(
-					*/
-
+					id := ue.E.(*VarExpr).Wl.Value
+					ml := e.rMap[id]
+					if ml.mlt != mlArray {
+						e.err("id")
+					}
+					lab := e.clab()
+					e.mov(TR10, 0)
+					e.iLoad(TR9, TR10, ml)
+					//e.storeId(
+					e.makeLabel(lab)
+					e.add(TR10, 1)
+					e.cmp(TR10, ml.len)
+					e.br(lab, "lt")
 				}
 			}
 
