@@ -198,8 +198,6 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 	}
 }
 
-func (e *emitter) vLoad(source reg, index reg, m *mloc) {
-}
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
@@ -1174,19 +1172,25 @@ func (e *emitter) emitStmt(s Stmt) {
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
 				if ue, ok := rs.RHSa[0].(*UnaryExpr); ok && ue.op == "range" {
+					iter := e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
 					id := ue.E.(*VarExpr).Wl.Value
 					ml := e.rMap[id]
 					if ml.mlt != mlArray {
 						e.err("id")
 					}
 					lab := e.clab()
+					lab2 := e.clab()
+					e.pushloop(lab, lab2)
 					e.mov(TR10, 0)
-					e.iLoad(TR9, TR10, ml)
-					//e.storeId(
 					e.makeLabel(lab)
+					e.iLoad(TR9, TR10, ml)
+					e.storeml(iter, TR9)
+					e.emitStmt(t.B)
 					e.add(TR10, 1)
 					e.cmp(TR10, ml.len)
 					e.br(lab, "lt")
+					e.makeLabel(lab2)
+					return
 				}
 			}
 

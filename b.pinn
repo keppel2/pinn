@@ -1,1 +1,4 @@
-return 5;
+var v void;
+x := 5;
+v = &x;
+return *v;
