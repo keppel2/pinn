@@ -1100,32 +1100,32 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && ae.op == "@" {
-				ml := new(mloc)
-				ml.init(e.fc, mlVoid)
-				e.rMap[id] = ml
-				k := new(ArKind)
-				k.Init(e.st.Gpos())
+				e.mov(TR2, THP)
+				e.storeId(id, TR2)
+				e.rMap[id].mlt = mlVoid
+
 				e.assignToReg(TR2, ae.LHS)
 				e.assignToReg(TR3, ae.RHS)
-				e.sub(TR3, TR2)
-				e.add(TR3, 1)
-				e.mov(TR10, THP)
+				e.mov(TR10, TR3)
+				e.sub(TR10, TR2)
+				e.add(TR10, 1)
 				e.lsl(TR3, 3)
 				e.add(THP, TR3)
 				e.lsr(TR3, 3)
 				e.storeId(id, TR10)
 				lab := e.clab()
 				e.makeLabel(lab)
-				e.iStore(TR10, TR2, ml)
+				e.iStore(TR10, TR2, e.rMap[id])
 				e.add(TR2, 1)
 				e.cmp(TR2, TR3)
 				e.br(lab, "gt")
 				return
 			}
 			if ae, ok := t.RHSa[0].(*CallExpr); t.Op == ":=" && ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
-				ml := new(mloc)
-				ml.init(e.fc, mlVoid)
-				e.rMap[id] = ml
+				e.assignToReg(TR2, t.RHSa[0])
+				e.storeId(id, TR2)
+				e.rMap[id].mlt = mlVoid
+				return
 			}
 
 			e.assignToReg(TR2, t.RHSa[0])

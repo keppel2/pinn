@@ -29,6 +29,9 @@ ar := [2, 5, 7, 8];
 
 var vp void;
 vp = malloc(1);
+vpse := malloc(2);
+vpse[1] = 42;
+assert(vpse[1], 42);
 *vp = 8;
 assert(*vp, 8);
 
@@ -37,6 +40,9 @@ var vp2 void;
 vp2 = malloc(1);
 *vp2 = 8;
 assert(*vp2, 8);
+vpsef := malloc(11);
+vpsef[5] = 101;
+assert(vpsef[5], 101);
 
 
 }
