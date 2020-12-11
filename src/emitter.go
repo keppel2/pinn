@@ -196,6 +196,9 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 		}
 	}
 }
+
+func (e *emitter) vLoad(source reg, index reg, m *mloc) {
+}
 func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
@@ -495,16 +498,20 @@ func (e *emitter) emitPrint() {
 	e.emit("ret")
 }
 
-func (e *emitter) loadId(v string, r reg) {
-	ml, ok := e.rMap[v]
-	if !ok {
-		e.err(v)
-	}
+func (e *emitter) loadml(ml *mloc, r reg) {
 	if ml.fc {
 		e.ldr(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
 		e.ldr(ATeq, r, TBP, moffOff(ml.i))
 	}
+}
+
+func (e *emitter) loadId(v string, r reg) {
+	ml, ok := e.rMap[v]
+	if !ok {
+		e.err(v)
+	}
+	e.loadml(ml, r)
 }
 
 func (e *emitter) storeId(v string, r reg) {
@@ -915,6 +922,7 @@ func (e *emitter) assignToReg(r reg, ex Expr) {
 		e.assignToReg(r, t2.E)
 		e.rangeCheck(ml, r)
 		if ml.mlt == mlVoid {
+			//e.vLoad(r, ml)
 			e.loadId(v, TR10)
 		}
 		e.iLoad(r, r, ml)
@@ -1163,6 +1171,18 @@ func (e *emitter) emitStmt(s Stmt) {
 		}
 	case *ForStmt:
 		if t.Inits != nil {
+			if rs, ok := t.Inits.(*AssignStmt); ok {
+				if ue, ok := rs.RHSa[0].(*UnaryExpr); ok && ue.op == "range" {
+					/*
+					   id := ue.E.(*VarExpr).Wl.Value
+					   lab := e.clab()
+					   e.mov(TR10, 0)
+					   e.iLoad(
+					*/
+
+				}
+			}
+
 			e.emitStmt(t.Inits)
 		}
 

@@ -45,12 +45,14 @@ func visitTypeStmt(n *TypeStmt) {
 }
 func visitForStmt(n *ForStmt) {
 	if n.Inits != nil {
+		prn("init")
 		visitStmt(n.Inits)
 	}
 	if n.E != nil {
 		visitExpr(n.E)
 	}
 	if n.Loop != nil {
+		prn("loop")
 		visitStmt(n.Loop)
 	}
 	visitBlockStmt(n.B)
@@ -130,7 +132,7 @@ func visitUnaryExpr(n *UnaryExpr) {
 	if n.E != nil {
 		visitExpr(n.E)
 	}
-	prn("Uop", n.op)
+	prn("op", n.op)
 }
 
 func visitIndexExpr(n *IndexExpr) {
