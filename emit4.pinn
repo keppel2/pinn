@@ -27,6 +27,11 @@ assert(si, 3);
 
 ar := [2, 5, 7, 8];
 
+var vp void;
+vp = malloc(1);
+*vp = 8;
+assert(*vp, 8);
+
 var i int;
 var hp, p void;
 

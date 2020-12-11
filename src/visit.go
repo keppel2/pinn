@@ -110,7 +110,7 @@ func visitSKind(n *SKind) {
 
 func visitBinaryExpr(n *BinaryExpr) {
 	visitExpr(n.LHS)
-	prn("Op", n.op, ".")
+	prn("op", n.op, ".")
 	visitExpr(n.RHS)
 }
 func visitTrinaryExpr(n *TrinaryExpr) {

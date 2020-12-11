@@ -1098,7 +1098,15 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.iStore(TR2, TR3, e.rMap[id])
 				}
 				return
-
+			}
+			if ae, ok := t.RHSa[0].(*BinaryExpr); ok && ae.op == "@" {
+				k := new(ArKind)
+				k.Init(e.st.Gpos())
+				e.assignToReg(TR2, ae.LHS)
+				e.assignToReg(TR3, ae.RHS)
+				e.sub(TR3, TR2)
+				e.add(TR3, 1)
+				//        e.storeId(
 			}
 
 			e.assignToReg(TR2, t.RHSa[0])
