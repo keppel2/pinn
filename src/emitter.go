@@ -1100,22 +1100,22 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && ae.op == "@" {
-				e.mov(TR2, THP)
-				e.storeId(id, TR2)
+				e.mov(TR10, THP)
+				e.storeId(id, TR10)
 				e.rMap[id].mlt = mlVoid
 
 				e.assignToReg(TR2, ae.LHS)
 				e.assignToReg(TR3, ae.RHS)
-				e.mov(TR10, TR3)
-				e.sub(TR10, TR2)
-				e.add(TR10, 1)
-				e.lsl(TR10, 3)
-				e.add(THP, TR10)
-				e.mov(TR10, 0)
+				e.mov(TR9, TR3)
+				e.sub(TR9, TR2)
+				e.add(TR9, 1)
+				e.lsl(TR9, 3)
+				e.add(THP, TR9)
+				e.mov(TR9, 0)
 				lab := e.clab()
 				e.makeLabel(lab)
-				e.iStore(TR2, TR10, e.rMap[id])
-				e.add(TR10, 1)
+				e.iStore(TR2, TR9, e.rMap[id])
+				e.add(TR9, 1)
 				e.add(TR2, 1)
 				e.cmp(TR2, TR3)
 				e.br(lab, "le")
