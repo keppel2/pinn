@@ -1108,6 +1108,11 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.add(TR3, 1)
 				//        e.storeId(
 			}
+			if ae, ok := t.RHSa[0].(*CallExpr); t.Op == ":=" && ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
+				ml := new(mloc)
+				ml.init(e.fc, mlVoid)
+				e.rMap[id] = ml
+			}
 
 			e.assignToReg(TR2, t.RHSa[0])
 			e.storeId(id, TR2)
