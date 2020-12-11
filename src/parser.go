@@ -113,10 +113,8 @@ func (p *parser) arrayExpr(d bool) *ArrayExpr {
 }
 
 func (p *parser) pseudoF(ID string, count int) *FuncDecl {
-	fd := new(FuncDecl)
-	fd.Init(p.p)
-	wl := new(WLit)
-	wl.Init(p.p)
+	fd := p.newFuncDecl()
+	wl := p.newWLit()
 	wl.Value = ID
 	fd.Wl = wl
 	fd.PCount = count
@@ -219,6 +217,13 @@ func (p *parser) typeStmt() *TypeStmt {
 	return ds
 
 }
+
+func (p *parser) newFuncDecl() *FuncDecl {
+	rt := new(FuncDecl)
+	rt.Init(p.p)
+	return rt
+}
+
 func (p *parser) funcDecl() *FuncDecl {
 	rt := new(FuncDecl)
 	rt.Init(p.p)
@@ -511,9 +516,14 @@ func (p *parser) callExpr(lhs Expr) Expr {
 	return rt
 }
 
+func (p *parser) newWLit() *WLit {
+	rt := new(WLit)
+	rt.Init(p.p)
+	return rt
+}
+
 func (p *parser) wLit() *WLit {
-	wl := new(WLit)
-	wl.Init(p.p)
+	wl := p.newWLit()
 	wl.Value = p.lit
 	p.next()
 	return wl
