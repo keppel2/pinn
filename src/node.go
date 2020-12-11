@@ -216,6 +216,11 @@ type Field struct {
 	node
 }
 
+type NameType struct {
+	N *WLit
+	K Kind
+}
+
 type TypeStmt struct {
 	Wl *WLit
 	stmt
@@ -225,11 +230,32 @@ type TypeStmt struct {
 type FuncDecl struct {
 	Wl     *WLit
 	PList  []*Field
+	NTlist []*NameType
 	PCount int
 	PSize  int
 	K      Kind
 	B      *BlockStmt
 	node
+}
+
+func (fd *FuncDecl) transform() {
+	for _, f := range fd.PList {
+		k := f.Kind
+
+		for _, w := range f.List {
+			nt := new(NameType)
+			nt.K = k
+			nt.N = w
+			fd.NTlist = append(fd.NTlist, nt)
+		}
+		if ark, ok := k.(*ArKind); ok {
+			fd.PSize += len(f.List) * atoi(nil, ark.Len.(*NumberExpr).Il.Value)
+		} else {
+			fd.PSize += len(f.List)
+		}
+
+	}
+	fd.PCount = len(fd.NTlist)
 }
 
 func (fd *FuncDecl) getKind(a int) Kind {

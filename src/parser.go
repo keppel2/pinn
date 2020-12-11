@@ -236,17 +236,10 @@ func (p *parser) funcDecl() *FuncDecl {
 	if !p.got(")") {
 		for {
 			vd := p.field()
-			if ark, ok := vd.Kind.(*ArKind); ok {
-				rt.PSize += len(vd.List) * atoi(p, ark.Len.(*NumberExpr).Il.Value)
-			} else {
-				rt.PSize += len(vd.List)
-			}
-			rt.PCount += len(vd.List)
 			rt.PList = append(rt.PList, vd)
-			if p.got(",") {
-				continue
+			if !p.got(",") {
+				break
 			}
-			break
 		}
 		p.want(")")
 	}
@@ -255,6 +248,7 @@ func (p *parser) funcDecl() *FuncDecl {
 		rt.K = p.kind()
 	}
 	rt.B = p.blockStmt()
+	rt.transform()
 
 	return rt
 }
