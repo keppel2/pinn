@@ -90,12 +90,7 @@ func init() {
 		e.br(lab, "eq")
 		ln := e.st.Gpos().Line
 		e.mov(TR1, ln)
-		if L {
-			e.emitR("push", TMAIN)
-		} else {
-			e.mov(LR, TMAIN)
-		}
-		e.emit("ret")
+		e.emitExit()
 		e.makeLabel(lab)
 	}
 	fmap["malloc"] = func(e *emitter, ce *CallExpr) {
@@ -103,9 +98,10 @@ func init() {
 			e.err("")
 		}
 		e.mov(TR1, THP)
-		e.assignToReg(TR2, ce.Params[0])
-		e.lsl(TR2, 3)
-		e.add(THP, TR2)
+		e.assignToReg(TR3, ce.Params[0])
+		e.mov(TR2, TR3)
+		e.lsl(TR3, 3)
+		e.add(THP, TR3)
 	}
 	fmap["bad"] = func(e *emitter, ce *CallExpr) {
 		if len(ce.Params) != 0 {

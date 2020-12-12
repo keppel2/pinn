@@ -177,12 +177,31 @@ func (e emitter) dString() string {
 	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
 }
 
+func (e *emitter) emitExit() {
+	if L {
+		e.emitR("push", TMAIN)
+	} else {
+		e.mov(LR, TMAIN)
+	}
+	e.emit("ret")
+}
+
 func (e *emitter) rangeCheck(ml *mloc, r regi) {
 	if ml.mlt == mlVoid {
-		return
+		e.mov(TR9, -1)
+		e.iLoad(TR9, TR9, ml)
+		e.cmp(r, TR9)
+	} else {
+		e.cmp(r, ml.len)
 	}
-	e.cmp(r, ml.len)
-	e.br(e.fexit, "ge")
+
+	lab := e.clab()
+	e.br(lab, "lt")
+	ln := e.st.Gpos().Line
+	e.mov(TR1, ln)
+	e.emitExit()
+
+	e.makeLabel(lab)
 }
 
 func (e *emitter) emit(i string, ops ...string) {
@@ -935,10 +954,12 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.br(lab, "le")
 				return
 			}
-			if ae, ok := t.RHSa[0].(*CallExpr); t.Op == ":=" && ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
-				e.assignToReg(TR2, t.RHSa[0])
-				e.storeId(id, TR2)
+			if ae, ok := t.RHSa[0].(*CallExpr); ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
+				e.assignToReg(TR3, t.RHSa[0])
+				e.storeId(id, TR3)
 				e.rMap[id].mlt = mlVoid
+				e.mov(TR3, -1)
+				e.iStore(TR2, TR3, e.rMap[id])
 				return
 			}
 

@@ -25,7 +25,6 @@ arp[1] = &si;
 *arp[1] = 3;
 assert(si, 3);
 
-ar := [2, 5, 7, 8];
 
 var vp void;
 vp = malloc(1);
@@ -47,6 +46,7 @@ assert(vpsef[5], 101);
 
 }
 
+ar := [2, 5, 7, 8];
 var i int;
 var hp, p void;
 
