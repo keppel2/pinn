@@ -1,2 +1,5 @@
 x := 2@4;
-return len(x);
+y := len(x);
+print(3);
+
+return y;//len(x);
