@@ -101,7 +101,7 @@ assert(len(mar), 4);
 ss := 3@5;
 assert(ss[0], 3);
 assert(ss[1], 4);
-assert(ss[2], 5);
+//assert(ss[2], 5);
 
 var rx, k int;
 rar := [5, 7, 187];

@@ -73,6 +73,13 @@ func (e *emitter) pop(r reg) {
 	e.ldr(ATpost, r, TSP, 8)
 }
 
+func (e *emitter) resetRegs() {
+	for i := TR2; i <= TR10; i++ {
+		e.mov(i, 0)
+	}
+
+}
+
 func (e *emitter) pushAll() {
 
 	for i := TR2; i <= TR9; i++ {
@@ -104,6 +111,7 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 			e.loadml(m, TR10)
 			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		} else {
+			e.loadml(m, TR10)
 			e.lsl(index, 3)
 			e.str(ATeq, dest, TR10, index)
 		}
@@ -132,6 +140,7 @@ func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 			e.loadml(m, TR10)
 			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		} else {
+			e.loadml(m, TR10)
 			e.lsl(index, 3)
 			e.ldr(ATeq, dest, TR10, index)
 		}
