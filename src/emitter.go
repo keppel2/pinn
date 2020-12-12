@@ -20,6 +20,13 @@ type emitter struct {
 	file    *File
 }
 
+func (e *emitter) checks() {
+	for k, v := range e.rMap {
+		if !v.check() {
+			e.err(k)
+		}
+	}
+}
 func (e *emitter) clearL() {
 	for k, v := range e.rMap {
 		if v.fc {
@@ -96,7 +103,7 @@ func (e *emitter) popAll() {
 		}
 	}
 }
-func (e *emitter) setIndex(index reg, m *mloc) {
+func (e *emitter) setIndex(index regi, m *mloc) {
 	e.lsl(index, 3)
 	if m.fc {
 		e.sub(index, moffOff(m.i))
@@ -105,16 +112,17 @@ func (e *emitter) setIndex(index reg, m *mloc) {
 	}
 }
 
-func (e *emitter) iStore(dest reg, index reg, m *mloc) {
+func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
+			e.add(index, 1)
 			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		} else {
 			e.loadml(m, TR10)
+			e.add(index, 1)
 			e.lsl(index, 3)
 			e.str(ATeq, dest, TR10, index)
-			e.lsr(index, 3)
 		}
 		return
 	}
@@ -139,9 +147,11 @@ func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
+			e.add(index, 1)
 			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		} else {
 			e.loadml(m, TR10)
+			e.add(index, 1)
 			e.lsl(index, 3)
 			e.ldr(ATeq, dest, TR10, index)
 		}
@@ -640,6 +650,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 
 	e.mov(TSP, TSS)
 	e.emit("ret")
+	e.checks()
 	e.clearL()
 }
 
@@ -905,12 +916,19 @@ func (e *emitter) emitStmt(s Stmt) {
 				if ae.op == "@" {
 					e.add(TR9, 1)
 				}
+
+				e.mov(TR8, -1)
+				e.iStore(TR9, TR8, e.rMap[id]) //len
+
+				e.add(TR9, 1)
 				e.lsl(TR9, 3)
 				e.add(THP, TR9)
 				e.mov(TR9, 0)
 				lab := e.clab()
 				e.makeLabel(lab)
+				e.mov(TR8, TR9)
 				e.iStore(TR2, TR9, e.rMap[id])
+				e.mov(TR9, TR8)
 				e.add(TR9, 1)
 				e.add(TR2, 1)
 				e.cmp(TR2, TR3)
@@ -1064,7 +1082,7 @@ func (e *emitter) emitF() {
 	e.mov(TR1, 0)
 	e.makeLabel(lab)
 	e.emit("ret")
-	e.clearL()
+	e.checks()
 	e.fc = true
 	for _, s := range e.file.FList {
 		if s.B != nil {

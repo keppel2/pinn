@@ -98,10 +98,10 @@ zxf();
 var mar [4]int;
 assert(len(mar), 4);
 
-ss := 3@5;
-assert(ss[0], 3);
-assert(ss[1], 4);
-assert(ss[2], 5);
+ss := 5@7;
+assert(ss[0], 5);
+assert(ss[1], 6);
+assert(ss[2], 7);
 
 ss2 := 7#9;
 assert(ss2[0], 7);

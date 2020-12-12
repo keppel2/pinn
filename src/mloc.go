@@ -16,6 +16,15 @@ type mloc struct {
 	mlt int
 }
 
+func (m *mloc) check() bool {
+	if m.mlt == mlInvalid {
+		return false
+	}
+	if m.mlt == mlInt && m.len != -1 {
+		return false
+	}
+	return true
+}
 func (m *mloc) String() string {
 	return fmt.Sprintf("%#v", m)
 }

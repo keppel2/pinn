@@ -128,6 +128,11 @@ func init() {
 		}
 		v := ce.Params[0].(*VarExpr).Wl.Value
 		ml := e.rMap[v]
+		if ml.mlt == mlVoid {
+			e.mov(TR9, 0)
+			e.iLoad(TR1, TR9, ml)
+			return
+		}
 		e.mov(TR1, ml.len)
 	}
 	fmap["exit"] = func(e *emitter, ce *CallExpr) {
