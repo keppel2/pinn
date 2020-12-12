@@ -114,6 +114,7 @@ func (e *emitter) iStore(dest reg, index reg, m *mloc) {
 			e.loadml(m, TR10)
 			e.lsl(index, 3)
 			e.str(ATeq, dest, TR10, index)
+			e.lsr(index, 3)
 		}
 		return
 	}
