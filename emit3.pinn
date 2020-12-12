@@ -103,6 +103,10 @@ assert(ss[0], 3);
 assert(ss[1], 4);
 assert(ss[2], 5);
 
+ss2 := 7#9;
+assert(ss2[0], 7);
+assert(ss2[1], 8);
+
 var rx, k int;
 rar := [5, 7, 187];
 for k, rx = range rar {

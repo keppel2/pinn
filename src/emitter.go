@@ -893,7 +893,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				}
 				return
 			}
-			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && ae.op == "@" {
+			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == "#" || ae.op == "@") {
 				e.mov(TR10, THP)
 				e.storeId(id, TR10)
 				e.rMap[id].mlt = mlVoid
@@ -902,7 +902,9 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.assignToReg(TR3, ae.RHS)
 				e.mov(TR9, TR3)
 				e.sub(TR9, TR2)
-				e.add(TR9, 1)
+				if ae.op == "@" {
+					e.add(TR9, 1)
+				}
 				e.lsl(TR9, 3)
 				e.add(THP, TR9)
 				e.mov(TR9, 0)
