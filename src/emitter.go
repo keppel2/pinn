@@ -72,11 +72,11 @@ func (e *emitter) newVar(s string, k Kind) {
 	}
 }
 
-func (e *emitter) push(r reg) {
+func (e *emitter) push(r regi) {
 	e.str(ATpre, r, TSP, -8)
 }
 
-func (e *emitter) pop(r reg) {
+func (e *emitter) pop(r regi) {
 	e.ldr(ATpost, r, TSP, 8)
 }
 
@@ -143,7 +143,7 @@ func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 	}
 }
 
-func (e *emitter) iLoad(dest reg, index reg, m *mloc) {
+func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
@@ -326,7 +326,7 @@ func (e *emitter) emitPrint() {
 	e.emit("ret")
 }
 
-func (e *emitter) loadml(ml *mloc, r reg) {
+func (e *emitter) loadml(ml *mloc, r regi) {
 	if ml.fc {
 		e.ldr(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
@@ -334,7 +334,7 @@ func (e *emitter) loadml(ml *mloc, r reg) {
 	}
 }
 
-func (e *emitter) storeml(ml *mloc, r reg) {
+func (e *emitter) storeml(ml *mloc, r regi) {
 	if ml.fc {
 		e.str(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
@@ -342,7 +342,7 @@ func (e *emitter) storeml(ml *mloc, r reg) {
 	}
 }
 
-func (e *emitter) loadId(v string, r reg) {
+func (e *emitter) loadId(v string, r regi) {
 	ml, ok := e.rMap[v]
 	if !ok {
 		e.err(v)
@@ -350,7 +350,7 @@ func (e *emitter) loadId(v string, r reg) {
 	e.loadml(ml, r)
 }
 
-func (e *emitter) storeId(v string, r reg) {
+func (e *emitter) storeId(v string, r regi) {
 	ml, ok := e.rMap[v]
 	if ok {
 		e.storeml(ml, r)
@@ -529,7 +529,7 @@ func (e *emitter) mov(a regi, b regOrConst) {
 	}
 }
 
-func (e *emitter) doOp(dest, b reg, op string) {
+func (e *emitter) doOp(dest, b regi, op string) {
 	switch op {
 	case "+":
 		e.add(dest, b)
@@ -591,7 +591,7 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 
 }
 
-func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
+func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
 	_, okL := be.LHS.(*BinaryExpr)
 	_, okR := be.RHS.(*BinaryExpr)
 	var first, second Expr
@@ -604,8 +604,8 @@ func (e *emitter) binaryExpr(dest reg, be *BinaryExpr) {
 	}
 
 	e.assignToReg(dest, first)
-	e.assignToReg(dest+1, second)
-	e.doOp(dest, dest+1, be.op)
+	e.assignToReg(dest.(reg)+1, second)
+	e.doOp(dest, dest.(reg)+1, be.op)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -654,7 +654,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.clearL()
 }
 
-func (e *emitter) assignToReg(r reg, ex Expr) {
+func (e *emitter) assignToReg(r regi, ex Expr) {
 	e.lst = e.st
 	e.st = ex
 	defer func() { e.st = e.lst }()
@@ -920,7 +920,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.mov(TR8, -1)
 				e.iStore(TR9, TR8, e.rMap[id]) //len
 
-				e.add(TR9, 1)
+				e.add(TR9, 1) // Add len at start
 				e.lsl(TR9, 3)
 				e.add(THP, TR9)
 				e.mov(TR9, 0)
