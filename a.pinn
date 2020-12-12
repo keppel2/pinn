@@ -1,5 +1,8 @@
 var x int;
 ar := [2, 4];
-for x = range ar {
+var k int;
+for k, x = range ar {
+  print(k);
   print(x);
+  println();
 }

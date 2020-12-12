@@ -945,7 +945,13 @@ func (e *emitter) emitStmt(s Stmt) {
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
 				if ue, ok := rs.RHSa[0].(*UnaryExpr); ok && ue.op == "range" {
-					iter := e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
+					var iter, key *mloc
+					if len(rs.LHSa) == 2 {
+						key = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
+						iter = e.rMap[rs.LHSa[1].(*VarExpr).Wl.Value]
+					} else {
+						iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
+					}
 					id := ue.E.(*VarExpr).Wl.Value
 					ml := e.rMap[id]
 					if ml.mlt != mlArray {
@@ -956,6 +962,9 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.pushloop(lab, lab2)
 					e.mov(TR10, 0)
 					e.makeLabel(lab)
+					if key != nil {
+						e.storeml(key, TR10)
+					}
 					e.iLoad(TR9, TR10, ml)
 					e.storeml(iter, TR9)
 					e.emitStmt(t.B)

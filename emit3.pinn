@@ -103,9 +103,8 @@ assert(ss[0], 3);
 assert(ss[1], 4);
 assert(ss[2], 5);
 
-var rx int;
+var rx, k int;
 rar := [5, 7, 187];
-for x = range rar {
-  assert(x, 5);
-  break;
+for k, rx = range rar {
+  assert(rar[k], rx);
 }
