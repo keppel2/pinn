@@ -3,6 +3,7 @@ package main
 import "fmt"
 import "reflect"
 import "math/rand"
+import "os"
 
 type emitter struct {
 	src     string
@@ -277,8 +278,9 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
-
-	panic(fmt.Sprintln(msg, e.dString(), e.src))
+	ms := fmt.Sprintln(e.src, "\n", msg, "\n", e.dString())
+	fmt.Fprintln(os.Stderr, ms)
+	panic("")
 }
 
 func (e *emitter) emitPrint() {
@@ -384,6 +386,9 @@ func (e *emitter) loadId(v string, r regi) {
 func (e *emitter) storeId(v string, r regi) {
 	ml, ok := e.rMap[v]
 	if ok {
+		if ml.mlt != mlInt {
+			// e.err(v)
+		}
 		e.storeml(ml, r)
 	} else {
 		ml := new(mloc)

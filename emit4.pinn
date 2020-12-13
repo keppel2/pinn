@@ -28,6 +28,7 @@ assert(si, 3);
 
 var vp void;
 vp = malloc(1);
+assert(len(vp), 1);
 vpse := malloc(2);
 vpse[1] = 42;
 assert(vpse[1], 42);
