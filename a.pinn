@@ -1,6 +1,5 @@
-var ar [3]int;
 var v int;
-v = ar;
-var i int;
-i = 5;
-i = [10, 20];
+for v = range [8,5,4] {
+}
+var z int;
+z = 3;

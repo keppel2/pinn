@@ -109,7 +109,12 @@ assert(ss2[0], 7);
 assert(ss2[1], 8);
 
 var rx, k int;
-rar := [5, 7, 187];
+rar := [15, 7, 187];
 for k, rx = range rar {
   assert(rar[k], rx);
+}
+for k, rx = range [12, 32, 187] {
+  assert(k, 0);
+  assert(rx, 12);
+  break;
 }

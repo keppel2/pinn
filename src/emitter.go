@@ -37,15 +37,32 @@ func (e *emitter) clearL() {
 }
 
 func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
-	ml := new(mloc)
-	ml.init(e.fc, mlArray)
-	ml.len = len(ae.EL)
+	ml := e.newArml(len(ae.EL))
 	for key, expr := range ae.EL {
 		e.assignToReg(TR2, expr)
 		e.mov(TR3, key)
 		e.iStore(TR2, TR3, ml)
 	}
 	return ml
+}
+
+func (e *emitter) newArml(len int) *mloc {
+	ml := new(mloc)
+	ml.init(e.fc, mlArray)
+	ml.len = len //atoi(e, t.Len.(*NumberExpr).Il.Value)
+	if e.fc {
+		e.soff += ml.len
+		ml.i = e.soff
+		for i := 0; i < ml.len; i++ {
+			e.mov(TR2, 0)
+			e.push(TR2)
+		}
+	} else {
+		ml.i = e.moff
+		e.moff += ml.len
+	}
+	return ml
+
 }
 
 func (e *emitter) newVar(s string, k Kind) {
@@ -65,20 +82,7 @@ func (e *emitter) newVar(s string, k Kind) {
 		if _, ok := e.rMap[s]; ok {
 			e.err(s)
 		}
-		ml := new(mloc)
-		ml.init(e.fc, mlArray)
-		ml.len = atoi(e, t.Len.(*NumberExpr).Il.Value)
-		if e.fc {
-			e.soff += ml.len
-			ml.i = e.soff
-			for i := 0; i < ml.len; i++ {
-				e.mov(TR2, 0)
-				e.push(TR2)
-			}
-		} else {
-			ml.i = e.moff
-			e.moff += ml.len
-		}
+		ml := e.newArml(atoi(e, t.Len.(*NumberExpr).Il.Value))
 		e.rMap[s] = ml
 	default:
 		e.err(s)
@@ -392,8 +396,8 @@ func (e *emitter) loadId(v string, r regi) {
 func (e *emitter) storeId(v string, r regi) {
 	ml, ok := e.rMap[v]
 	if ok {
-		if ml.mlt != mlInt {
-			// e.err(v)
+		if ml.mlt == mlArray {
+			e.err(v)
 		}
 		e.storeml(ml, r)
 	} else {
@@ -710,7 +714,10 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 	case *NumberExpr:
 		e.mov(r, atoi(e, t2.Il.Value))
 	case *VarExpr:
-		e.loadId(t2.Wl.Value, r)
+		rt = e.rMap[t2.Wl.Value]
+		if rt.mlt != mlArray {
+			e.loadId(t2.Wl.Value, r)
+		}
 	case *BinaryExpr:
 		e.binaryExpr(r, t2)
 	case *UnaryExpr:
@@ -983,9 +990,11 @@ func (e *emitter) emitStmt(s Stmt) {
 
 			ml := e.assignToReg(TR2, t.RHSa[0])
 			if ml.mlt == mlArray {
+				if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
+					e.err(id)
+				}
 				e.rMap[id] = ml
 				return
-
 			}
 
 			e.storeId(id, TR2)
@@ -1028,15 +1037,7 @@ func (e *emitter) emitStmt(s Stmt) {
 						iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
 					}
 					var ml *mloc
-					if ae, ok := ue.E.(*ArrayExpr); ok {
-						ml = e.emitArrayExpr(ae)
-					} else {
-						id := ue.E.(*VarExpr).Wl.Value
-						ml = e.rMap[id]
-						if ml.mlt != mlArray {
-							e.err(id)
-						}
-					}
+					ml = e.assignToReg(IR, ue.E)
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)

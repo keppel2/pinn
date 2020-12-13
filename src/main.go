@@ -18,7 +18,6 @@ func f2() {
 }
 
 func main() {
-	//	fmt.Println(os.Args)
 	if len(os.Args) <= 1 {
 		os.Exit(1)
 	}

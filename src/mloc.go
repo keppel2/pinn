@@ -3,17 +3,50 @@ package main
 import "fmt"
 
 const (
-	mlInvalid = iota
+	mlInvalid mltt = iota
 	mlVoid
 	mlArray
 	mlInt
+	mlSlice
 )
+
+type mltt int
 
 type mloc struct {
 	fc  bool
 	i   int
 	len int
-	mlt int
+	mlt mltt
+}
+
+func (ml *mloc) String() string {
+	rt := "G"
+	if ml.fc {
+		rt = "L"
+	}
+	ap := ""
+	if ml.mlt == mlArray {
+		ap = fmt.Sprintf("[%v]", ml.len)
+	}
+	rt = fmt.Sprintf("%v%v%v%v", rt, ml.i, ap, ml.mlt)
+	return rt
+
+}
+
+func (m mltt) String() string {
+	switch m {
+	case mlInvalid:
+		return "X"
+	case mlVoid:
+		return "V"
+	case mlArray:
+		return "A"
+	case mlInt:
+		return "I"
+	case mlSlice:
+		return "S"
+	}
+	return "oth"
 }
 
 func (m *mloc) typeOk(a *mloc) bool {
@@ -37,11 +70,8 @@ func (m *mloc) check() bool {
 	}
 	return true
 }
-func (m *mloc) String() string {
-	return fmt.Sprintf("%#v", m)
-}
 
-func (m *mloc) init(fc bool, mlt int) {
+func (m *mloc) init(fc bool, mlt mltt) {
 	m.fc = fc
 	m.mlt = mlt
 	m.i, m.len = -1, -1
