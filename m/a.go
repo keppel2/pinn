@@ -1,10 +1,10 @@
 package main
 
-import "fmt"
+//import "fmt"
 
 
 
 func main() {
-  var x []int
-  fmt.Println(len(x))
+  ar := []int{2, 4}
+  _ = ar
 }

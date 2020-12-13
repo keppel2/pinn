@@ -1006,7 +1006,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					id := ue.E.(*VarExpr).Wl.Value
 					ml := e.rMap[id]
 					if ml.mlt != mlArray {
-						e.err("id")
+						e.err(id)
 					}
 					lab := e.clab()
 					lab2 := e.clab()

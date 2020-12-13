@@ -1,6 +1,1 @@
-ss := 5@7;
-print(len(ss));
-assert(ss[0], 5);
-assert(ss[1], 6);
-assert(ss[2], 7);
-assert(len(ss), 3);
+[2, 7, 10];
