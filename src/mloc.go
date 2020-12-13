@@ -16,6 +16,18 @@ type mloc struct {
 	mlt int
 }
 
+func (m *mloc) typeOk(a *mloc) bool {
+	if m.fc != a.fc {
+		return false
+	}
+	if m.mlt != a.mlt {
+		return false
+	}
+	if m.mlt == mlArray {
+		return m.len == a.len
+	}
+	return true
+}
 func (m *mloc) check() bool {
 	if m.mlt == mlInvalid {
 		return false

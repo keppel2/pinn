@@ -63,6 +63,7 @@ const (
 	LR reg = 30
 	SP reg = LR + 1 + iota
 	XZR
+	NR
 )
 
 const BP = ".br"

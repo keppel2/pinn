@@ -278,7 +278,7 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
-	ms := fmt.Sprintln(e.src, "\n", msg, "\n", e.dString())
+	ms := fmt.Sprintln(e.src, "\n,msg,", msg, "\n", e.dString())
 	fmt.Fprintln(os.Stderr, ms)
 	panic("")
 }
@@ -360,6 +360,9 @@ func (e *emitter) emitPrint() {
 }
 
 func (e *emitter) loadml(ml *mloc, r regi) {
+	if ml.mlt == mlArray {
+		e.err(fmt.Sprint(ml.mlt))
+	}
 	if ml.fc {
 		e.ldr(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
@@ -368,6 +371,9 @@ func (e *emitter) loadml(ml *mloc, r regi) {
 }
 
 func (e *emitter) storeml(ml *mloc, r regi) {
+	if ml.mlt == mlArray {
+		e.err("")
+	}
 	if ml.fc {
 		e.str(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
@@ -690,11 +696,17 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.clearL()
 }
 
-func (e *emitter) assignToReg(r regi, ex Expr) {
+func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
+	var rt *mloc
+	rt = new(mloc)
+	rt.init(e.fc, mlInt)
 	e.lst = e.st
 	e.st = ex
 	defer func() { e.st = e.lst }()
 	switch t2 := ex.(type) {
+	case *ArrayExpr:
+		rt = e.emitArrayExpr(t2)
+		return rt
 	case *NumberExpr:
 		e.mov(r, atoi(e, t2.Il.Value))
 	case *VarExpr:
@@ -741,10 +753,13 @@ func (e *emitter) assignToReg(r regi, ex Expr) {
 		e.condExpr(lab, t2.LHS.(*BinaryExpr))
 		e.br(lab3)
 		e.makeLabel(lab)
-		e.assignToReg(r, t2.MS)
+		rt = e.assignToReg(r, t2.MS)
 		e.br(lab2)
 		e.makeLabel(lab3)
-		e.assignToReg(r, t2.RHS)
+		rt2 := e.assignToReg(r, t2.RHS)
+		if !rt.typeOk(rt2) {
+			e.err("")
+		}
 		e.makeLabel(lab2)
 
 	case *CallExpr:
@@ -759,6 +774,7 @@ func (e *emitter) assignToReg(r regi, ex Expr) {
 	default:
 		e.err("")
 	}
+	return rt
 }
 
 func (e *emitter) emitCall(ce *CallExpr) {
@@ -925,11 +941,6 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.storeId(id, TR2)
 				return
 			}
-			if ae, ok := t.RHSa[0].(*ArrayExpr); ok {
-				ml := e.emitArrayExpr(ae)
-				e.rMap[id] = ml
-				return
-			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == "#" || ae.op == "@") {
 				e.mov(TR10, THP)
 				e.storeId(id, TR10)
@@ -970,7 +981,13 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 
-			e.assignToReg(TR2, t.RHSa[0])
+			ml := e.assignToReg(TR2, t.RHSa[0])
+			if ml.mlt == mlArray {
+				e.rMap[id] = ml
+				return
+
+			}
+
 			e.storeId(id, TR2)
 
 		case *IndexExpr:

@@ -1,1 +1,6 @@
-sdf;
+var ar [3]int;
+var v int;
+v = ar;
+var i int;
+i = 5;
+i = [10, 20];
