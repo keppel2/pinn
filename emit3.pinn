@@ -95,8 +95,11 @@ func zxf() {
 }
 zxf();
 
-var mar [4]int;
-assert(len(mar), 4);
+var mar [3]int;
+assert(len(mar), 3);
+assert(mar[0], 0);
+assert(mar[1], 0);
+assert(mar[2], 0);
 
 ss := 5@7;
 assert(ss[0], 5);

@@ -46,6 +46,19 @@ func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
 	return ml
 }
 
+func (e *emitter) newIntml() *mloc {
+	ml := new(mloc)
+	ml.init(e.fc, mlInt)
+	if ml.fc {
+		e.soff++
+		ml.i = e.soff
+	} else {
+		ml.i = e.moff
+		e.moff++
+	}
+	return ml
+}
+
 func (e *emitter) newArml(len int) *mloc {
 	ml := new(mloc)
 	ml.init(e.fc, mlArray)
@@ -53,36 +66,51 @@ func (e *emitter) newArml(len int) *mloc {
 	if e.fc {
 		e.soff += ml.len
 		ml.i = e.soff
+		e.mov(TR2, 0)
 		for i := 0; i < ml.len; i++ {
-			e.mov(TR2, 0)
 			e.push(TR2)
 		}
 	} else {
 		ml.i = e.moff
 		e.moff += ml.len
+		e.mov(TR2, 0)
+		for i := 0; i < ml.len; i++ {
+			e.mov(TR3, i)
+
+			e.iStore(TR2, TR3, ml)
+		}
 	}
 	return ml
 
 }
 
 func (e *emitter) newVar(s string, k Kind) {
+
+	if _, ok := e.rMap[s]; ok {
+		e.err(s)
+	}
 	switch t := k.(type) {
 	case *SKind:
-		if _, ok := e.rMap[s]; ok {
-			e.err(s)
-		}
+		ml := e.newIntml()
+		e.rMap[s] = ml
 		e.mov(TR2, 0)
-		e.storeId(s, TR2)
+		e.storeml(ml, TR2)
 		if t.Wl.Value == "void" {
 			e.rMap[s].mlt = mlVoid
 			e.rMap[s].len = -1
 		}
 
 	case *ArKind:
-		if _, ok := e.rMap[s]; ok {
-			e.err(s)
-		}
 		ml := e.newArml(atoi(e, t.Len.(*NumberExpr).Il.Value))
+		e.rMap[s] = ml
+	case *SlKind:
+		ml := e.newIntml()
+		ml.init(e.fc, mlSlice)
+		ml2 := e.newIntml()
+		ml.len = ml2.i
+		e.mov(TR2, 0)
+		e.storeml(ml2, TR2)
+		e.storeml(ml, TR2)
 		e.rMap[s] = ml
 	default:
 		e.err(s)
@@ -393,27 +421,21 @@ func (e *emitter) loadId(v string, r regi) {
 	e.loadml(ml, r)
 }
 
+func (e *emitter) storeInt(v string, r regi) {
+}
+
 func (e *emitter) storeId(v string, r regi) {
 	ml, ok := e.rMap[v]
 	if ok {
 		if ml.mlt == mlArray {
 			e.err(v)
 		}
-		e.storeml(ml, r)
 	} else {
-		ml := new(mloc)
-		ml.init(e.fc, mlInt)
-		if ml.fc {
-			e.push(r)
-			e.soff++
-			ml.i = e.soff
-		} else {
-			ml.i = e.moff
-			e.str(ATeq, r, TBP, moffOff(ml.i))
-			e.moff++
-		}
+		ml = e.newIntml()
 		e.rMap[v] = ml
 	}
+
+	e.storeml(ml, r)
 
 }
 func (e *emitter) br(b branchi, s ...string) {
@@ -989,6 +1011,23 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 
 			ml := e.assignToReg(TR2, t.RHSa[0])
+			if e.rMap[id] != nil && e.rMap[id].mlt == mlSlice {
+				eml := e.rMap[id]
+				tml := e.newIntml()
+				tml.init(eml.fc, mlInt)
+				tml.i = eml.len
+				e.mov(TR2, ml.len)
+				e.storeml(tml, TR2)
+				e.mov(TR2, 0)
+				e.setIndex(TR2, ml)
+				if eml.fc {
+					e.add(TR2, TSS)
+				} else {
+					//        e.add(, TBP)
+				}
+				e.storeml(eml, TR2)
+				return
+			}
 			if ml.mlt == mlArray {
 				if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
 					e.err(id)

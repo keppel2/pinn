@@ -1,5 +1,2 @@
 var v int;
-for v = range [8,5,4] {
-}
-var z int;
-z = 3;
+var v int;
