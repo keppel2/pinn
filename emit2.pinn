@@ -91,6 +91,7 @@ fgmm();
 assert(gmm, 2);
 
 
+lar := [7, 187];
 
 g := 3;
 func far() {
@@ -101,3 +102,5 @@ g--;
 assert(nar[1], x);
 }
 far();
+
+assert(lar[0], 7);

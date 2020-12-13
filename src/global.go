@@ -169,11 +169,11 @@ func makeReg(i regi) string {
 }
 
 func atoi(e errp, s string) int {
-	x, err := strconv.Atoi(s)
+	x, err := strconv.ParseInt(s, 0, 0)
 	if err != nil {
 		e.err(err.Error())
 	}
-	return x
+	return int(x)
 }
 
 func makeConst(i int, pref bool) string {

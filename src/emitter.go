@@ -35,6 +35,18 @@ func (e *emitter) clearL() {
 	}
 }
 
+func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
+	ml := new(mloc)
+	ml.init(e.fc, mlArray)
+	ml.len = len(ae.EL)
+	for key, expr := range ae.EL {
+		e.assignToReg(TR2, expr)
+		e.mov(TR3, key)
+		e.iStore(TR2, TR3, ml)
+	}
+	return ml
+}
+
 func (e *emitter) newVar(s string, k Kind) {
 	switch t := k.(type) {
 	case *SKind:
@@ -909,18 +921,8 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			if ae, ok := t.RHSa[0].(*ArrayExpr); ok {
-				k := new(ArKind)
-				k.Init(e.st.Gpos())
-				aLen := new(NumberExpr)
-				aLen.Il = new(WLit)
-				aLen.Il.Value = fmt.Sprint(len(ae.EL))
-				k.Len = aLen
-				e.newVar(id, k)
-				for key, expr := range ae.EL {
-					e.assignToReg(TR2, expr)
-					e.mov(TR3, key)
-					e.iStore(TR2, TR3, e.rMap[id])
-				}
+				ml := e.emitArrayExpr(ae)
+				e.rMap[id] = ml
 				return
 			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == "#" || ae.op == "@") {
@@ -1003,10 +1005,15 @@ func (e *emitter) emitStmt(s Stmt) {
 					} else {
 						iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
 					}
-					id := ue.E.(*VarExpr).Wl.Value
-					ml := e.rMap[id]
-					if ml.mlt != mlArray {
-						e.err(id)
+					var ml *mloc
+					if ae, ok := ue.E.(*ArrayExpr); ok {
+						ml = e.emitArrayExpr(ae)
+					} else {
+						id := ue.E.(*VarExpr).Wl.Value
+						ml = e.rMap[id]
+						if ml.mlt != mlArray {
+							e.err(id)
+						}
 					}
 					lab := e.clab()
 					lab2 := e.clab()
