@@ -1,2 +1,3 @@
-a := 0x176;
-print(a);
+ar := [1, 10];
+ar = 7;
+return ar;
