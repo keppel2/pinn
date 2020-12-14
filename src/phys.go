@@ -154,14 +154,23 @@ func (p *phys) br(b branchi, s ...string) {
 func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printchar")
 	if L {
-		p.ldr(ATeq, TR8, TSP)
-		p.push(TR8)
+		lab := ugly.clab()
+		lab2 := ugly.clab()
+		p.mov(TSS, TSP)
+		p.makeLabel(lab)
+		p.ldr(ATeq, TR2, TSS)
+		p.cmp(TR2, 0)
+		p.br(lab2, "eq")
+		p.add(TSS, 8)
+
 		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
 		p.mov(TR6, 1)         //STDOUT
 		p.mov(TR4, 1)         //1 byte
-		p.mov(TR5, TSP)
+		p.mov(TR5, TSS)
 		p.emit("syscall")
-		p.add(TSP, 8)
+		p.br(lab)
+		p.makeLabel(lab2)
+		p.mov(TSP, TSS)
 		p.emit("ret")
 	} else {
 		p.ldr(ATeq, TR8, TSP)

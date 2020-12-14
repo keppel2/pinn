@@ -1,13 +1,4 @@
-func np(i int) {
-  if i < 0 {
-    printchar("-");
-    print(-i);
-  } else {
-    print(i);
-  }
-}
+printchar("string");
+printchar("string");
+printchar("string");
 
-x := 5 - 4 - 3 - 2 - 1;
-np(x);
-x = 5 - (4 - (3 - (2 - 1)));
-np(x);

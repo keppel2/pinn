@@ -552,6 +552,16 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	for k, v := range ce.Params {
+		if v, ok := v.(*StringExpr); ok {
+			e.p.add(TSP, 8*(len(v.W.Value)+1))
+			for _, r := range v.W.Value {
+				e.p.mov(TR2, int(r))
+				e.p.push(TR2)
+			}
+			//    e.p.mov(TR2, 0)
+			//   e.p.push(TR2)
+			break
+		}
 		var kind Kind
 		if len(fun.NTlist) != 0 {
 			kind = fun.NTlist[k].K
