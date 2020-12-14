@@ -1,18 +1,12 @@
 package main
 
 import "fmt"
+import "strings"
 
 
 
 func main() {
-str := `
-sdfj
-`
-  for _, r := range str {
-    if r != '\n' {
-    fmt.Printf("printchar(\"%v\");", string(r))
-    } else {
-    fmt.Println("println();")
-    }
-  }
+  var b strings.Builder
+  b.WriteString("ignit")
+  fmt.Printf("%v", b)
 }

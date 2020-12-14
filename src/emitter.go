@@ -910,5 +910,4 @@ func (e *emitter) emitF() {
 	e.p.makeLabel(e.fexit)
 	e.p.mov(TR1, 7)
 	e.p.emit("ret")
-
 }
