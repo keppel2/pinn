@@ -303,20 +303,21 @@ func (e *emitter) loadId(v string, r regi) {
 }
 
 func (e *emitter) storeInt(v string, r regi) {
+	ml, ok := e.rMap[v]
+	if !ok {
+		e.err(v)
+	}
+	e.storeml(ml, r)
 }
 
 func (e *emitter) storeId(v string, r regi) {
 	ml, ok := e.rMap[v]
-	if ok {
-		if ml.mlt == mlArray {
-			e.err(v)
-		}
-	} else {
+	if !ok {
 		ml = e.newIntml()
 		e.rMap[v] = ml
 	}
 
-	e.storeml(ml, r)
+	e.storeInt(v, r)
 
 }
 func (e *emitter) doOp(dest, b regi, op string) {
@@ -689,7 +690,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.p.mov(TR3, 1)
 				}
 				e.doOp(TR2, TR3, t.Op[0:1])
-				e.storeId(id, TR2)
+				e.storeInt(id, TR2)
 				return
 			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == "#" || ae.op == "@") {
