@@ -31,6 +31,10 @@ func (p *phys) label(s string) {
 	p.padd(s + ":\n")
 }
 
+func (p *phys) flabel(s string) {
+	p.label(fmake(s))
+}
+
 func (p *phys) makeLabel(i branchi) {
 	p.label(fmt.Sprintf("%v%v", BP, i))
 }
@@ -147,7 +151,7 @@ func (p *phys) br(b branchi, s ...string) {
 }
 
 func (p *phys) emitPrint(ugly *emitter) {
-	p.label(FP + "println")
+	p.flabel("println")
 	if L {
 		p.mov(TR8, int('\n'))
 		p.push(TR8)
@@ -170,7 +174,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.emit("ret")
 	}
 
-	p.label(FP + "print")
+	p.flabel("print")
 	p.mov(TSS, TSP)
 	p.ldr(ATeq, TR5, TSS)
 

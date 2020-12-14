@@ -71,6 +71,9 @@ const FP = ".f"
 
 var IR reg = -1
 
+func fmake(s string) string {
+	return FP + s
+}
 func moffOff(a int) int {
 	return a * 8
 }

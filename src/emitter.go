@@ -400,7 +400,7 @@ func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
-	e.p.label(FP + f.Wl.Value)
+	e.p.flabel(f.Wl.Value)
 	e.soff = 0
 	e.p.mov(TSS, TSP)
 	for _, field := range f.PList {
@@ -540,7 +540,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	if ID == "print" || ID == "println" {
 		didPrint = true
 	}
-	fn := FP + ID
+	fn := fmake(ID)
 	fun := e.file.getFunc(ID)
 	if fun == nil {
 		e.err(ID)
