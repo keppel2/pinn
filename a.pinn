@@ -1,2 +1,13 @@
-return 5;
+func np(i int) {
+  if i < 0 {
+    printchar("-");
+    print(-i);
+  } else {
+    print(i);
+  }
+}
 
+x := 3 - 2 - 1;
+np(x);
+x = 3 - (2 - 1);
+np(x);

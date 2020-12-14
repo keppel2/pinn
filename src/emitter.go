@@ -385,8 +385,9 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
 	_, okL := be.LHS.(*BinaryExpr)
 	_, okR := be.RHS.(*BinaryExpr)
+	_, _ = okL, okR
 	var first, second Expr
-	if okR && !okL {
+	if false { //okR && !okL {
 		first = be.RHS
 		second = be.LHS
 	} else {
