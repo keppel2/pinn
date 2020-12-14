@@ -383,21 +383,14 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 }
 
 func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
-	_, okL := be.LHS.(*BinaryExpr)
-	_, okR := be.RHS.(*BinaryExpr)
-	_, _ = okL, okR
-	var first, second Expr
-	if false { //okR && !okL {
-		first = be.RHS
-		second = be.LHS
-	} else {
-		first = be.LHS
-		second = be.RHS
-	}
+	lmlL := e.newIntml()
 
-	e.assignToReg(dest, first)
-	e.assignToReg(dest.(reg)+1, second)
-	e.doOp(dest, dest.(reg)+1, be.op)
+	e.assignToReg(TR2, be.LHS)
+	e.storeml(lmlL, TR2)
+	e.assignToReg(TR3, be.RHS)
+	e.loadml(lmlL, TR2)
+	e.doOp(TR2, TR3, be.op)
+	e.p.mov(dest, TR2)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
