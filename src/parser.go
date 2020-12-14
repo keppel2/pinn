@@ -85,7 +85,13 @@ func (p *parser) operand() Expr {
 	case "name":
 		return p.varExpr()
 	case "literal":
-		return p.numberExpr()
+		if p.scan.kind == StringLit {
+			return p.stringExpr()
+		} else if p.scan.kind == IntLit {
+			return p.numberExpr()
+		} else {
+			p.err(p.tok)
+		}
 	case "(":
 		p.want("(")
 		e := p.uexpr()
@@ -134,7 +140,7 @@ func (p *parser) fileA() *File {
 		p.next()
 		p.dm[str] = rep
 	}
-	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0))
+	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("printchar", 1))
 
 	for p.tok != "EOF" {
 		if p.tok == "func" {
@@ -543,7 +549,18 @@ func (p *parser) varExpr() Expr {
 	}
 	return rt
 }
+func (p *parser) stringExpr() Expr {
+	ne := new(StringExpr)
+	ne.Init(p.p)
+	ne.W = p.wLit()
 
+	str := ne.W.Value
+	str = str[1 : len(str)-1]
+	ne.W.Value = str
+
+	return ne
+
+}
 func (p *parser) numberExpr() Expr {
 	ne := new(NumberExpr)
 	ne.Init(p.p)

@@ -267,7 +267,7 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
-	ms := fmt.Sprintln(e.p.src, "\n,msg,", msg, "\n", e.dString())
+	ms := fmt.Sprintln(e.p.sb, "\n,msg,", msg, "\n", e.dString())
 	fmt.Fprintln(os.Stderr, ms)
 	panic("")
 }
@@ -458,6 +458,8 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 		return rt
 	case *NumberExpr:
 		e.p.mov(r, atoi(e, t2.Il.Value))
+	case *StringExpr:
+		e.p.mov(r, int(t2.W.Value[0]))
 	case *VarExpr:
 		rt = e.rMap[t2.Wl.Value]
 		if rt.mlt != mlArray {
@@ -537,7 +539,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 		return
 	}
 
-	if ID == "print" || ID == "println" {
+	if ID == "print" || ID == "println" || ID == "printchar" {
 		didPrint = true
 	}
 	fn := fmake(ID)

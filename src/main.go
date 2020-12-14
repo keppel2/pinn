@@ -57,7 +57,7 @@ func main() {
 	e := emitter{}
 	e.init(f)
 	e.emitF()
-	fmt.Println(e.p.src)
+	fmt.Println(e.p.sb.String())
 	return
 
 }

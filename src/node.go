@@ -125,6 +125,11 @@ type WLit struct {
 	lit
 }
 
+type StringExpr struct {
+	W *WLit
+	expr
+}
+
 type NumberExpr struct {
 	Il *WLit
 	expr

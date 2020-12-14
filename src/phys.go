@@ -1,17 +1,18 @@
 package main
 
 import "fmt"
+import "strings"
 
 type phys struct {
-	src string
+	sb strings.Builder
 }
 
 func (p *phys) init() {
-	p.src = "//phys\n"
+	p.sb.WriteString("//phys\n")
 }
 
 func (p *phys) padd(i string) {
-	p.src += i
+	p.sb.WriteString(i)
 }
 
 func (p *phys) emit(i string, ops ...string) {
@@ -151,6 +152,29 @@ func (p *phys) br(b branchi, s ...string) {
 }
 
 func (p *phys) emitPrint(ugly *emitter) {
+	p.flabel("printchar")
+	if L {
+		p.ldr(ATeq, TR8, TSP)
+		p.push(TR8)
+		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
+		p.mov(TR6, 1)         //STDOUT
+		p.mov(TR4, 1)         //1 byte
+		p.mov(TR5, TSP)
+		p.emit("syscall")
+		p.add(TSP, 8)
+		p.emit("ret")
+	} else {
+		p.ldr(ATeq, TR8, TSP)
+		p.push(TR8)
+		p.mov(TR1, 1)
+		p.mov(TR2, TSP)
+		p.mov(TR3, 1)
+		p.mov(TR9, 64)
+		p.emitR("svc", 0)
+		p.add(TSP, 8)
+		p.emit("ret")
+	}
+
 	p.flabel("println")
 	if L {
 		p.mov(TR8, int('\n'))
@@ -176,7 +200,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 
 	p.flabel("print")
 	p.mov(TSS, TSP)
-	p.ldr(ATeq, TR5, TSS)
+	p.ldr(ATeq, TR5, TSP)
 
 	p.sub(TSP, 17)
 	p.mov(TR3, int(','))
@@ -222,7 +246,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR9, 64)
 		p.emitR("svc", 0)
 	}
-	p.add(TSP, 17)
+	p.mov(TSP, TSS)
 	p.emit("ret")
 }
 

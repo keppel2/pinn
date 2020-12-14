@@ -1,10 +1,18 @@
 package main
 
-//import "fmt"
+import "fmt"
 
 
 
 func main() {
-  ar := []int{2, 4}
-  _ = ar
+str := `
+sdfj
+`
+  for _, r := range str {
+    if r != '\n' {
+    fmt.Printf("printchar(\"%v\");", string(r))
+    } else {
+    fmt.Println("println();")
+    }
+  }
 }
