@@ -86,36 +86,36 @@ func init() {
 		}
 		e.assignToReg(TR2, ce.Params[0])
 		e.assignToReg(TR3, ce.Params[1])
-		e.cmp(TR2, TR3)
+		e.p.cmp(TR2, TR3)
 		lab := e.clab()
-		e.br(lab, "eq")
+		e.p.br(lab, "eq")
 		ln := e.st.Gpos().Line
-		e.mov(TR1, ln)
-		e.emitExit()
-		e.makeLabel(lab)
+		e.p.mov(TR1, ln)
+		e.p.emitExit()
+		e.p.makeLabel(lab)
 	}
 	fmap["malloc"] = func(e *emitter, ce *CallExpr) {
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
-		e.mov(TR1, THP)
+		e.p.mov(TR1, THP)
 		e.assignToReg(TR3, ce.Params[0])
-		e.mov(TR2, TR3)
-		e.lsl(TR3, 3)
-		e.add(THP, TR3)
+		e.p.mov(TR2, TR3)
+		e.p.lsl(TR3, 3)
+		e.p.add(THP, TR3)
 	}
 	fmap["bad"] = func(e *emitter, ce *CallExpr) {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
 		ln := e.st.Gpos().Line
-		e.mov(TR1, ln)
+		e.p.mov(TR1, ln)
 		if L {
-			e.emitR("push", TMAIN)
+			e.p.emitR("push", TMAIN)
 		} else {
-			e.mov(LR, TMAIN)
+			e.p.mov(LR, TMAIN)
 		}
-		e.emit("ret")
+		e.p.emit("ret")
 	}
 
 	fmap["len"] = func(e *emitter, ce *CallExpr) {
@@ -126,11 +126,11 @@ func init() {
 		v := ce.Params[0].(*VarExpr).Wl.Value
 		ml := e.rMap[v]
 		if ml.mlt == mlVoid {
-			e.mov(TR9, -1)
+			e.p.mov(TR9, -1)
 			e.iLoad(TR1, TR9, ml)
 			return
 		}
-		e.mov(TR1, ml.len)
+		e.p.mov(TR1, ml.len)
 	}
 	fmap["exit"] = func(e *emitter, ce *CallExpr) {
 
@@ -139,11 +139,11 @@ func init() {
 		}
 		e.assignToReg(TR1, ce.Params[0])
 		if L {
-			e.emitR("push", TMAIN)
+			e.p.emitR("push", TMAIN)
 		} else {
-			e.mov(LR, TMAIN)
+			e.p.mov(LR, TMAIN)
 		}
-		e.emit("ret")
+		e.p.emit("ret")
 
 	}
 

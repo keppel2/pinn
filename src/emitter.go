@@ -6,7 +6,6 @@ import "math/rand"
 import "os"
 
 type emitter struct {
-	src     string
 	rMap    map[string]*mloc
 	cbranch branch
 	ebranch branch
@@ -19,6 +18,7 @@ type emitter struct {
 	lst     Node
 	st      Node
 	file    *File
+	p       *phys
 }
 
 func (e *emitter) checks() {
@@ -40,7 +40,7 @@ func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
 	ml := e.newArml(len(ae.EL))
 	for key, expr := range ae.EL {
 		e.assignToReg(TR2, expr)
-		e.mov(TR3, key)
+		e.p.mov(TR3, key)
 		e.iStore(TR2, TR3, ml)
 	}
 	return ml
@@ -66,16 +66,16 @@ func (e *emitter) newArml(len int) *mloc {
 	if e.fc {
 		e.soff += ml.len
 		ml.i = e.soff
-		e.mov(TR2, 0)
+		e.p.mov(TR2, 0)
 		for i := 0; i < ml.len; i++ {
-			e.push(TR2)
+			e.p.push(TR2)
 		}
 	} else {
 		ml.i = e.moff
 		e.moff += ml.len
-		e.mov(TR2, 0)
+		e.p.mov(TR2, 0)
 		for i := 0; i < ml.len; i++ {
-			e.mov(TR3, i)
+			e.p.mov(TR3, i)
 
 			e.iStore(TR2, TR3, ml)
 		}
@@ -93,7 +93,7 @@ func (e *emitter) newVar(s string, k Kind) {
 	case *SKind:
 		ml := e.newIntml()
 		e.rMap[s] = ml
-		e.mov(TR2, 0)
+		e.p.mov(TR2, 0)
 		e.storeml(ml, TR2)
 		if t.Wl.Value == "void" {
 			e.rMap[s].mlt = mlVoid
@@ -108,7 +108,7 @@ func (e *emitter) newVar(s string, k Kind) {
 		ml.init(e.fc, mlSlice)
 		ml2 := e.newIntml()
 		ml.len = ml2.i
-		e.mov(TR2, 0)
+		e.p.mov(TR2, 0)
 		e.storeml(ml2, TR2)
 		e.storeml(ml, TR2)
 		e.rMap[s] = ml
@@ -117,17 +117,9 @@ func (e *emitter) newVar(s string, k Kind) {
 	}
 }
 
-func (e *emitter) push(r regi) {
-	e.str(ATpre, r, TSP, -8)
-}
-
-func (e *emitter) pop(r regi) {
-	e.ldr(ATpost, r, TSP, 8)
-}
-
 func (e *emitter) resetRegs() {
 	for i := TR2; i <= TR10; i++ {
-		e.mov(i, 0)
+		e.p.mov(i, 0)
 	}
 
 }
@@ -136,7 +128,7 @@ func (e *emitter) pushAll() {
 
 	for i := TR2; i <= TR9; i++ {
 		if i != TSP {
-			e.push(i)
+			e.p.push(i)
 		}
 	}
 
@@ -144,16 +136,16 @@ func (e *emitter) pushAll() {
 func (e *emitter) popAll() {
 	for i := TR9; i >= TR2; i-- {
 		if i != TSP {
-			e.pop(i)
+			e.p.pop(i)
 		}
 	}
 }
 func (e *emitter) setIndex(index regi, m *mloc) {
-	e.lsl(index, 3)
+	e.p.lsl(index, 3)
 	if m.fc {
-		e.sub(index, moffOff(m.i))
+		e.p.sub(index, moffOff(m.i))
 	} else {
-		e.add(index, moffOff(m.i))
+		e.p.add(index, moffOff(m.i))
 	}
 }
 
@@ -161,29 +153,29 @@ func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
-			e.add(index, 1)
-			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
+			e.p.add(index, 1)
+			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		} else {
 			e.loadml(m, TR10)
-			e.add(index, 1)
-			e.lsl(index, 3)
-			e.str(ATeq, dest, TR10, index)
+			e.p.add(index, 1)
+			e.p.lsl(index, 3)
+			e.p.str(ATeq, dest, TR10, index)
 		}
 		return
 	}
 	if m.fc {
 		if L {
-			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)))
+			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)))
 		} else {
 			e.setIndex(index, m)
-			e.str(ATeq, dest, TSS, index)
+			e.p.str(ATeq, dest, TSS, index)
 		}
 	} else {
 		if L {
-			e.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)))
+			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)))
 		} else {
 			e.setIndex(index, m)
-			e.str(ATeq, dest, TBP, index)
+			e.p.str(ATeq, dest, TBP, index)
 		}
 	}
 }
@@ -192,89 +184,61 @@ func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
-			e.add(index, 1)
-			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
+			e.p.add(index, 1)
+			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		} else {
 			e.loadml(m, TR10)
-			e.add(index, 1)
-			e.lsl(index, 3)
-			e.ldr(ATeq, dest, TR10, index)
+			e.p.add(index, 1)
+			e.p.lsl(index, 3)
+			e.p.ldr(ATeq, dest, TR10, index)
 		}
 		return
 	}
 	if m.fc {
 		if L {
-			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)), makeReg(dest))
+			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)), makeReg(dest))
 		} else {
 			e.setIndex(index, m)
-			e.ldr(ATeq, dest, TSS, index)
+			e.p.ldr(ATeq, dest, TSS, index)
 		}
 	} else {
 		if L {
-			e.emit("mov", fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)), makeReg(dest))
+			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)), makeReg(dest))
 		} else {
 			e.setIndex(index, m)
-			e.ldr(ATeq, dest, TBP, index)
+			e.p.ldr(ATeq, dest, TBP, index)
 		}
 	}
 }
-func (e emitter) dString() string {
+func (e *emitter) dString() string {
 	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
-}
-
-func (e *emitter) emitExit() {
-	if L {
-		e.emitR("push", TMAIN)
-	} else {
-		e.mov(LR, TMAIN)
-	}
-	e.emit("ret")
 }
 
 func (e *emitter) rangeCheck(ml *mloc, r regi) {
 	if ml.mlt == mlVoid {
-		e.mov(TR9, -1)
+		e.p.mov(TR9, -1)
 		e.iLoad(TR9, TR9, ml)
-		e.cmp(r, TR9)
+		e.p.cmp(r, TR9)
 	} else {
-		e.cmp(r, ml.len)
+		e.p.cmp(r, ml.len)
 	}
 
 	lab := e.clab()
-	e.br(lab, "lt")
+	e.p.br(lab, "lt")
 	ln := e.st.Gpos().Line
-	e.mov(TR1, ln)
-	e.emitExit()
+	e.p.mov(TR1, ln)
+	e.p.emitExit()
 
-	e.makeLabel(lab)
+	e.p.makeLabel(lab)
 }
 
-func (e *emitter) emit(i string, ops ...string) {
-	const ind = "  "
-	const AM = " "
-	e.src += ind + i + AM
-	if ops != nil {
-		e.src += ops[0]
-		for _, s := range ops[1:] {
-			e.src += OS + s
-		}
-	}
-	e.src += "//" + e.dString() + "\n"
-}
-
-func (e *emitter) emitR(i string, ops ...regOrConst) {
-	sa := []string{}
-	for _, s := range ops {
-
-		sa = append(sa, makeRC(s, true))
-	}
-	e.emit(i, sa...)
-}
 func (e *emitter) init(f *File) {
 	if L {
 		RP = "%r"
 	}
 	rand.Seed(42)
+	e.p = new(phys)
+	e.p.init()
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
@@ -286,13 +250,6 @@ func (e *emitter) clab() branch {
 	rt := e.cbranch
 	e.cbranch++
 	return rt
-}
-func (e *emitter) label(s string) {
-	e.src += s + ":\n"
-}
-
-func (e *emitter) makeLabel(i branchi) {
-	e.label(fmt.Sprintf("%v%v", BP, i))
 }
 
 func (e *emitter) pushloop(a, b branch) {
@@ -310,85 +267,9 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
-	ms := fmt.Sprintln(e.src, "\n,msg,", msg, "\n", e.dString())
+	ms := fmt.Sprintln(e.p.src, "\n,msg,", msg, "\n", e.dString())
 	fmt.Fprintln(os.Stderr, ms)
 	panic("")
-}
-
-func (e *emitter) emitPrint() {
-	e.label(FP + "println")
-	if L {
-		e.mov(TR8, int('\n'))
-		e.push(TR8)
-		e.mov(TR1, 0x2000004) //SYSCALL 1 on linux
-		e.mov(TR6, 1)         //STDOUT
-		e.mov(TR4, 1)         //1 byte
-		e.mov(TR5, TSP)
-		e.emit("syscall")
-		e.add(TSP, 8)
-		e.emit("ret")
-	} else {
-		e.mov(TR1, int('\n'))
-		e.push(TR1)
-		e.mov(TR1, 1)
-		e.mov(TR2, TSP)
-		e.mov(TR3, 1)
-		e.mov(TR9, 64)
-		e.emitR("svc", 0)
-		e.add(TSP, 8)
-		e.emit("ret")
-	}
-
-	e.label(FP + "print")
-	e.mov(TSS, TSP)
-	e.ldr(ATeq, TR5, TSS)
-
-	e.sub(TSP, 17)
-	e.mov(TR3, int(','))
-	e.str(ATeq, TR3, TSP)
-	e.mov(TR2, 0)
-	e.mov(TR3, 0)
-
-	lab := e.clab()
-	lab2 := e.clab()
-	lab3 := e.clab()
-	e.makeLabel(lab)
-	e.mov(TR4, TR5)
-	e.and(TR4, 0xf)
-	e.cmp(TR4, 10)
-	e.br(lab2, "lt")
-	e.add(TR4, int('a'-':'))
-	e.makeLabel(lab2)
-	e.lsr(TR5, 4)
-	e.add(TR4, int('0'))
-	e.lsl(TR2, 8)
-	e.add(TR2, TR4)
-	e.cmp(TR3, 7)
-	e.br(lab3, "ne")
-	e.str(ATeq, TR2, TSP, 9)
-	e.mov(TR2, 0)
-	e.makeLabel(lab3)
-	e.add(TR3, 1)
-	e.cmp(TR3, 16)
-	e.br(lab, "ne")
-	e.str(ATeq, TR2, TSP, 1)
-	if L {
-		e.mov(TR1, 0x2000004)
-		e.mov(TR6, 1)
-		e.mov(TR4, 17)
-		e.mov(TR5, TSP)
-		e.emit("syscall")
-
-	} else {
-
-		e.mov(TR1, 1)
-		e.mov(TR2, TSP)
-		e.mov(TR3, 17)
-		e.mov(TR9, 64)
-		e.emitR("svc", 0)
-	}
-	e.add(TSP, 17)
-	e.emit("ret")
 }
 
 func (e *emitter) loadml(ml *mloc, r regi) {
@@ -396,9 +277,9 @@ func (e *emitter) loadml(ml *mloc, r regi) {
 		e.err(fmt.Sprint(ml.mlt))
 	}
 	if ml.fc {
-		e.ldr(ATeq, r, TSS, -moffOff(ml.i))
+		e.p.ldr(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
-		e.ldr(ATeq, r, TBP, moffOff(ml.i))
+		e.p.ldr(ATeq, r, TBP, moffOff(ml.i))
 	}
 }
 
@@ -407,9 +288,9 @@ func (e *emitter) storeml(ml *mloc, r regi) {
 		e.err("")
 	}
 	if ml.fc {
-		e.str(ATeq, r, TSS, -moffOff(ml.i))
+		e.p.str(ATeq, r, TSS, -moffOff(ml.i))
 	} else {
-		e.str(ATeq, r, TBP, moffOff(ml.i))
+		e.p.str(ATeq, r, TBP, moffOff(ml.i))
 	}
 }
 
@@ -438,181 +319,22 @@ func (e *emitter) storeId(v string, r regi) {
 	e.storeml(ml, r)
 
 }
-func (e *emitter) br(b branchi, s ...string) {
-	if L {
-		br := "jmp"
-		if len(s) == 1 {
-			br = "j" + localCond(s[0])
-		}
-		e.emit(br, makeBranch(b.(branch)))
-		return
-	}
-	br := "b"
-	if len(s) == 1 {
-		br += "." + s[0]
-	}
-	e.emit(br, makeBranch(b.(branch)))
-}
-func (e *emitter) str(t atype, d regi, base regi, offset ...regOrConst) {
-	if len(offset) == 1 {
-		switch t {
-		case ATeq:
-			if L {
-				e.emit("mov", makeReg(d), fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)))
-			} else {
-				e.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
-			}
-
-		case ATpre:
-			if L {
-				e.add(base, offset[0])
-				e.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
-			} else {
-				e.emit("str", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
-			}
-		case ATpost:
-			if L {
-				e.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
-				e.add(base, offset[0])
-			} else {
-				e.emit("str", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
-			}
-		}
-	} else {
-		if L {
-			e.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
-		} else {
-			e.emit("str", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
-		}
-	}
-}
-
-func (e *emitter) ldr(t atype, d regi, base regi, offset ...regOrConst) {
-	if len(offset) == 1 {
-		switch t {
-		case ATeq:
-			if L {
-				e.emit("mov", fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)), makeReg(d))
-			} else {
-				e.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
-			}
-		case ATpre:
-			if L {
-				e.add(base, offset[0])
-				e.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
-			} else {
-				e.emit("ldr", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
-			}
-		case ATpost:
-			if L {
-				e.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
-				e.add(base, offset[0])
-			} else {
-				e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
-			}
-		}
-	} else {
-		if L {
-			e.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
-		} else {
-			e.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
-		}
-	}
-}
-
-func (e *emitter) nativeOp(op string, a regi, b regOrConst) {
-	if L {
-		e.emitR(op, b, a)
-	} else {
-		e.emitR(op, a, a, b)
-	}
-}
-
-func (e *emitter) cmp(a regi, b regOrConst) {
-	if L {
-		e.emitR("cmpq", b, a)
-	} else {
-		e.emitR("cmp", a, b)
-	}
-}
-
-func (e *emitter) sub(a regi, b regOrConst) {
-	e.nativeOp("sub", a, b)
-}
-func (e *emitter) add(a regi, b regOrConst) {
-	e.nativeOp("add", a, b)
-}
-func (e *emitter) mul(a regi, b regOrConst) {
-	if L {
-		e.nativeOp("imul", a, b)
-	} else {
-		e.nativeOp("mul", a, b)
-	}
-
-}
-func (e *emitter) rem(a regi, b regOrConst) {
-	if L {
-		e.mov(TR1, a)
-		e.mov(TR4, 0)
-		e.emitR("div", b)
-		e.mov(a, TR4)
-	} else {
-		e.mov(TR5, a)
-		e.emitR("udiv", a, TR5, b)
-		e.emitR("msub", a, a, b, TR5)
-	}
-}
-func (e *emitter) div(a regi, b regOrConst) {
-	if L {
-		e.mov(TR1, a)
-		e.mov(TR4, 0)
-		e.emitR("div", b)
-		e.mov(a, TR1)
-	} else {
-		e.nativeOp("udiv", a, b)
-	}
-}
-func (e *emitter) and(a regi, b regOrConst) {
-	e.nativeOp("and", a, b)
-}
-func (e *emitter) lsl(a regi, b regOrConst) {
-	if L {
-		e.nativeOp("sal", a, b)
-	} else {
-		e.nativeOp("lsl", a, b)
-	}
-}
-func (e *emitter) lsr(a regi, b regOrConst) {
-	if L {
-		e.nativeOp("shr", a, b)
-	} else {
-		e.nativeOp("lsr", a, b)
-	}
-}
-func (e *emitter) mov(a regi, b regOrConst) {
-	if L {
-		e.emitR("mov", b, a)
-	} else {
-		e.emitR("mov", a, b)
-	}
-}
-
 func (e *emitter) doOp(dest, b regi, op string) {
 	switch op {
 	case "+":
-		e.add(dest, b)
+		e.p.add(dest, b)
 		return
 	case "-":
-		e.sub(dest, b)
+		e.p.sub(dest, b)
 		return
 	case "*":
-		e.mul(dest, b)
+		e.p.mul(dest, b)
 		return
 	case "/":
-		e.div(dest, b)
+		e.p.div(dest, b)
 		return
 	case "%":
-		e.rem(dest, b)
+		e.p.rem(dest, b)
 		return
 	default:
 		e.err(op)
@@ -626,14 +348,14 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		lab := e.clab()
 		lab2 := e.clab()
 		e.condExpr(lab, be.LHS.(*BinaryExpr))
-		e.br(lab2)
-		e.makeLabel(lab)
+		e.p.br(lab2)
+		e.p.makeLabel(lab)
 		e.condExpr(dest, be.RHS.(*BinaryExpr))
-		e.makeLabel(lab2)
+		e.p.makeLabel(lab2)
 	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(TR4, be.LHS)
 		e.assignToReg(TR2, be.RHS)
-		e.cmp(TR4, TR2)
+		e.p.cmp(TR4, TR2)
 		bi := ""
 		switch be.op {
 		case "==":
@@ -651,7 +373,7 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		default:
 			e.err(be.op)
 		}
-		e.br(branch(dest), bi)
+		e.p.br(branch(dest), bi)
 		return
 	} else {
 		e.err(be.op)
@@ -677,9 +399,9 @@ func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
-	e.label(FP + f.Wl.Value)
+	e.p.label(FP + f.Wl.Value)
 	e.soff = 0
-	e.mov(TSS, TSP)
+	e.p.mov(TSS, TSP)
 	for _, field := range f.PList {
 		if ark, ok := field.Kind.(*ArKind); ok {
 			for _, vd2 := range field.List {
@@ -714,10 +436,10 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	lab := e.clab()
 	e.ebranch = lab
 	e.emitStmt(f.B)
-	e.makeLabel(lab)
+	e.p.makeLabel(lab)
 
-	e.mov(TSP, TSS)
-	e.emit("ret")
+	e.p.mov(TSP, TSS)
+	e.p.emit("ret")
 	e.checks()
 	e.clearL()
 }
@@ -734,7 +456,7 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 		rt = e.emitArrayExpr(t2)
 		return rt
 	case *NumberExpr:
-		e.mov(r, atoi(e, t2.Il.Value))
+		e.p.mov(r, atoi(e, t2.Il.Value))
 	case *VarExpr:
 		rt = e.rMap[t2.Wl.Value]
 		if rt.mlt != mlArray {
@@ -745,19 +467,19 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 	case *UnaryExpr:
 		if t2.op == "-" {
 			e.assignToReg(r, t2.E)
-			e.mov(TR10, -1)
-			e.mul(r, TR10)
+			e.p.mov(TR10, -1)
+			e.p.mul(r, TR10)
 		} else if t2.op == "&" {
 			switch t3 := t2.E.(type) {
 			case *VarExpr:
 				v := t3.Wl.Value
 				ml := e.rMap[v]
-				e.mov(r, 0)
+				e.p.mov(r, 0)
 				e.setIndex(r, ml)
 				if ml.fc {
-					e.add(r, TSS)
+					e.p.add(r, TSS)
 				} else {
-					e.add(r, TBP)
+					e.p.add(r, TBP)
 				}
 			case *IndexExpr:
 				v := t3.X.(*VarExpr).Wl.Value
@@ -766,34 +488,34 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 				e.rangeCheck(ml, r)
 				e.setIndex(r, ml)
 				if ml.fc {
-					e.add(r, TSS)
+					e.p.add(r, TSS)
 				} else {
-					e.add(r, TBP)
+					e.p.add(r, TBP)
 				}
 			}
 		} else if t2.op == "*" {
 			e.assignToReg(r, t2.E)
-			e.ldr(ATeq, r, r)
+			e.p.ldr(ATeq, r, r)
 		}
 	case *TrinaryExpr:
 		lab := e.clab()
 		lab2 := e.clab()
 		lab3 := e.clab()
 		e.condExpr(lab, t2.LHS.(*BinaryExpr))
-		e.br(lab3)
-		e.makeLabel(lab)
+		e.p.br(lab3)
+		e.p.makeLabel(lab)
 		rt = e.assignToReg(r, t2.MS)
-		e.br(lab2)
-		e.makeLabel(lab3)
+		e.p.br(lab2)
+		e.p.makeLabel(lab3)
 		rt2 := e.assignToReg(r, t2.RHS)
 		if !rt.typeOk(rt2) {
 			e.err("")
 		}
-		e.makeLabel(lab2)
+		e.p.makeLabel(lab2)
 
 	case *CallExpr:
 		e.emitCall(t2)
-		e.mov(r, TR1)
+		e.p.mov(r, TR1)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
@@ -827,9 +549,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	}
 
 	e.pushAll()
-	e.push(TSS)
+	e.p.push(TSS)
 	if !L {
-		e.push(LR)
+		e.p.push(LR)
 	}
 
 	for k, v := range ce.Params {
@@ -843,9 +565,9 @@ func (e *emitter) emitCall(ce *CallExpr) {
 			}
 			ml := e.rMap[ie.Wl.Value]
 			for i := ml.len - 1; i >= 0; i-- {
-				e.mov(TR2, i)
+				e.p.mov(TR2, i)
 				e.iLoad(TR2, TR2, ml)
-				e.push(TR2)
+				e.p.push(TR2)
 			}
 		} else {
 			if kind != nil {
@@ -854,20 +576,20 @@ func (e *emitter) emitCall(ce *CallExpr) {
 				}
 			}
 			e.assignToReg(TR2, v)
-			e.push(TR2)
+			e.p.push(TR2)
 		}
 	}
 
 	if L {
-		e.emit("call", fn)
+		e.p.emit("call", fn)
 	} else {
-		e.emit("bl", fn)
+		e.p.emit("bl", fn)
 	}
-	e.add(TSP, moffOff(fun.PSize))
+	e.p.add(TSP, moffOff(fun.PSize))
 	if !L {
-		e.pop(LR)
+		e.p.pop(LR)
 	}
-	e.pop(TSS)
+	e.p.pop(TSS)
 
 	e.popAll()
 
@@ -875,7 +597,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
-	e.emit("//")
+	e.p.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(TR2, t.Expr)
@@ -884,30 +606,30 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emitStmt(s)
 		}
 	case *ContinueStmt:
-		e.br(e.peekloop()[0])
+		e.p.br(e.peekloop()[0])
 	case *BreakStmt:
-		e.br(e.peekloop()[1])
+		e.p.br(e.peekloop()[1])
 	case *LoopStmt:
 		lab := e.clab()
 		lab2 := e.clab()
-		e.makeLabel(lab)
+		e.p.makeLabel(lab)
 		e.pushloop(lab, lab2)
 		e.emitStmt(t.B)
-		e.br(lab)
-		e.makeLabel(lab2)
+		e.p.br(lab)
+		e.p.makeLabel(lab2)
 		e.poploop()
 	case *WhileStmt:
 		lab := e.clab()
 		lab2 := e.clab()
 		lab3 := e.clab()
-		e.makeLabel(lab)
+		e.p.makeLabel(lab)
 		e.pushloop(lab, lab2)
 		e.condExpr(lab3, t.Cond.(*BinaryExpr))
-		e.br(lab2)
-		e.makeLabel(lab3)
+		e.p.br(lab2)
+		e.p.makeLabel(lab3)
 		e.emitStmt(t.B)
-		e.br(lab)
-		e.makeLabel(lab2)
+		e.p.br(lab)
+		e.p.makeLabel(lab2)
 		e.poploop()
 
 	case *IfStmt:
@@ -915,32 +637,32 @@ func (e *emitter) emitStmt(s Stmt) {
 		if t.Else == nil {
 			lab2 := e.clab()
 			e.condExpr(lab2, t.Cond.(*BinaryExpr))
-			e.br(lab)
-			e.makeLabel(lab2)
+			e.p.br(lab)
+			e.p.makeLabel(lab2)
 			e.emitStmt(t.Then)
 		} else {
 			lab2 := e.clab()
 			lab3 := e.clab()
 			e.condExpr(lab2, t.Cond.(*BinaryExpr))
-			e.br(lab3)
-			e.makeLabel(lab2)
+			e.p.br(lab3)
+			e.p.makeLabel(lab2)
 			e.emitStmt(t.Then)
-			e.br(lab)
-			e.makeLabel(lab3)
+			e.p.br(lab)
+			e.p.makeLabel(lab3)
 			e.emitStmt(t.Else)
 		}
-		e.makeLabel(lab)
+		e.p.makeLabel(lab)
 
 	case *ReturnStmt:
 		if t.E != nil {
 			e.assignToReg(TR1, t.E)
 		} else {
-			e.mov(TR1, 5)
+			e.p.mov(TR1, 5)
 		}
 		if L {
 		} else {
 		}
-		e.br(e.ebranch)
+		e.p.br(e.ebranch)
 	case *AssignStmt:
 		lh := t.LHSa[0]
 		switch lh2 := lh.(type) {
@@ -950,7 +672,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 			e.assignToReg(TR3, lh2.E)
 			e.assignToReg(TR2, t.RHSa[0])
-			e.str(ATeq, TR2, TR3)
+			e.p.str(ATeq, TR2, TR3)
 		case *VarExpr:
 			id := lh2.Wl.Value
 			if t.Op == ":=" && e.rMap[id] != nil {
@@ -964,48 +686,48 @@ func (e *emitter) emitStmt(s Stmt) {
 				if t.Op[1:2] == "=" {
 					e.assignToReg(TR3, t.RHSa[0])
 				} else {
-					e.mov(TR3, 1)
+					e.p.mov(TR3, 1)
 				}
 				e.doOp(TR2, TR3, t.Op[0:1])
 				e.storeId(id, TR2)
 				return
 			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == "#" || ae.op == "@") {
-				e.mov(TR10, THP)
+				e.p.mov(TR10, THP)
 				e.storeId(id, TR10)
 				e.rMap[id].mlt = mlVoid
 
 				e.assignToReg(TR2, ae.LHS)
 				e.assignToReg(TR3, ae.RHS)
-				e.mov(TR9, TR3)
-				e.sub(TR9, TR2)
+				e.p.mov(TR9, TR3)
+				e.p.sub(TR9, TR2)
 				if ae.op == "@" {
-					e.add(TR9, 1)
+					e.p.add(TR9, 1)
 				}
 
-				e.mov(TR8, -1)
+				e.p.mov(TR8, -1)
 				e.iStore(TR9, TR8, e.rMap[id]) //len
 
-				e.add(TR9, 1) // Add len at start
-				e.lsl(TR9, 3)
-				e.add(THP, TR9)
-				e.mov(TR9, 0)
+				e.p.add(TR9, 1) // Add len at start
+				e.p.lsl(TR9, 3)
+				e.p.add(THP, TR9)
+				e.p.mov(TR9, 0)
 				lab := e.clab()
-				e.makeLabel(lab)
-				e.mov(TR8, TR9)
+				e.p.makeLabel(lab)
+				e.p.mov(TR8, TR9)
 				e.iStore(TR2, TR9, e.rMap[id])
-				e.mov(TR9, TR8)
-				e.add(TR9, 1)
-				e.add(TR2, 1)
-				e.cmp(TR2, TR3)
-				e.br(lab, "le")
+				e.p.mov(TR9, TR8)
+				e.p.add(TR9, 1)
+				e.p.add(TR2, 1)
+				e.p.cmp(TR2, TR3)
+				e.p.br(lab, "le")
 				return
 			}
 			if ae, ok := t.RHSa[0].(*CallExpr); ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
 				e.assignToReg(TR3, t.RHSa[0])
 				e.storeId(id, TR3)
 				e.rMap[id].mlt = mlVoid
-				e.mov(TR3, -1)
+				e.p.mov(TR3, -1)
 				e.iStore(TR2, TR3, e.rMap[id])
 				return
 			}
@@ -1016,14 +738,14 @@ func (e *emitter) emitStmt(s Stmt) {
 				tml := e.newIntml()
 				tml.init(eml.fc, mlInt)
 				tml.i = eml.len
-				e.mov(TR2, ml.len)
+				e.p.mov(TR2, ml.len)
 				e.storeml(tml, TR2)
-				e.mov(TR2, 0)
+				e.p.mov(TR2, 0)
 				e.setIndex(TR2, ml)
 				if eml.fc {
-					e.add(TR2, TSS)
+					e.p.add(TR2, TSS)
 				} else {
-					//        e.add(, TBP)
+					//        e.p.add(, TBP)
 				}
 				e.storeml(eml, TR2)
 				return
@@ -1044,7 +766,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				if t.Op[1:2] == "=" {
 					e.assignToReg(TR3, t.RHSa[0])
 				} else {
-					e.mov(TR3, 1)
+					e.p.mov(TR3, 1)
 				}
 				e.doOp(TR2, TR3, t.Op[0:1])
 			} else {
@@ -1080,18 +802,18 @@ func (e *emitter) emitStmt(s Stmt) {
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)
-					e.mov(TR10, 0)
-					e.makeLabel(lab)
+					e.p.mov(TR10, 0)
+					e.p.makeLabel(lab)
 					if key != nil {
 						e.storeml(key, TR10)
 					}
 					e.iLoad(TR9, TR10, ml)
 					e.storeml(iter, TR9)
 					e.emitStmt(t.B)
-					e.add(TR10, 1)
-					e.cmp(TR10, ml.len)
-					e.br(lab, "lt")
-					e.makeLabel(lab2)
+					e.p.add(TR10, 1)
+					e.p.cmp(TR10, ml.len)
+					e.p.br(lab, "lt")
+					e.p.makeLabel(lab2)
 					return
 				}
 			}
@@ -1104,26 +826,26 @@ func (e *emitter) emitStmt(s Stmt) {
 		lab3 := e.clab()
 		lab4 := e.clab()
 		lab5 := e.clab()
-		e.makeLabel(lab)
+		e.p.makeLabel(lab)
 		e.pushloop(lab, lab2)
-		e.br(lab3)
-		e.makeLabel(lab5)
+		e.p.br(lab3)
+		e.p.makeLabel(lab5)
 		if t.Loop != nil {
 			e.emitStmt(t.Loop)
 		}
-		e.makeLabel(lab3)
+		e.p.makeLabel(lab3)
 
 		if t.E != nil {
 			e.condExpr(lab4, t.E.(*BinaryExpr))
 		} else {
-			e.br(lab4)
+			e.p.br(lab4)
 		}
-		e.br(lab2)
-		e.makeLabel(lab4)
+		e.p.br(lab2)
+		e.p.makeLabel(lab4)
 		e.emitStmt(t.B)
-		e.br(lab5)
+		e.p.br(lab5)
 
-		e.makeLabel(lab2)
+		e.p.makeLabel(lab2)
 		e.poploop()
 
 	default:
@@ -1136,42 +858,42 @@ func (e *emitter) emitStmt(s Stmt) {
 func (e *emitter) emitDefines() {
 	if L {
 		for r := TR1; r <= TSS; r++ {
-			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n"
+			e.p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
 		}
 	} else {
 		for r := TR1; r <= TSS; r++ {
-			e.src += "#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, ars[r]) + "\n"
+			e.p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, ars[r]) + "\n")
 		}
 	}
 }
 
 func (e *emitter) emitF() {
-	e.emitDefines()
+	e.p.emitDefines()
 	if L {
-		e.src += ".global _main\n"
-		e.label("_main")
-		e.emitR("pop", TMAIN)
-		e.emitR("push", TMAIN)
+		e.p.padd(".global _main\n")
+		e.p.label("_main")
+		e.p.emitR("pop", TMAIN)
+		e.p.emitR("push", TMAIN)
 	} else {
-		e.src += ".global main\n"
-		e.label("main")
-		e.mov(TMAIN, LR)
+		e.p.padd(".global main\n")
+		e.p.label("main")
+		e.p.mov(TMAIN, LR)
 	}
-	e.mov(TSP, SP)
-	e.sub(TSP, 0x100)
-	e.mov(TSS, TSP)
-	e.mov(TBP, TSP)
-	e.sub(TBP, 0x1000)
-	e.mov(THP, TBP)
-	e.sub(THP, 0x1000)
+	e.p.mov(TSP, SP)
+	e.p.sub(TSP, 0x100)
+	e.p.mov(TSS, TSP)
+	e.p.mov(TBP, TSP)
+	e.p.sub(TBP, 0x1000)
+	e.p.mov(THP, TBP)
+	e.p.sub(THP, 0x1000)
 	lab := e.clab()
 	e.ebranch = lab
 	for _, s := range e.file.SList {
 		e.emitStmt(s)
 	}
-	e.mov(TR1, 0)
-	e.makeLabel(lab)
-	e.emit("ret")
+	e.p.mov(TR1, 0)
+	e.p.makeLabel(lab)
+	e.p.emit("ret")
 	e.checks()
 	e.fc = true
 	for _, s := range e.file.FList {
@@ -1180,10 +902,10 @@ func (e *emitter) emitF() {
 		}
 	}
 	if didPrint {
-		e.emitPrint()
+		e.p.emitPrint(e)
 	}
-	e.makeLabel(e.fexit)
-	e.mov(TR1, 7)
-	e.emit("ret")
+	e.p.makeLabel(e.fexit)
+	e.p.mov(TR1, 7)
+	e.p.emit("ret")
 
 }
