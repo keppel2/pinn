@@ -1,3 +1,20 @@
+// Parse and run
+
+0;
+10;
+var xa int;
+xa;
+xa = 0;
+xa = 1;
+var xb [2]int;
+xb[0];
+xb[0] = 0;
+xb[1] = 2;
+sda := 0;
+sdb := -1;
+
+
+
 // Basics
 var v int;
 v = 0;
