@@ -31,25 +31,37 @@ type token struct {
 	colons int
 }
 
+type tlt []*token
+
+func (t tlt) last() *token {
+	if len(t) == 0 {
+		return nil
+	}
+	return t[len(t)-1]
+}
+
+func (t tlt) len() int {
+	return len(t)
+}
+
 type scan struct {
 	ss     scanner.Scanner
 	tks    []*token
 	cursor int
-	qmarks []*token
+	qmarks []tlt
 }
 
 func (s *scan) qmark() *token {
-	if len(s.qmarks) == 0 {
-		return nil
-	}
-	return s.qmarks[len(s.qmarks)-1]
+	return s.qmarks[len(s.qmarks)-1].last()
 }
 
 func (s *scan) qmpush() {
-	s.qmarks = append(s.qmarks, s.ct())
+	s.qmarks[len(s.qmarks)-1] = append(s.qmarks[len(s.qmarks)-1], s.ct())
 }
+
 func (s *scan) qmpop() {
-	s.qmarks = s.qmarks[0 : len(s.qmarks)-1]
+	s.qmarks[len(s.qmarks)-1] = s.qmarks[len(s.qmarks)-1][0 : s.qmarks[len(s.qmarks)-1].len()-1]
+
 }
 
 func (s *scan) ct() *token {
@@ -57,6 +69,7 @@ func (s *scan) ct() *token {
 }
 
 func (s *scan) init(src io.Reader) {
+	s.qmarks = make([]tlt, 1)
 	s.ss.Init(src)
 	s.cursor = -1
 	for {
@@ -125,10 +138,10 @@ func (s *scan) next() {
 			}
 
 			if s.ct().tok == "?" {
-				s.qmarks = append(s.qmarks, s.ct())
+				s.qmpush()
 			}
 			if s.ct().tok == ";" {
-				s.qmarks = nil
+				s.qmarks = make([]tlt, 1)
 			}
 
 			if s.ct().tok == "=" {
@@ -144,7 +157,7 @@ func (s *scan) next() {
 					if s.qmark() != nil {
 						s.qmark().colons++
 
-						if len(s.qmarks) > 1 {
+						if len(s.qmarks[len(s.qmarks)-1]) > 1 {
 							s.qmpop()
 						}
 					}

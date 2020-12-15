@@ -1,12 +1,18 @@
 package main
 
 import "fmt"
-import "strings"
+//import "strings"
 
 
+var s []int
 
 func main() {
-  var b strings.Builder
-  b.WriteString("ignit")
-  fmt.Printf("%v", b)
+  fmt.Println(len(s))
+  fmt.Println(s == nil)
+  s = make([]int, 0)
+  fmt.Println(len(s))
+  fmt.Println(s == nil)
+  s = s[0:0]
+  fmt.Println(len(s))
+  fmt.Println(s == nil)
 }

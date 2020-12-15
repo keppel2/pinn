@@ -29,6 +29,7 @@ func (p *parser) init(r io.Reader) {
 	p.dm = make(map[string]string)
 	p.s = new(scan)
 	p.s.init(r)
+	p.s.qmarks = make([]tlt, 1)
 }
 
 func (p *parser) got(tok string) bool {
@@ -360,7 +361,7 @@ func (p *parser) stmt() Stmt {
 	default:
 		p.err("")
 	}
-	p.s.qmarks = nil
+	p.s.qmarks = make([]tlt, 1)
 	return rt
 
 }
