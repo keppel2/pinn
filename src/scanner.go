@@ -18,22 +18,24 @@ func (s *scan) tokenize() {
 }
 
 func (t *token) prn() string {
-	return fmt.Sprintf("%v,%v,%v\n", t.tok, t.lit, t.lk)
+	return fmt.Sprintf("%v,%v,%v,%v\n", t.tok, t.lit, t.lk, t.colons)
 }
 
 var TD = "../pinn/"
 
 type token struct {
-	tok string
-	lit string
-	lk  LitKind
-	p   scanner.Position
+	tok    string
+	lit    string
+	lk     LitKind
+	p      scanner.Position
+	colons int
 }
 
 type scan struct {
 	ss     scanner.Scanner
 	tks    []*token
 	cursor int
+	qmark  *token
 }
 
 func (s *scan) ct() *token {
@@ -108,6 +110,13 @@ func (s *scan) next() {
 				}
 			}
 
+			if s.ct().tok == "?" {
+				s.qmark = s.ct()
+			}
+			if s.ct().tok == ";" {
+				s.qmark = nil
+			}
+
 			if s.ct().tok == "=" {
 				if s.ss.Peek() == '=' {
 					s._at()
@@ -117,6 +126,10 @@ func (s *scan) next() {
 			if s.ct().tok == ":" {
 				if s.ss.Peek() == '=' {
 					s._at()
+				} else {
+					if s.qmark != nil {
+						s.qmark.colons++
+					}
 				}
 				return
 			}
