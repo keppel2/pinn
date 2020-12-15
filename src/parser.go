@@ -361,6 +361,9 @@ func (p *parser) stmt() Stmt {
 	default:
 		p.err("")
 	}
+	if p.s.qmark() != nil && p.s.qmark().colons < 1 {
+		p.err("sq")
+	}
 	p.s.qmarks = make([]tlt, 1)
 	return rt
 

@@ -11,10 +11,12 @@ import (
 	//	"strings"
 )
 
-func (s *scan) tokenize() {
+func (s *scan) tokenize() string {
+	rt := ""
 	for k, tk := range s.tks {
-		fmt.Println(k, tk.prn())
+		rt += fmt.Sprintln(k, tk.prn())
 	}
+	return rt
 }
 
 func (t *token) prn() string {
@@ -81,6 +83,10 @@ func (s *scan) init(src io.Reader) {
 	s.cursor = -1
 }
 
+func (s *scan) err(msg string) {
+	panic(s.tokenize() + "\n" + msg)
+}
+
 func (s *scan) _at() {
 	s.ct().tok += string(s.ss.Next())
 	if !tmOk(s.ct().tok) {
@@ -141,7 +147,20 @@ func (s *scan) next() {
 				s.qmpush()
 			}
 			if s.ct().tok == ";" {
+				if s.qmark() != nil && s.qmark().colons < 1 {
+					s.err("qm")
+				}
+
 				s.qmarks = make([]tlt, 1)
+			}
+			if s.ct().tok == "(" {
+				s.qmarks = append(s.qmarks, tlt{})
+			}
+			if s.ct().tok == ")" {
+				if s.qmark() != nil && s.qmark().colons < 1 {
+					s.err("qm")
+				}
+				s.qmarks = s.qmarks[0 : len(s.qmarks)-1]
 			}
 
 			if s.ct().tok == "=" {

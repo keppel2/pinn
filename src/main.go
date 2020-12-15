@@ -30,7 +30,7 @@ func main() {
 	if len(os.Args) == 3 && os.Args[2] == "scan" {
 		s := new(scan)
 		s.init(strings.NewReader(ssrc))
-		s.tokenize()
+		fmt.Println(s.tokenize())
 		return
 
 	}
