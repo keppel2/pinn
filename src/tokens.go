@@ -78,6 +78,19 @@ var tokenMap = map[string]int{
 
 type LitKind uint8
 
+func (lk LitKind) String() string {
+	switch lk {
+	case IntLit:
+		return "I"
+	case FloatLit:
+		return "F"
+	case StringLit:
+		return "S"
+	default:
+		return "X"
+	}
+}
+
 const (
 	IntLit LitKind = iota + 1
 	FloatLit

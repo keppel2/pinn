@@ -12,22 +12,27 @@ type errp interface {
 }
 
 type parser struct {
-	scan
-	dm map[string]string
+	s      *scan
+	dm     map[string]string
+	qcount int
+}
+
+func (p *parser) next() {
+	p.s.cursor++
 }
 
 func (p *parser) err(msg string) {
-	panic(fmt.Sprintln(msg, p.p, p.tok, p.lit))
+	panic(fmt.Sprintln(msg, p.s.ct().p, p.s.ct().tok, p.s.ct().lit))
 }
 
 func (p *parser) init(r io.Reader) {
-	p.scan.init(
-		r)
 	p.dm = make(map[string]string)
+	p.s = new(scan)
+	p.s.init(r)
 }
 
 func (p *parser) got(tok string) bool {
-	if p.tok == tok {
+	if p.s.ct().tok == tok {
 		p.next()
 		return true
 	}
@@ -35,19 +40,19 @@ func (p *parser) got(tok string) bool {
 }
 
 func (p *parser) want(tok string) {
-	if !p.got(tok) {
+	if !p.got(p.s.ct().tok) {
 		p.err("expecting " + tok)
 	}
 }
 
 func (p *parser) unaryExpr() Expr {
-	switch p.tok {
+	switch p.s.ct().tok {
 	case "-", "+", "!", "@", "#", "range", "*", "&":
 		ue := new(UnaryExpr)
-		ue.Init(p.p)
-		ue.op = p.tok
+		ue.Init(p.s.ct().p)
+		ue.op = p.s.ct().tok
 		p.next()
-		if p.tok == "]" {
+		if p.s.ct().tok == "]" {
 			if ue.op != "@" && ue.op != "#" {
 				p.err("")
 			}
@@ -62,13 +67,13 @@ func (p *parser) unaryExpr() Expr {
 	p.err("")
 	return nil
 
-	//  return p.primaryExpr()
+	//  return p.s.ct().primaryExpr()
 }
 
 func (p *parser) primaryExpr() Expr {
 	x := p.operand()
 	for {
-		switch p.tok {
+		switch p.s.ct().tok {
 		case "(":
 			x = p.callExpr(x)
 		case "[":
@@ -81,16 +86,16 @@ func (p *parser) primaryExpr() Expr {
 
 func (p *parser) operand() Expr {
 	dots := false
-	switch p.tok {
+	switch p.s.ct().tok {
 	case "name":
 		return p.varExpr()
 	case "literal":
-		if p.scan.kind == StringLit {
+		if p.s.ct().lk == StringLit {
 			return p.stringExpr()
-		} else if p.scan.kind == IntLit {
+		} else if p.s.ct().lk == IntLit {
 			return p.numberExpr()
 		} else {
-			p.err(p.tok)
+			p.err(p.s.ct().tok)
 		}
 	case "(":
 		p.want("(")
@@ -111,7 +116,7 @@ func (p *parser) operand() Expr {
 
 func (p *parser) arrayExpr(d bool) *ArrayExpr {
 	rt := new(ArrayExpr)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.EL = p.exprList()
 	p.want("]")
 	rt.Dots = d
@@ -129,21 +134,21 @@ func (p *parser) pseudoF(ID string, count int) *FuncDecl {
 }
 
 func (p *parser) fileA() *File {
-	f := new(File)
-	f.Init(p.p)
 	p.next()
+	f := new(File)
+	f.Init(p.s.ct().p)
 	for p.got("#") {
 		p.want("define")
-		str := p.lit
+		str := p.s.ct().lit
 		p.next()
-		rep := p.lit
+		rep := p.s.ct().lit
 		p.next()
 		p.dm[str] = rep
 	}
 	f.FList = append(f.FList, p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("printchar", 1))
 
-	for p.tok != "EOF" {
-		if p.tok == "func" {
+	for p.s.ct().tok != "EOF" {
+		if p.s.ct().tok == "func" {
 			f.FList = append(f.FList, p.funcDecl())
 		} else {
 			f.SList = append(f.SList, p.stmt())
@@ -155,14 +160,14 @@ func (p *parser) fileA() *File {
 func (p *parser) loopStmt() *LoopStmt {
 	p.want("loop")
 	rt := new(LoopStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.B = p.blockStmt()
 	return rt
 }
 func (p *parser) whileStmt() *WhileStmt {
 	p.want("while")
 	rt := new(WhileStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.Cond = p.uexpr()
 	rt.B = p.blockStmt()
 	return rt
@@ -171,7 +176,7 @@ func (p *parser) whileStmt() *WhileStmt {
 func (p *parser) ifStmt() *IfStmt {
 	p.want("if")
 	rt := new(IfStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.Cond = p.uexpr()
 	rt.Then = p.stmt()
 	if p.got("else") {
@@ -182,7 +187,7 @@ func (p *parser) ifStmt() *IfStmt {
 
 func (p *parser) field() *Field {
 	n := new(Field)
-	n.node.Init(p.p)
+	n.node.Init(p.s.ct().p)
 	n.List = append(n.List, p.wLit())
 	for p.got(",") {
 		n.List = append(n.List, p.wLit())
@@ -197,8 +202,8 @@ func (p *parser) field() *Field {
 func (p *parser) varStmt() *VarStmt {
 	p.want("var")
 	ds := new(VarStmt)
-	ds.node.Init(p.p)
-	ds.Position = p.p
+	ds.node.Init(p.s.ct().p)
+	ds.Position = p.s.ct().p
 	ds.List = append(ds.List, p.wLit())
 	for p.got(",") {
 		ds.List = append(ds.List, p.wLit())
@@ -212,8 +217,8 @@ func (p *parser) varStmt() *VarStmt {
 
 func (p *parser) typeStmt() *TypeStmt {
 	ds := new(TypeStmt)
-	ds.node.Init(p.p)
-	ds.Position = p.p
+	ds.node.Init(p.s.ct().p)
+	ds.Position = p.s.ct().p
 	p.want("type")
 
 	ds.Wl = p.wLit()
@@ -226,13 +231,13 @@ func (p *parser) typeStmt() *TypeStmt {
 
 func (p *parser) newFuncDecl() *FuncDecl {
 	rt := new(FuncDecl)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	return rt
 }
 
 func (p *parser) funcDecl() *FuncDecl {
 	rt := new(FuncDecl)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	p.want("func")
 	rt.Wl = p.wLit()
 	if fmap[rt.Wl.Value] != nil {
@@ -250,7 +255,7 @@ func (p *parser) funcDecl() *FuncDecl {
 		p.want(")")
 	}
 
-	if p.tok != "{" {
+	if p.s.ct().tok != "{" {
 		rt.K = p.kind()
 	}
 	rt.B = p.blockStmt()
@@ -261,7 +266,7 @@ func (p *parser) funcDecl() *FuncDecl {
 
 func (p *parser) breakStmt() *BreakStmt {
 	rt := new(BreakStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	p.want("break")
 	p.want(";")
 	return rt
@@ -269,7 +274,7 @@ func (p *parser) breakStmt() *BreakStmt {
 
 func (p *parser) continueStmt() *ContinueStmt {
 	rt := new(ContinueStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	p.want("continue")
 	p.want(";")
 	return rt
@@ -277,7 +282,7 @@ func (p *parser) continueStmt() *ContinueStmt {
 
 func (p *parser) returnStmt() *ReturnStmt {
 	rt := new(ReturnStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	p.want("return")
 	if !p.got(";") {
 		rt.E = p.uexpr()
@@ -288,11 +293,11 @@ func (p *parser) returnStmt() *ReturnStmt {
 
 func (p *parser) forStmt() *ForStmt {
 	rt := new(ForStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	p.want("for")
 	if !p.got(";") {
 		rt.Inits = p.assignOrExprStmt()
-		if p.tok == "{" {
+		if p.s.ct().tok == "{" {
 			rt.B = p.blockStmt()
 			return rt
 		}
@@ -302,7 +307,7 @@ func (p *parser) forStmt() *ForStmt {
 		rt.E = p.uexpr()
 		p.want(";")
 	}
-	if p.tok != "{" {
+	if p.s.ct().tok != "{" {
 		rt.Loop = p.assignOrExprStmt()
 	}
 	rt.B = p.blockStmt()
@@ -312,7 +317,7 @@ func (p *parser) forStmt() *ForStmt {
 func (p *parser) assignOrExprStmt() Stmt {
 	lhsa := p.exprList()
 	var rt Stmt
-	if p.tok == "=" || p.tok == ":=" || p.tok == "+=" || p.tok == "-=" || p.tok == "*=" || p.tok == "/=" || p.tok == "%=" || p.tok == "++" || p.tok == "--" {
+	if p.s.ct().tok == "=" || p.s.ct().tok == ":=" || p.s.ct().tok == "+=" || p.s.ct().tok == "-=" || p.s.ct().tok == "*=" || p.s.ct().tok == "/=" || p.s.ct().tok == "%=" || p.s.ct().tok == "++" || p.s.ct().tok == "--" {
 		rt = p.assignStmt(lhsa)
 	} else {
 		if len(lhsa) != 1 {
@@ -325,7 +330,7 @@ func (p *parser) assignOrExprStmt() Stmt {
 
 func (p *parser) stmt() Stmt {
 	var rt Stmt
-	switch p.tok {
+	switch p.s.ct().tok {
 	case "for":
 		rt = p.forStmt()
 	case "return":
@@ -361,7 +366,7 @@ func (p *parser) stmt() Stmt {
 
 func (p *parser) stmtList() []Stmt {
 	rt := make([]Stmt, 0)
-	for p.tok != "}" {
+	for p.s.ct().tok != "}" {
 		rt = append(rt, p.stmt())
 	}
 	return rt
@@ -370,7 +375,7 @@ func (p *parser) stmtList() []Stmt {
 func (p *parser) exprList() []Expr {
 	rt := make([]Expr, 0)
 	rt = append(rt, p.uexpr())
-	for p.tok == "," {
+	for p.s.ct().tok == "," {
 		p.next()
 		rt = append(rt, p.uexpr())
 	}
@@ -379,7 +384,7 @@ func (p *parser) exprList() []Expr {
 
 func (p *parser) blockStmt() *BlockStmt {
 	rt := new(BlockStmt)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	p.want("{")
 	rt.SList = p.stmtList()
 	p.want("}")
@@ -388,30 +393,30 @@ func (p *parser) blockStmt() *BlockStmt {
 
 func (p *parser) sKind() *SKind {
 	rt := new(SKind)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.Wl = p.wLit()
 	return rt
 }
 
 func (p *parser) kind() Kind {
-	switch p.tok {
+	switch p.s.ct().tok {
 	case "[":
 		p.want("[")
 		if p.got("]") {
 			rt := new(SlKind)
-			rt.Init(p.p)
+			rt.Init(p.s.ct().p)
 			rt.K = p.kind()
 			return rt
 		}
 		if p.got("map") {
 			p.want("]")
 			rt := new(MKind)
-			rt.Init(p.p)
+			rt.Init(p.s.ct().p)
 			rt.K = p.kind()
 			return rt
 		}
 		rt := new(ArKind)
-		rt.Init(p.p)
+		rt.Init(p.s.ct().p)
 		rt.Len = p.uexpr()
 		p.want("]")
 		rt.K = p.kind()
@@ -427,8 +432,8 @@ func (p *parser) kind() Kind {
 func (p *parser) assignStmt(LHSa []Expr) *AssignStmt {
 
 	rt := new(AssignStmt)
-	rt.Init(p.p)
-	rt.Op = p.tok
+	rt.Init(p.s.ct().p)
+	rt.Op = p.s.ct().tok
 	p.next()
 	rt.LHSa = LHSa
 	if rt.Op == "++" || rt.Op == "--" {
@@ -441,7 +446,7 @@ func (p *parser) assignStmt(LHSa []Expr) *AssignStmt {
 
 func (p *parser) exprStmt(LHS Expr) *ExprStmt {
 	es := new(ExprStmt)
-	es.node.Init(p.p)
+	es.node.Init(p.s.ct().p)
 	es.Expr = LHS
 	return es
 }
@@ -449,19 +454,28 @@ func (p *parser) exprStmt(LHS Expr) *ExprStmt {
 func (p *parser) pexpr(prec int) Expr {
 	rt := p.unaryExpr()
 
-	for tokenMap[p.tok] > prec {
+	for tokenMap[p.s.ct().tok] > prec {
 
-		if p.tok == "?" {
+		if p.s.ct().tok == "?" {
 			return p.trinaryExpr(rt)
 		}
+		/*
+		   if p.s.ct().tok == ":" {
+		     if p.qcount > 0 {
+		       p.qcount--
+		       return rt
+		     } else {
+		     }
+		   }
+		*/
 
 		t := new(BinaryExpr)
-		t.Init(p.p)
-		t.op = p.tok
+		t.Init(p.s.ct().p)
+		t.op = p.s.ct().tok
 		t.LHS = rt
-		prec := tokenMap[p.tok]
+		prec := tokenMap[p.s.ct().tok]
 		p.next()
-		if p.tok == "]" {
+		if p.s.ct().tok == "]" {
 			return rt
 		}
 		t.RHS = p.pexpr(prec)
@@ -477,11 +491,13 @@ func (p *parser) uexpr() Expr {
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
 	rt := new(TrinaryExpr)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.LHS = lhs
 	p.want("?")
+	p.qcount++
 	rt.MS = p.uexpr()
 	p.want(":")
+	p.qcount--
 	rt.RHS = p.uexpr()
 	return rt
 }
@@ -489,7 +505,7 @@ func (p *parser) trinaryExpr(lhs Expr) Expr {
 func (p *parser) indexExpr(lhs Expr) Expr {
 	p.want("[")
 	rt := new(IndexExpr)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.X = lhs
 	if p.got("]") {
 		return rt
@@ -502,7 +518,7 @@ func (p *parser) indexExpr(lhs Expr) Expr {
 func (p *parser) callExpr(lhs Expr) Expr {
 	p.want("(")
 	rt := new(CallExpr)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	rt.ID = lhs
 	if p.got(")") {
 		return rt
@@ -518,32 +534,32 @@ func (p *parser) callExpr(lhs Expr) Expr {
 
 func (p *parser) newWLit() *WLit {
 	rt := new(WLit)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	return rt
 }
 
 func (p *parser) wLit() *WLit {
 	wl := p.newWLit()
-	wl.Value = p.lit
+	wl.Value = p.s.ct().lit
 	p.next()
 	return wl
 }
 
 func (p *parser) varExpr() Expr {
 	rt := new(VarExpr)
-	rt.Init(p.p)
+	rt.Init(p.s.ct().p)
 	w := p.wLit().Value
 	if rep, ok := p.dm[w]; ok {
 		nrt := new(NumberExpr)
-		nrt.Init(p.p)
+		nrt.Init(p.s.ct().p)
 		il := new(WLit)
-		il.Init(p.p)
+		il.Init(p.s.ct().p)
 		il.Value = rep
 		nrt.Il = il
 		return nrt
 	} else {
 		wl := new(WLit)
-		wl.Init(p.p)
+		wl.Init(p.s.ct().p)
 		wl.Value = w
 		rt.Wl = wl
 	}
@@ -551,7 +567,7 @@ func (p *parser) varExpr() Expr {
 }
 func (p *parser) stringExpr() Expr {
 	ne := new(StringExpr)
-	ne.Init(p.p)
+	ne.Init(p.s.ct().p)
 	ne.W = p.wLit()
 
 	str := ne.W.Value
@@ -563,7 +579,7 @@ func (p *parser) stringExpr() Expr {
 }
 func (p *parser) numberExpr() Expr {
 	ne := new(NumberExpr)
-	ne.Init(p.p)
+	ne.Init(p.s.ct().p)
 
 	ne.Il = p.wLit()
 	return ne

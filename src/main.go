@@ -22,26 +22,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	//	g()
-	n := new(File)
-	p2 := new(parser)
-	n.Init(p2.p)
 	src, err := ioutil.ReadFile(os.Args[1] + ".pinn")
 	if err != nil {
 		panic(err)
 	}
 	ssrc := string(src)
-	//	tok(ssrc)
 	if len(os.Args) == 3 && os.Args[2] == "scan" {
 		s := new(scan)
 		s.init(strings.NewReader(ssrc))
 		s.tokenize()
-
 		return
 
 	}
 	p := new(parser)
 	p.init(strings.NewReader(ssrc))
+
 	f := p.fileA()
 	if len(os.Args) > 2 {
 		if os.Args[2] == "x86_64" {
@@ -59,5 +54,4 @@ func main() {
 	e.emitF()
 	fmt.Println(e.p.sb.String())
 	return
-
 }

@@ -1,4 +1,1 @@
-printchar("string");
-printchar("string");
-printchar("string");
-
+return 5;
