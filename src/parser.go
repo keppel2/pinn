@@ -12,9 +12,9 @@ type errp interface {
 }
 
 type parser struct {
-	s      *scan
-	dm     map[string]string
-	qcount int
+	s       *scan
+	dm      map[string]string
+	qcounts []int
 }
 
 func (p *parser) next() {
@@ -462,17 +462,11 @@ func (p *parser) pexpr(prec int) Expr {
 	for tokenMap[p.s.ct().tok] > prec {
 
 		if p.s.ct().tok == "?" {
-			p.s.qmpush()
 			return p.trinaryExpr(rt)
 		}
 		if p.s.ct().tok == ":" {
-			if p.s.qmark() != nil {
-				if p.s.qmark().colons > 1 {
-					p.s.qmark().colons--
-				} else {
-					p.s.qmpop()
-					return rt
-				}
+			if p.qcounts[len(p.qcounts)-1] > 0 {
+				return rt
 			}
 		}
 
@@ -493,7 +487,10 @@ func (p *parser) pexpr(prec int) Expr {
 }
 
 func (p *parser) uexpr() Expr {
-	return p.pexpr(0)
+	p.qcounts = append(p.qcounts, 0)
+	rt := p.pexpr(0)
+	p.qcounts = p.qcounts[0 : len(p.qcounts)-1]
+	return rt
 }
 
 func (p *parser) trinaryExpr(lhs Expr) Expr {
@@ -501,11 +498,12 @@ func (p *parser) trinaryExpr(lhs Expr) Expr {
 	rt.Init(p.s.ct().p)
 	rt.LHS = lhs
 	p.want("?")
-	p.qcount++
-	rt.MS = p.uexpr()
+
+	p.qcounts[len(p.qcounts)-1]++
+	rt.MS = p.pexpr(0)
 	p.want(":")
-	p.qcount--
-	rt.RHS = p.uexpr()
+	p.qcounts[len(p.qcounts)-1]--
+	rt.RHS = p.pexpr(0)
 	return rt
 }
 
