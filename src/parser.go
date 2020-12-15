@@ -457,17 +457,19 @@ func (p *parser) pexpr(prec int) Expr {
 	for tokenMap[p.s.ct().tok] > prec {
 
 		if p.s.ct().tok == "?" {
+			p.s.qmark = p.s.ct()
 			return p.trinaryExpr(rt)
 		}
-		/*
-		   if p.s.ct().tok == ":" {
-		     if p.qcount > 0 {
-		       p.qcount--
-		       return rt
-		     } else {
-		     }
-		   }
-		*/
+		if p.s.ct().tok == ":" {
+			if p.s.qmark != nil {
+				if p.s.qmark.colons > 1 {
+					p.s.qmark.colons--
+				} else {
+					p.s.qmark = nil
+					return rt
+				}
+			}
+		}
 
 		t := new(BinaryExpr)
 		t.Init(p.s.ct().p)
