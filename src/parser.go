@@ -47,13 +47,13 @@ func (p *parser) want(tok string) {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.s.ct().tok {
-	case "-", "+", "!", "@", "#", "range", "*", "&":
+	case "-", "+", "!", "@", "range", "*", "&", ":":
 		ue := new(UnaryExpr)
 		ue.Init(p.s.ct().p)
 		ue.op = p.s.ct().tok
 		p.next()
 		if p.s.ct().tok == "]" {
-			if ue.op != "@" && ue.op != "#" {
+			if ue.op != ":" {
 				p.err("")
 			}
 			return ue
@@ -360,6 +360,7 @@ func (p *parser) stmt() Stmt {
 	default:
 		p.err("")
 	}
+	p.s.qmarks = nil
 	return rt
 
 }
@@ -457,15 +458,15 @@ func (p *parser) pexpr(prec int) Expr {
 	for tokenMap[p.s.ct().tok] > prec {
 
 		if p.s.ct().tok == "?" {
-			p.s.qmark = p.s.ct()
+			p.s.qmpush()
 			return p.trinaryExpr(rt)
 		}
 		if p.s.ct().tok == ":" {
-			if p.s.qmark != nil {
-				if p.s.qmark.colons > 1 {
-					p.s.qmark.colons--
+			if p.s.qmark() != nil {
+				if p.s.qmark().colons > 1 {
+					p.s.qmark().colons--
 				} else {
-					p.s.qmark = nil
+					p.s.qmpop()
 					return rt
 				}
 			}

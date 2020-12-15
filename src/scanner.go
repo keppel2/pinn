@@ -35,7 +35,21 @@ type scan struct {
 	ss     scanner.Scanner
 	tks    []*token
 	cursor int
-	qmark  *token
+	qmarks []*token
+}
+
+func (s *scan) qmark() *token {
+	if len(s.qmarks) == 0 {
+		return nil
+	}
+	return s.qmarks[len(s.qmarks)-1]
+}
+
+func (s *scan) qmpush() {
+	s.qmarks = append(s.qmarks, s.ct())
+}
+func (s *scan) qmpop() {
+	s.qmarks = s.qmarks[0 : len(s.qmarks)-1]
 }
 
 func (s *scan) ct() *token {
@@ -111,10 +125,10 @@ func (s *scan) next() {
 			}
 
 			if s.ct().tok == "?" {
-				s.qmark = s.ct()
+				s.qmarks = append(s.qmarks, s.ct())
 			}
 			if s.ct().tok == ";" {
-				s.qmark = nil
+				s.qmarks = nil
 			}
 
 			if s.ct().tok == "=" {
@@ -127,8 +141,12 @@ func (s *scan) next() {
 				if s.ss.Peek() == '=' {
 					s._at()
 				} else {
-					if s.qmark != nil {
-						s.qmark.colons++
+					if s.qmark() != nil {
+						s.qmark().colons++
+
+						if len(s.qmarks) > 1 {
+							s.qmpop()
+						}
 					}
 				}
 				return

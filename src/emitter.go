@@ -699,7 +699,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.storeInt(id, TR2)
 				return
 			}
-			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == "#" || ae.op == "@") {
+			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == ":" || ae.op == "@") {
 				e.p.mov(TR10, THP)
 				e.storeId(id, TR10)
 				e.rMap[id].mlt = mlVoid
