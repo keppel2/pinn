@@ -46,6 +46,28 @@ func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
 	return ml
 }
 
+func (e *emitter) newSlc() *mloc {
+	ml := new(mloc)
+	e.p.mov(TR5, 0)
+	ml.init(e.fc, mlSlice)
+	if ml.fc {
+		e.soff++
+		e.soff++
+		ml.i = e.soff
+		e.p.push(TR5)
+		e.p.push(TR5)
+	} else {
+		ml.i = e.moff
+		e.moff++
+		e.moff++
+		e.p.mov(TR6, 1)
+		e.iStore(TR5, TR6, ml)
+		e.p.mov(TR6, 2)
+		e.iStore(TR5, TR6, ml)
+	}
+	return ml
+}
+
 func (e *emitter) newIntml() *mloc {
 	ml := new(mloc)
 	ml.init(e.fc, mlInt)
@@ -56,6 +78,8 @@ func (e *emitter) newIntml() *mloc {
 		ml.i = e.moff
 		e.moff++
 	}
+	e.p.mov(TR5, 0)
+	e.storeml(ml, TR5)
 	return ml
 }
 
@@ -104,13 +128,7 @@ func (e *emitter) newVar(s string, k Kind) {
 		ml := e.newArml(atoi(e, t.Len.(*NumberExpr).Il.Value))
 		e.rMap[s] = ml
 	case *SlKind:
-		ml := e.newIntml()
-		ml.init(e.fc, mlSlice)
-		ml2 := e.newIntml()
-		ml.len = ml2.i
-		e.p.mov(TR2, 0)
-		e.storeml(ml2, TR2)
-		e.storeml(ml, TR2)
+		ml := e.newSlc()
 		e.rMap[s] = ml
 	default:
 		e.err(s)
