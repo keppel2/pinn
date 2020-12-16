@@ -126,18 +126,14 @@ func (e *emitter) resetRegs() {
 
 func (e *emitter) pushAll() {
 
-	for i := TR2; i <= TR9; i++ {
-		if i != TSP {
-			e.p.push(i)
-		}
+	for i := TR2; i <= TR3; i++ {
+		e.p.push(i)
 	}
 
 }
 func (e *emitter) popAll() {
-	for i := TR9; i >= TR2; i-- {
-		if i != TSP {
-			e.p.pop(i)
-		}
+	for i := TR2; i >= TR3; i-- {
+		e.p.pop(i)
 	}
 }
 func (e *emitter) setIndex(index regi, m *mloc) {
@@ -550,16 +546,17 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	if !L {
 		e.p.push(LR)
 	}
+	ssize := fun.PSize
 
 	for k, v := range ce.Params {
 		if v, ok := v.(*StringExpr); ok {
-			e.p.add(TSP, 8*(len(v.W.Value)+1))
-			for _, r := range v.W.Value {
+			sl := len(v.W.Value)
+			for _, r := range revString(v.W.Value) {
 				e.p.mov(TR2, int(r))
 				e.p.push(TR2)
 			}
-			//    e.p.mov(TR2, 0)
-			//   e.p.push(TR2)
+			e.p.mov(TR10, sl)
+			ssize = sl
 			break
 		}
 		var kind Kind
@@ -592,7 +589,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	} else {
 		e.p.emit("bl", fn)
 	}
-	e.p.add(TSP, moffOff(fun.PSize))
+	e.p.add(TSP, moffOff(ssize))
 	if !L {
 		e.p.pop(LR)
 	}

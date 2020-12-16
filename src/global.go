@@ -78,6 +78,13 @@ func moffOff(a int) int {
 	return a * 8
 }
 
+func revString(a string) string {
+	rt := ""
+	for _, ch := range a {
+		rt = string(ch) + rt
+	}
+	return rt
+}
 func offSet(a, b string) string {
 	return fmt.Sprintf("[%v%v%v]", a, OS, b)
 }
