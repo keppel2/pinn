@@ -94,9 +94,9 @@ func init() {
 		if len(ce.Params) != 2 {
 			e.err("")
 		}
-		e.assignToReg(TR2, ce.Params[0])
+		e.assignToReg(ce.Params[0])
 		e.p.mov(TR3, TR2)
-		e.assignToReg(TR2, ce.Params[1])
+		e.assignToReg(ce.Params[1])
 		e.p.cmp(TR3, TR2)
 		lab := e.clab()
 		e.p.br(lab, "eq")
@@ -109,7 +109,7 @@ func init() {
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
-		e.assignToReg(TR2, ce.Params[0])
+		e.assignToReg(ce.Params[0])
 		e.p.mov(TR1, THP)
 		e.p.lsl(TR2, 3)
 		e.p.add(THP, TR2)
@@ -151,7 +151,7 @@ func init() {
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
-		e.assignToReg(TR2, ce.Params[0])
+		e.assignToReg(ce.Params[0])
 		e.p.mov(TR1, TR2)
 		if L {
 			e.p.emitR("push", TMAIN)

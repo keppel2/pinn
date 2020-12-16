@@ -39,7 +39,7 @@ func (e *emitter) clearL() {
 func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
 	ml := e.newArml(len(ae.EL))
 	for key, expr := range ae.EL {
-		e.assignToReg(TR2, expr)
+		e.assignToReg(expr)
 		e.p.mov(TR3, key)
 		e.iStore(TR2, TR3, ml)
 	}
@@ -371,9 +371,9 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		e.condExpr(dest, be.RHS.(*BinaryExpr))
 		e.p.makeLabel(lab2)
 	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-		e.assignToReg(TR2, be.LHS)
+		e.assignToReg(be.LHS)
 		e.p.mov(TR4, TR2)
-		e.assignToReg(TR2, be.RHS)
+		e.assignToReg(be.RHS)
 		e.p.cmp(TR4, TR2)
 		bi := ""
 		switch be.op {
@@ -400,16 +400,15 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 
 }
 
-func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
+func (e *emitter) binaryExpr(be *BinaryExpr) {
 	lmlL := e.newIntml()
 
-	e.assignToReg(TR2, be.LHS)
+	e.assignToReg(be.LHS)
 	e.storeml(lmlL, TR2)
-	e.assignToReg(TR2, be.RHS)
+	e.assignToReg(be.RHS)
 	e.p.mov(TR3, TR2)
 	e.loadml(lmlL, TR2)
 	e.doOp(TR2, TR3, be.op)
-	e.p.mov(dest, TR2)
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -458,8 +457,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.clearL()
 }
 
-func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
-	r = TR2
+func (e *emitter) assignToReg(ex Expr) *mloc {
 	var rt *mloc
 	rt = new(mloc)
 	rt.init(e.fc, mlInt)
@@ -471,48 +469,48 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 		rt = e.emitArrayExpr(t2)
 		return rt
 	case *NumberExpr:
-		e.p.mov(r, atoi(e, t2.Il.Value))
+		e.p.mov(TR2, atoi(e, t2.Il.Value))
 	case *StringExpr:
-		e.p.mov(r, int(t2.W.Value[0]))
+		e.p.mov(TR2, int(t2.W.Value[0]))
 	case *VarExpr:
 		rt = e.rMap[t2.Wl.Value]
 		if rt.mlt != mlArray {
-			e.loadId(t2.Wl.Value, r)
+			e.loadId(t2.Wl.Value, TR2)
 		}
 	case *BinaryExpr:
-		e.binaryExpr(r, t2)
+		e.binaryExpr(t2)
 	case *UnaryExpr:
 		if t2.op == "-" {
-			e.assignToReg(r, t2.E)
+			e.assignToReg(t2.E)
 			e.p.mov(TR10, -1)
-			e.p.mul(r, TR10)
+			e.p.mul(TR2, TR10)
 		} else if t2.op == "&" {
 			switch t3 := t2.E.(type) {
 			case *VarExpr:
 				v := t3.Wl.Value
 				ml := e.rMap[v]
-				e.p.mov(r, 0)
-				e.setIndex(r, ml)
+				e.p.mov(TR2, 0)
+				e.setIndex(TR2, ml)
 				if ml.fc {
-					e.p.add(r, TSS)
+					e.p.add(TR2, TSS)
 				} else {
-					e.p.add(r, TBP)
+					e.p.add(TR2, TBP)
 				}
 			case *IndexExpr:
 				v := t3.X.(*VarExpr).Wl.Value
 				ml := e.rMap[v]
-				e.assignToReg(r, t3.E)
-				e.rangeCheck(ml, r)
-				e.setIndex(r, ml)
+				e.assignToReg(t3.E)
+				e.rangeCheck(ml, TR2)
+				e.setIndex(TR2, ml)
 				if ml.fc {
-					e.p.add(r, TSS)
+					e.p.add(TR2, TSS)
 				} else {
-					e.p.add(r, TBP)
+					e.p.add(TR2, TBP)
 				}
 			}
 		} else if t2.op == "*" {
-			e.assignToReg(r, t2.E)
-			e.p.ldr(ATeq, r, r)
+			e.assignToReg(t2.E)
+			e.p.ldr(ATeq, TR2, TR2)
 		}
 	case *TrinaryExpr:
 		lab := e.clab()
@@ -521,10 +519,10 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 		e.condExpr(lab, t2.LHS.(*BinaryExpr))
 		e.p.br(lab3)
 		e.p.makeLabel(lab)
-		rt = e.assignToReg(r, t2.MS)
+		rt = e.assignToReg(t2.MS)
 		e.p.br(lab2)
 		e.p.makeLabel(lab3)
-		rt2 := e.assignToReg(r, t2.RHS)
+		rt2 := e.assignToReg(t2.RHS)
 		if !rt.typeOk(rt2) {
 			e.err("")
 		}
@@ -532,13 +530,13 @@ func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
 
 	case *CallExpr:
 		e.emitCall(t2)
-		e.p.mov(r, TR1)
+		e.p.mov(TR2, TR1)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
-		e.assignToReg(r, t2.E)
-		e.rangeCheck(ml, r)
-		e.iLoad(r, r, ml)
+		e.assignToReg(t2.E)
+		e.rangeCheck(ml, TR2)
+		e.iLoad(TR2, TR2, ml)
 	default:
 		e.err("")
 	}
@@ -603,7 +601,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 					e.err(ID)
 				}
 			}
-			e.assignToReg(TR2, v)
+			e.assignToReg(v)
 			e.p.push(TR2)
 		}
 	}
@@ -628,7 +626,7 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.p.emit("//")
 	switch t := s.(type) {
 	case *ExprStmt:
-		e.assignToReg(TR2, t.Expr)
+		e.assignToReg(t.Expr)
 	case *BlockStmt:
 		for _, s := range t.SList {
 			e.emitStmt(s)
@@ -683,7 +681,7 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	case *ReturnStmt:
 		if t.E != nil {
-			e.assignToReg(TR2, t.E)
+			e.assignToReg(t.E)
 			e.p.mov(TR1, TR2)
 		} else {
 			e.p.mov(TR1, 5)
@@ -699,9 +697,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			if lh2.op != "*" {
 				e.err(lh2.op)
 			}
-			e.assignToReg(TR2, lh2.E)
+			e.assignToReg(lh2.E)
 			e.p.mov(TR3, TR2)
-			e.assignToReg(TR2, t.RHSa[0])
+			e.assignToReg(t.RHSa[0])
 			e.p.str(ATeq, TR2, TR3)
 		case *VarExpr:
 			id := lh2.Wl.Value
@@ -714,7 +712,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
 				e.loadId(id, TR3)
 				if t.Op[1:2] == "=" {
-					e.assignToReg(TR2, t.RHSa[0])
+					e.assignToReg(t.RHSa[0])
 				} else {
 					e.p.mov(TR2, 1)
 				}
@@ -727,10 +725,10 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.storeId(id, TR10)
 				e.rMap[id].mlt = mlVoid
 
-				e.assignToReg(TR2, ae.LHS)
+				e.assignToReg(ae.LHS)
 				e.p.mov(TR3, TR2)
 
-				e.assignToReg(TR2, ae.RHS)
+				e.assignToReg(ae.RHS)
 				e.p.mov(TR9, TR2)
 				e.p.sub(TR9, TR3)
 				if ae.op == "@" {
@@ -756,7 +754,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			if ae, ok := t.RHSa[0].(*CallExpr); ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
-				e.assignToReg(TR2, t.RHSa[0])
+				e.assignToReg(t.RHSa[0])
 				e.storeId(id, TR2)
 				e.rMap[id].mlt = mlVoid
 				e.p.mov(TR3, -1)
@@ -764,7 +762,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 
-			ml := e.assignToReg(TR2, t.RHSa[0])
+			ml := e.assignToReg(t.RHSa[0])
 			if e.rMap[id] != nil && e.rMap[id].mlt == mlSlice {
 				eml := e.rMap[id]
 				tml := e.newIntml()
@@ -794,23 +792,23 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
-				e.assignToReg(TR2, lh2)
+				e.assignToReg(lh2)
 				e.p.mov(TR3, TR2)
 				if t.Op[1:2] == "=" {
-					e.assignToReg(TR2, t.RHSa[0])
+					e.assignToReg(t.RHSa[0])
 				} else {
 					e.p.mov(TR2, 1)
 				}
 				e.doOp(TR3, TR2, t.Op[0:1])
 			} else {
-				e.assignToReg(TR2, t.RHSa[0])
+				e.assignToReg(t.RHSa[0])
 				e.p.mov(TR3, TR2)
 			}
 
 			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
 
-			e.assignToReg(TR2, lh2.E)
+			e.assignToReg(lh2.E)
 			e.rangeCheck(ml, TR2)
 			e.iStore(TR3, TR2, ml)
 		default:
@@ -833,7 +831,7 @@ func (e *emitter) emitStmt(s Stmt) {
 						iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
 					}
 					var ml *mloc
-					ml = e.assignToReg(IR, ue.E)
+					ml = e.assignToReg(ue.E)
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)
