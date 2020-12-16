@@ -354,6 +354,8 @@ func (e *emitter) doOp(dest, b regi, op string) {
 	case "%":
 		e.p.rem(dest, b)
 		return
+	case ":", "@":
+		return
 	default:
 		e.err(op)
 	}
@@ -400,7 +402,8 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 
 }
 
-func (e *emitter) binaryExpr(be *BinaryExpr) {
+func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
+	var rt *mloc
 	lmlL := e.newIntml()
 
 	e.assignToReg(be.LHS)
@@ -409,6 +412,12 @@ func (e *emitter) binaryExpr(be *BinaryExpr) {
 	e.p.mov(TR3, TR2)
 	e.loadml(lmlL, TR2)
 	e.doOp(TR2, TR3, be.op)
+	if be.op == ":" || be.op == "@" {
+		rt = newSent(mlSlice)
+	} else {
+		rt = newSent(mlInt)
+	}
+	return rt
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
@@ -459,8 +468,6 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 
 func (e *emitter) assignToReg(ex Expr) *mloc {
 	var rt *mloc
-	rt = new(mloc)
-	rt.init(e.fc, mlInt)
 	e.lst = e.st
 	e.st = ex
 	defer func() { e.st = e.lst }()
@@ -470,6 +477,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		return rt
 	case *NumberExpr:
 		e.p.mov(TR2, atoi(e, t2.Il.Value))
+		return newSent(mlInt)
 	case *StringExpr:
 		e.p.mov(TR2, int(t2.W.Value[0]))
 	case *VarExpr:
@@ -478,7 +486,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 			e.loadId(t2.Wl.Value, TR2)
 		}
 	case *BinaryExpr:
-		e.binaryExpr(t2)
+		rt = e.binaryExpr(t2)
 	case *UnaryExpr:
 		if t2.op == "-" {
 			e.assignToReg(t2.E)
@@ -519,11 +527,11 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		e.condExpr(lab, t2.LHS.(*BinaryExpr))
 		e.p.br(lab3)
 		e.p.makeLabel(lab)
-		rt = e.assignToReg(t2.MS)
+		rt2 := e.assignToReg(t2.MS)
 		e.p.br(lab2)
 		e.p.makeLabel(lab3)
-		rt2 := e.assignToReg(t2.RHS)
-		if !rt.typeOk(rt2) {
+		rt3 := e.assignToReg(t2.RHS)
+		if !rt2.typeOk(rt3) {
 			e.err("")
 		}
 		e.p.makeLabel(lab2)
@@ -534,7 +542,14 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
-		e.assignToReg(t2.E)
+		ert := e.assignToReg(t2.E)
+		if ert == nil {
+			e.err(v)
+		}
+		if ert.mlt == mlSlice {
+			rt = ml
+			break
+		}
 		e.rangeCheck(ml, TR2)
 		e.iLoad(TR2, TR2, ml)
 	default:
@@ -764,23 +779,25 @@ func (e *emitter) emitStmt(s Stmt) {
 
 			ml := e.assignToReg(t.RHSa[0])
 			if e.rMap[id] != nil && e.rMap[id].mlt == mlSlice {
-				eml := e.rMap[id]
-				tml := e.newIntml()
-				tml.init(eml.fc, mlInt)
-				tml.i = eml.len
-				e.p.mov(TR2, ml.len)
-				e.storeml(tml, TR2)
-				e.p.mov(TR2, 0)
+				mls := e.rMap[id]
+				e.p.mov(TR1, TR2)
+				e.p.br(e.fexit)
+				e.p.mov(TR4, TR3)
+				e.p.sub(TR4, TR2)
+				e.p.mov(TR5, 0)
+				e.iStore(TR4, TR5, mls)
+				e.p.mov(TR5, 1)
 				e.setIndex(TR2, ml)
-				if eml.fc {
+				if ml.fc {
 					e.p.add(TR2, TSS)
 				} else {
-					//        e.p.add(, TBP)
+					e.p.add(TR2, TBP)
 				}
-				e.storeml(eml, TR2)
+				e.iStore(TR2, TR5, mls)
+
 				return
 			}
-			if ml.mlt == mlArray {
+			if ml != nil && ml.mlt == mlArray {
 				if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
 					e.err(id)
 				}
@@ -938,6 +955,6 @@ func (e *emitter) emitF() {
 		e.p.emitPrint(e)
 	}
 	e.p.makeLabel(e.fexit)
-	e.p.mov(TR1, 7)
+	//e.p.mov(TR1, 7)
 	e.p.emit("ret")
 }

@@ -141,7 +141,7 @@ func init() {
 			return
 		} else if ml.mlt == mlSlice {
 			e.p.mov(TR5, 0)
-			e.iLoad(TR1, TR6, ml)
+			e.iLoad(TR1, TR5, ml)
 			return
 		}
 		e.p.mov(TR1, ml.len)

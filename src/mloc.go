@@ -19,6 +19,12 @@ type mloc struct {
 	mlt mltt
 }
 
+func newSent(m mltt) *mloc {
+	rt := new(mloc)
+	rt.mlt = m
+	return rt
+}
+
 func (ml *mloc) String() string {
 	rt := "G"
 	if ml.fc {

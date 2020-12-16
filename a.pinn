@@ -1,5 +1,4 @@
 var sl []int;
+ar := [2,42,7,9,30];
+sl = ar[2:5]; // LEN PTR
 print(len(sl));
-ar := [2,4,7];
-sl = ar[:]; // LEN PTR
-
