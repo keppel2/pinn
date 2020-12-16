@@ -154,6 +154,14 @@ func (e *emitter) popAll() {
 		e.p.pop(i)
 	}
 }
+
+func (e *emitter) getaddr(m *mloc) {
+	if m.fc {
+		e.p.add(TR2, TSS)
+	} else {
+		e.p.add(TR2, TBP)
+	}
+}
 func (e *emitter) setIndex(index regi, m *mloc) {
 	e.p.lsl(index, 3)
 	if m.fc {
@@ -198,7 +206,7 @@ func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	if m.mlt == mlInt {
 		e.err("")
 	}
-	if m.mlt == mlVoid {
+	if m.mlt == mlVoid || m.mlt == mlSlice {
 		if L {
 			e.loadml(m, TR10)
 			e.p.add(index, 1)
@@ -231,13 +239,16 @@ func (e *emitter) dString() string {
 	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
 }
 
-func (e *emitter) rangeCheck(ml *mloc, r regi) {
+func (e *emitter) rangeCheck(ml *mloc) {
+	if ml.mlt == mlSlice {
+		return
+	}
 	if ml.mlt == mlVoid {
-		e.p.mov(TR9, -1)
-		e.iLoad(TR9, TR9, ml)
-		e.p.cmp(r, TR9)
+		e.p.mov(TR5, -1)
+		e.iLoad(TR5, TR5, ml)
+		e.p.cmp(TR2, TR5)
 	} else {
-		e.p.cmp(r, ml.len)
+		e.p.cmp(TR2, ml.len)
 	}
 
 	lab := e.clab()
@@ -413,7 +424,7 @@ func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
 	e.loadml(lmlL, TR2)
 	e.doOp(TR2, TR3, be.op)
 	if be.op == ":" || be.op == "@" {
-		rt = newSent(mlSlice)
+		rt = newSent(mlRange)
 	} else {
 		rt = newSent(mlInt)
 	}
@@ -479,19 +490,20 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		e.p.mov(TR2, atoi(e, t2.Il.Value))
 		return newSent(mlInt)
 	case *StringExpr:
-		e.p.mov(TR2, int(t2.W.Value[0]))
+		return newSent(mlString)
 	case *VarExpr:
 		rt = e.rMap[t2.Wl.Value]
-		if rt.mlt != mlArray {
+		if rt.mlt != mlArray && rt.mlt != mlSlice {
 			e.loadId(t2.Wl.Value, TR2)
 		}
 	case *BinaryExpr:
 		rt = e.binaryExpr(t2)
 	case *UnaryExpr:
+		rt = newSent(mlInt)
 		if t2.op == "-" {
 			e.assignToReg(t2.E)
-			e.p.mov(TR10, -1)
-			e.p.mul(TR2, TR10)
+			e.p.mov(TR5, -1)
+			e.p.mul(TR2, TR5)
 		} else if t2.op == "&" {
 			switch t3 := t2.E.(type) {
 			case *VarExpr:
@@ -499,22 +511,14 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 				ml := e.rMap[v]
 				e.p.mov(TR2, 0)
 				e.setIndex(TR2, ml)
-				if ml.fc {
-					e.p.add(TR2, TSS)
-				} else {
-					e.p.add(TR2, TBP)
-				}
+				e.getaddr(ml)
 			case *IndexExpr:
 				v := t3.X.(*VarExpr).Wl.Value
 				ml := e.rMap[v]
 				e.assignToReg(t3.E)
-				e.rangeCheck(ml, TR2)
+				e.rangeCheck(ml)
 				e.setIndex(TR2, ml)
-				if ml.fc {
-					e.p.add(TR2, TSS)
-				} else {
-					e.p.add(TR2, TBP)
-				}
+				e.getaddr(ml)
 			}
 		} else if t2.op == "*" {
 			e.assignToReg(t2.E)
@@ -535,10 +539,12 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 			e.err("")
 		}
 		e.p.makeLabel(lab2)
+		rt = rt2
 
 	case *CallExpr:
 		e.emitCall(t2)
 		e.p.mov(TR2, TR1)
+		rt = newSent(mlInt)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
@@ -546,12 +552,13 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		if ert == nil {
 			e.err(v)
 		}
-		if ert.mlt == mlSlice {
+		if ert.mlt == mlRange {
 			rt = ml
 			break
 		}
-		e.rangeCheck(ml, TR2)
+		e.rangeCheck(ml)
 		e.iLoad(TR2, TR2, ml)
+		rt = newSent(mlInt)
 	default:
 		e.err("")
 	}
@@ -780,21 +787,14 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.assignToReg(t.RHSa[0])
 			if e.rMap[id] != nil && e.rMap[id].mlt == mlSlice {
 				mls := e.rMap[id]
-				e.p.mov(TR1, TR2)
-				e.p.br(e.fexit)
 				e.p.mov(TR4, TR3)
 				e.p.sub(TR4, TR2)
 				e.p.mov(TR5, 0)
 				e.iStore(TR4, TR5, mls)
 				e.p.mov(TR5, 1)
 				e.setIndex(TR2, ml)
-				if ml.fc {
-					e.p.add(TR2, TSS)
-				} else {
-					e.p.add(TR2, TBP)
-				}
+				e.getaddr(ml)
 				e.iStore(TR2, TR5, mls)
-
 				return
 			}
 			if ml != nil && ml.mlt == mlArray {
@@ -826,7 +826,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			ml := e.rMap[v]
 
 			e.assignToReg(lh2.E)
-			e.rangeCheck(ml, TR2)
+			e.rangeCheck(ml)
 			e.iStore(TR3, TR2, ml)
 		default:
 			e.err("")

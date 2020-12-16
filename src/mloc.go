@@ -8,6 +8,8 @@ const (
 	mlArray
 	mlInt
 	mlSlice
+	mlRange
+	mlString
 )
 
 type mltt int

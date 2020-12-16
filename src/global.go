@@ -142,6 +142,7 @@ func init() {
 		} else if ml.mlt == mlSlice {
 			e.p.mov(TR5, 0)
 			e.iLoad(TR1, TR5, ml)
+			e.p.emitExit()
 			return
 		}
 		e.p.mov(TR1, ml.len)
@@ -153,13 +154,7 @@ func init() {
 		}
 		e.assignToReg(ce.Params[0])
 		e.p.mov(TR1, TR2)
-		if L {
-			e.p.emitR("push", TMAIN)
-		} else {
-			e.p.mov(LR, TMAIN)
-		}
-		e.p.emit("ret")
-
+		e.p.emitExit()
 	}
 
 }
