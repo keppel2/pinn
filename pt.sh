@@ -1,1 +1,1 @@
-./mt.sh pr7 > 72.txt && cmp 7.txt 72.txt
+./mt.sh $1 > $1.txt && cmp $1.txt $1g.txt
