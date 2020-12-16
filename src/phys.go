@@ -105,6 +105,7 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 		case ATeq:
 			if L {
 				p.emit("mov", fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)), makeReg(d))
+				//p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(base), makeRC(offset[0], false)), makeReg(d))
 			} else {
 				p.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
 			}
@@ -253,6 +254,12 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emit("ret")
 }
 
+func (p *phys) dbgExit() {
+	p.push(TR2)
+	p.emit("call", FP+"print")
+	didPrint = true
+	p.emitExit()
+}
 func (p *phys) emitExit() {
 	if L {
 		p.emitR("push", TMAIN)

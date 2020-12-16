@@ -206,7 +206,7 @@ func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	if m.mlt == mlInt {
 		e.err("")
 	}
-	if m.mlt == mlVoid || m.mlt == mlSlice {
+	if m.mlt == mlVoid { //|| m.mlt == mlSlice {
 		if L {
 			e.loadml(m, TR10)
 			e.p.add(index, 1)
@@ -555,6 +555,15 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		if ert.mlt == mlRange {
 			rt = ml
 			break
+		}
+		if ml.mlt == mlSlice {
+			e.p.mov(TR5, 1)
+			e.p.mov(TR3, TR2)
+			e.p.lsl(TR3, 3)
+			e.iLoad(TR2, TR2, ml)
+			e.p.ldr(ATeq, TR2, TR2, TR3)
+			break
+
 		}
 		e.rangeCheck(ml)
 		e.iLoad(TR2, TR2, ml)
