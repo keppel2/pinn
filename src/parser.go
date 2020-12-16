@@ -41,7 +41,7 @@ func (p *parser) got(tok string) bool {
 }
 
 func (p *parser) want(tok string) {
-	if !p.got(p.s.ct().tok) {
+	if !p.got(tok) {
 		p.err("expecting " + tok)
 	}
 }
