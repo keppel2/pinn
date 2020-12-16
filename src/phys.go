@@ -153,38 +153,31 @@ func (p *phys) br(b branchi, s ...string) {
 
 func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printchar")
-	if L {
-		lab := ugly.clab()
-		lab2 := ugly.clab()
-		p.mov(TSS, TSP)
-		p.makeLabel(lab)
-		p.ldr(ATeq, TR2, TSS)
-		p.cmp(TR10, 0)
-		p.br(lab2, "eq")
-		p.sub(TR10, 1)
+	eplab := ugly.clab()
+	eplab2 := ugly.clab()
+	p.mov(TSS, TSP)
+	p.makeLabel(eplab)
+	p.cmp(TR10, 0)
+	p.br(eplab2, "eq")
+	p.sub(TR10, 1)
 
+	if L {
 		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
 		p.mov(TR6, 1)         //STDOUT
 		p.mov(TR4, 1)         //1 byte
 		p.mov(TR5, TSS)
 		p.emit("syscall")
-		p.add(TSS, 8)
-		p.br(lab)
-		p.makeLabel(lab2)
-		p.mov(TSP, TSS)
-		p.emit("ret")
 	} else {
-		p.ldr(ATeq, TR8, TSP)
-		p.push(TR8)
-		p.mov(TR1, 1)
-		p.mov(TR2, TSP)
-		p.mov(TR3, 1)
+		p.mov(TR1, 1) //STDOUT
+		p.mov(TR2, TSS)
+		p.mov(TR3, 1) //1 byte
 		p.mov(TR9, 64)
 		p.emitR("svc", 0)
-		p.add(TSP, 8)
-		p.emit("ret")
 	}
-
+	p.add(TSS, 8)
+	p.br(eplab)
+	p.makeLabel(eplab2)
+	p.emit("ret")
 	p.flabel("println")
 	if L {
 		p.mov(TR8, int('\n'))
