@@ -195,6 +195,9 @@ func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 }
 
 func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
+	if m.mlt == mlInt {
+		e.err("")
+	}
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
@@ -368,7 +371,8 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		e.condExpr(dest, be.RHS.(*BinaryExpr))
 		e.p.makeLabel(lab2)
 	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-		e.assignToReg(TR4, be.LHS)
+		e.assignToReg(TR2, be.LHS)
+		e.p.mov(TR4, TR2)
 		e.assignToReg(TR2, be.RHS)
 		e.p.cmp(TR4, TR2)
 		bi := ""
@@ -401,7 +405,8 @@ func (e *emitter) binaryExpr(dest regi, be *BinaryExpr) {
 
 	e.assignToReg(TR2, be.LHS)
 	e.storeml(lmlL, TR2)
-	e.assignToReg(TR3, be.RHS)
+	e.assignToReg(TR2, be.RHS)
+	e.p.mov(TR3, TR2)
 	e.loadml(lmlL, TR2)
 	e.doOp(TR2, TR3, be.op)
 	e.p.mov(dest, TR2)
@@ -454,6 +459,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 }
 
 func (e *emitter) assignToReg(r regi, ex Expr) *mloc {
+	r = TR2
 	var rt *mloc
 	rt = new(mloc)
 	rt.init(e.fc, mlInt)
@@ -677,7 +683,8 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	case *ReturnStmt:
 		if t.E != nil {
-			e.assignToReg(TR1, t.E)
+			e.assignToReg(TR2, t.E)
+			e.p.mov(TR1, TR2)
 		} else {
 			e.p.mov(TR1, 5)
 		}
@@ -692,7 +699,8 @@ func (e *emitter) emitStmt(s Stmt) {
 			if lh2.op != "*" {
 				e.err(lh2.op)
 			}
-			e.assignToReg(TR3, lh2.E)
+			e.assignToReg(TR2, lh2.E)
+			e.p.mov(TR3, TR2)
 			e.assignToReg(TR2, t.RHSa[0])
 			e.p.str(ATeq, TR2, TR3)
 		case *VarExpr:
@@ -704,14 +712,14 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.err(id)
 			}
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
-				e.loadId(id, TR2)
+				e.loadId(id, TR3)
 				if t.Op[1:2] == "=" {
-					e.assignToReg(TR3, t.RHSa[0])
+					e.assignToReg(TR2, t.RHSa[0])
 				} else {
-					e.p.mov(TR3, 1)
+					e.p.mov(TR2, 1)
 				}
-				e.doOp(TR2, TR3, t.Op[0:1])
-				e.storeInt(id, TR2)
+				e.doOp(TR3, TR2, t.Op[0:1])
+				e.storeInt(id, TR3)
 				return
 			}
 			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == ":" || ae.op == "@") {
@@ -720,9 +728,11 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.rMap[id].mlt = mlVoid
 
 				e.assignToReg(TR2, ae.LHS)
-				e.assignToReg(TR3, ae.RHS)
-				e.p.mov(TR9, TR3)
-				e.p.sub(TR9, TR2)
+				e.p.mov(TR3, TR2)
+
+				e.assignToReg(TR2, ae.RHS)
+				e.p.mov(TR9, TR2)
+				e.p.sub(TR9, TR3)
 				if ae.op == "@" {
 					e.p.add(TR9, 1)
 				}
@@ -737,17 +747,17 @@ func (e *emitter) emitStmt(s Stmt) {
 				lab := e.clab()
 				e.p.makeLabel(lab)
 				e.p.mov(TR8, TR9)
-				e.iStore(TR2, TR9, e.rMap[id])
+				e.iStore(TR3, TR9, e.rMap[id])
 				e.p.mov(TR9, TR8)
 				e.p.add(TR9, 1)
-				e.p.add(TR2, 1)
-				e.p.cmp(TR2, TR3)
+				e.p.add(TR3, 1)
+				e.p.cmp(TR3, TR2)
 				e.p.br(lab, "le")
 				return
 			}
 			if ae, ok := t.RHSa[0].(*CallExpr); ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
-				e.assignToReg(TR3, t.RHSa[0])
-				e.storeId(id, TR3)
+				e.assignToReg(TR2, t.RHSa[0])
+				e.storeId(id, TR2)
 				e.rMap[id].mlt = mlVoid
 				e.p.mov(TR3, -1)
 				e.iStore(TR2, TR3, e.rMap[id])
@@ -785,21 +795,24 @@ func (e *emitter) emitStmt(s Stmt) {
 		case *IndexExpr:
 			if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
 				e.assignToReg(TR2, lh2)
+				e.p.mov(TR3, TR2)
 				if t.Op[1:2] == "=" {
-					e.assignToReg(TR3, t.RHSa[0])
+					e.assignToReg(TR2, t.RHSa[0])
 				} else {
-					e.p.mov(TR3, 1)
+					e.p.mov(TR2, 1)
 				}
-				e.doOp(TR2, TR3, t.Op[0:1])
+				e.doOp(TR3, TR2, t.Op[0:1])
 			} else {
 				e.assignToReg(TR2, t.RHSa[0])
+				e.p.mov(TR3, TR2)
 			}
 
 			v := lh2.X.(*VarExpr).Wl.Value
 			ml := e.rMap[v]
-			e.assignToReg(TR3, lh2.E)
-			e.rangeCheck(ml, TR3)
-			e.iStore(TR2, TR3, ml)
+
+			e.assignToReg(TR2, lh2.E)
+			e.rangeCheck(ml, TR2)
+			e.iStore(TR3, TR2, ml)
 		default:
 			e.err("")
 		}

@@ -1,7 +1,5 @@
-var mar [2]int;
-mar[1];
-
-/*var sl []int;
+var sl []int;
+print(len(sl));
 ar := [2,4,7];
 sl = ar[:]; // LEN PTR
-*/
+

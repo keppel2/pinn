@@ -26,6 +26,7 @@ arp[1] = &si;
 assert(si, 3);
 
 
+/*
 var vp void;
 vp = malloc(1);
 assert(len(vp), 1);
@@ -36,17 +37,17 @@ assert(vpse[1], 42);
 assert(*vp, 8);
 
 func fcf() {
-var vp2 void;
-vp2 = malloc(1);
-*vp2 = 8;
-assert(*vp2, 8);
-vpsef := malloc(11);
-vpsef[5] = 101;
-assert(vpsef[5], 101);
-
-
+  var vp2 void;
+  vp2 = malloc(1);
+  *vp2 = 8;
+  assert(*vp2, 8);
+  vpsef := malloc(11);
+  vpsef[5] = 101;
+  assert(vpsef[5], 101);
 }
 
+fcf();
+*/
 ar := [2, 5, 7, 8];
 var i int;
 var hp, p void;

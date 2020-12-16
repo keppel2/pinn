@@ -95,8 +95,9 @@ func init() {
 			e.err("")
 		}
 		e.assignToReg(TR2, ce.Params[0])
-		e.assignToReg(TR3, ce.Params[1])
-		e.p.cmp(TR2, TR3)
+		e.p.mov(TR3, TR2)
+		e.assignToReg(TR2, ce.Params[1])
+		e.p.cmp(TR3, TR2)
 		lab := e.clab()
 		e.p.br(lab, "eq")
 		ln := e.st.Gpos().Line
@@ -108,11 +109,10 @@ func init() {
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
+		e.assignToReg(TR2, ce.Params[0])
 		e.p.mov(TR1, THP)
-		e.assignToReg(TR3, ce.Params[0])
-		e.p.mov(TR2, TR3)
-		e.p.lsl(TR3, 3)
-		e.p.add(THP, TR3)
+		e.p.lsl(TR2, 3)
+		e.p.add(THP, TR2)
 	}
 	fmap["bad"] = func(e *emitter, ce *CallExpr) {
 		if len(ce.Params) != 0 {
@@ -139,6 +139,10 @@ func init() {
 			e.p.mov(TR9, -1)
 			e.iLoad(TR1, TR9, ml)
 			return
+		} else if ml.mlt == mlSlice {
+			e.p.mov(TR5, 0)
+			e.iLoad(TR1, TR6, ml)
+			return
 		}
 		e.p.mov(TR1, ml.len)
 	}
@@ -147,7 +151,8 @@ func init() {
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
-		e.assignToReg(TR1, ce.Params[0])
+		e.assignToReg(TR2, ce.Params[0])
+		e.p.mov(TR1, TR2)
 		if L {
 			e.p.emitR("push", TMAIN)
 		} else {
