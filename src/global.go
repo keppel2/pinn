@@ -35,7 +35,7 @@ var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8
 var irs []string = []string{
 	"ax", "bx", "cx", "dx", "si", "di", "bp", "8", "9", "10", "11", "12", "13", "14", "15"}
 var ars []string = []string{
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "19", "20", "21", "22"}
+	"0", "1", "2", "3", "4", "5", "6", "7", "8", "19", "20", "21", "22", "23", "24"}
 
 var fmap = make(map[string]func(*emitter, *CallExpr))
 
