@@ -266,7 +266,7 @@ func (e *emitter) init(f *File) {
 	}
 	rand.Seed(42)
 	e.p = new(phys)
-	e.p.init()
+	e.p.init(e)
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
@@ -295,7 +295,7 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
-	ms := fmt.Sprintln(e.p.sb, "\n,msg,", msg, "\n", e.dString())
+	ms := fmt.Sprintln(e.p.sb.String(), "\n,msg,", msg, "\n", e.dString())
 	fmt.Fprintln(os.Stderr, ms)
 	panic("")
 }

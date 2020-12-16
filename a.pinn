@@ -1,7 +1,5 @@
-var sl []int;
+func f() {
+x := 5;
+}
 
-ar := [2,42,7,9,30];
-sl = ar[2:5]; // LEN PTR
-//print(&ar[2]);
-print(len(sl));
-print(sl[1]);
+f();

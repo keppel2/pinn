@@ -5,9 +5,11 @@ import "strings"
 
 type phys struct {
 	sb strings.Builder
+	ug *emitter
 }
 
-func (p *phys) init() {
+func (p *phys) init(u *emitter) {
+	p.ug = u
 	p.sb.WriteString("//phys\n")
 }
 
@@ -25,7 +27,7 @@ func (p *phys) emit(i string, ops ...string) {
 			p.padd(OS + s)
 		}
 	}
-	p.padd("//" + "\n")
+	p.padd("//" + p.ug.dString() + "\n")
 }
 
 func (p *phys) label(s string) {
