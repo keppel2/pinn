@@ -561,7 +561,9 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 			e.p.mov(TR3, TR2)
 			e.p.lsl(TR3, 3)
 			e.iLoad(TR2, TR2, ml)
-			e.p.ldr(ATeq, TR2, TR2, TR3)
+			//e.p.emitExit()
+			e.p.add(TR2, TR3)
+			e.p.ldr(ATeq, TR2, TR2)
 			break
 
 		}
