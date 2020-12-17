@@ -106,7 +106,7 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 		switch t {
 		case ATeq:
 			if L {
-				p.emit("mov", fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)), makeReg(d))
+				p.emit("mov", fmt.Sprintf("%v(%v)", makeConst(offset[0].(int), false), makeReg(base)), makeReg(d))
 				//p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(base), makeRC(offset[0], false)), makeReg(d))
 			} else {
 				p.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
