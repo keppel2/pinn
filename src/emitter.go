@@ -238,7 +238,13 @@ func (e *emitter) rangeCheck(ml *mloc) {
 	if ml.mlt == mlVoid {
 		return
 	}
-	e.p.cmp(TR2, ml.len)
+	if ml.mlt == mlSlice {
+		e.p.mov(TR5, 0)
+		e.iLoad(TR3, TR5, ml)
+		e.p.cmp(TR2, TR3)
+	} else {
+		e.p.cmp(TR2, ml.len)
+	}
 
 	lab := e.clab()
 	e.p.br(lab, "lt")
@@ -354,7 +360,10 @@ func (e *emitter) doOp(dest, b regi, op string) {
 	case "%":
 		e.p.rem(dest, b)
 		return
-	case ":", "@":
+	case "@":
+		e.p.add(b, 1)
+		return
+	case ":":
 		return
 	default:
 		e.err(op)
@@ -541,14 +550,16 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 			e.err(v)
 		}
 		if ert.mlt == mlRange {
+
 			rt = ml
 			break
 		}
 		if ml.mlt == mlSlice {
-			e.p.mov(TR5, 1)
+			e.rangeCheck(ml)
 			e.p.mov(TR3, TR2)
 			e.p.lsl(TR3, 3)
-			e.iLoad(TR2, TR2, ml)
+			e.p.mov(TR5, 1)
+			e.iLoad(TR2, TR5, ml)
 			//e.p.emitExit()
 			e.p.add(TR2, TR3)
 			e.p.ldr(ATeq, TR2, TR2)
@@ -581,17 +592,15 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if fun == nil {
 		e.err(ID)
 	}
-	/*
-	  if fun.K != nil {
-	    skind := fun.K.(*SKind).Wl.Value
-	    switch skind {
-	    case "int":
-	      rt = newSent(mlInt)
-	    case "void":
-	      rt = newSent(mlVoid)
-	    }
-	  }
-	*/
+	if fun.K != nil {
+		skind := fun.K.(*SKind).Wl.Value
+		switch skind {
+		case "int":
+			rt = newSent(mlInt)
+		case "void":
+			rt = newSent(mlVoid)
+		}
+	}
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
 	}
@@ -789,7 +798,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 
 			ml := e.assignToReg(t.RHSa[0])
-			if ml != nil && ml.mlt == mlMloc {
+			if ml.mlt == mlMloc {
 				if e.rMap[id] != nil && e.rMap[id].mlt != mlVoid {
 					e.err(id)
 				}
@@ -810,7 +819,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.iStore(TR2, TR5, mls)
 				return
 			}
-			if ml != nil && ml.mlt == mlArray {
+			if ml.mlt == mlArray {
 				if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
 					e.err(id)
 				}
@@ -862,6 +871,8 @@ func (e *emitter) emitStmt(s Stmt) {
 					}
 					var ml *mloc
 					ml = e.assignToReg(ue.E)
+					//if ml.mlt == ml.mlRange {
+					//}
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)
@@ -870,6 +881,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					if key != nil {
 						e.storeml(key, TR10)
 					}
+
 					e.iLoad(TR9, TR10, ml)
 					e.storeml(iter, TR9)
 					e.emitStmt(t.B)
