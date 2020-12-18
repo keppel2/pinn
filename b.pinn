@@ -1,13 +1,1 @@
-func f() {
-var v int;
-var k int;
-for k, v = range [4, 7, 2] {
-print(k);
-print(v);
-}
-y := 202;
-ar := [7, 5, 3];
-x := 101;
-assert(ar[2], 3);
-}
-f();
+x := 5;

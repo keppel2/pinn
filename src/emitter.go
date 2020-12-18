@@ -581,6 +581,17 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if fun == nil {
 		e.err(ID)
 	}
+	/*
+	  if fun.K != nil {
+	    skind := fun.K.(*SKind).Wl.Value
+	    switch skind {
+	    case "int":
+	      rt = newSent(mlInt)
+	    case "void":
+	      rt = newSent(mlVoid)
+	    }
+	  }
+	*/
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
 	}

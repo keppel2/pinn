@@ -1,6 +1,7 @@
 package main
 
 //a
+import "runtime/debug"
 import "io/ioutil"
 import "strings"
 import "fmt"
@@ -51,6 +52,15 @@ func main() {
 	}
 	e := emitter{}
 	e.init(f)
+	_ = debug.Stack
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err, string(debug.Stack()))
+			fmt.Fprintln(os.Stderr, e.p.sb.String(), e.dString())
+			os.Exit(1)
+		}
+	}()
 	e.emitF()
 	fmt.Println(e.p.sb.String())
 	return

@@ -1,18 +1,16 @@
 package main
 
 import "fmt"
+import "runtime/debug"
 //import "strings"
 
 
 var s []int
 
 func main() {
-  fmt.Println(len(s))
-  fmt.Println(s == nil)
-  s = make([]int, 0)
-  fmt.Println(len(s))
-  fmt.Println(s == nil)
-  s = s[0:0]
-  fmt.Println(len(s))
-  fmt.Println(s == nil)
+  defer func() { err := recover(); fmt.Println(err,"errrrrrrrr",string(debug.Stack())) } ()
+  var p *int
+  _ = p
+  *p = 4
+
 }
