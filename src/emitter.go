@@ -150,7 +150,7 @@ func (e *emitter) pushAll() {
 
 }
 func (e *emitter) popAll() {
-	for i := TR2; i >= TR3; i-- {
+	for i := TR3; i >= TR2; i-- {
 		e.p.pop(i)
 	}
 }
@@ -249,6 +249,9 @@ func (e *emitter) rangeCheck(ml *mloc) {
 
 	lab := e.clab()
 	e.p.br(lab, "lt")
+	e.p.mov(TR5, 7)
+	e.p.push(TR5)
+
 	ln := e.st.Gpos().Line
 	e.p.mov(TR1, ln)
 	e.p.emitExit()
@@ -413,15 +416,11 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
 	var rt *mloc
 
-	lmlL := e.newIntml()
 	e.assignToReg(be.LHS)
-	e.storeml(lmlL, TR2)
-	//  e.p.push(TR2)
+	e.p.push(TR2)
 	e.assignToReg(be.RHS)
-
 	e.p.mov(TR3, TR2)
-	e.loadml(lmlL, TR2)
-	//  e.p.pop(TR2)
+	e.p.pop(TR2)
 	e.doOp(TR2, TR3, be.op)
 	if be.op == ":" || be.op == "@" {
 		rt = newSent(mlRange)
