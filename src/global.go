@@ -90,6 +90,13 @@ func offSet(a, b string) string {
 }
 
 func init() {
+	fmap["dbg"] = func(e *emitter, ce *CallExpr) *mloc {
+		if len(ce.Params) != 0 {
+			e.err("")
+		}
+		e.p.mov(TR1, TSP)
+		return newSent(mlInt)
+	}
 	fmap["assert"] = func(e *emitter, ce *CallExpr) *mloc {
 		if len(ce.Params) != 2 {
 			e.err("")

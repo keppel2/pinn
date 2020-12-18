@@ -1,6 +1,5 @@
-var s []int;
-//ar := [3,5,7,9,8,6,11,13,12];
-ar := [1,3,5];
-s = ar[0:3];
-print(s[0]);
-//print(ar[3]);
+func g() {}
+x := dbg();
+g();
+y := dbg();
+assert(x, y);

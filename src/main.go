@@ -45,7 +45,6 @@ func main() {
 		} else if os.Args[2] == "parse" {
 			return
 		} else if os.Args[2] == "visit" {
-
 			visitFile(f)
 			return
 		}
@@ -56,8 +55,8 @@ func main() {
 	defer func() {
 		err := recover()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err, string(debug.Stack()))
-			fmt.Fprintln(os.Stderr, e.p.sb.String(), e.dString())
+			fmt.Fprintln(os.Stderr, "ANERR", err, string(debug.Stack()))
+			fmt.Fprintln(os.Stderr, e.p.sb.String(), "CDS", e.dString())
 			os.Exit(1)
 		}
 	}()

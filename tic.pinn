@@ -1,12 +1,12 @@
-EMPTY = 0;
-FALSE = 0;
-TRUE = 1;
-TIE = 3;
-PLAYER_A = 1;
-PLAYER_B = 2;
-SIZE = 3;
-SQSIZE = SIZE * SIZE;
-count = 0;
+EMPTY := 0;
+FALSE := 0;
+TRUE := 1;
+TIE := 3;
+PLAYER_A := 1;
+PLAYER_B := 2;
+SIZE := 3;
+SQSIZE := SIZE * SIZE;
+count := 0;
 
 
 func minimax (player int, depth int, flob [9]int) int
@@ -18,9 +18,9 @@ func minimax (player int, depth int, flob [9]int) int
   println();
   println();
 count++;
- i = 0;
- result = 0;
-  best = opposite(player);
+ i := 0;
+ result := 0;
+  best := opposite(player);
 
   result = winner(flob);
 
@@ -30,8 +30,8 @@ count++;
   if full(flob) == TRUE {
         return TIE;
   }
-  x = 0;
-  y = 0;
+  x := 0;
+  y := 0;
   for x = 0; x < SIZE; x++ {
     for y = 0; y < SIZE; y++ {
       if flob[xy(x, y)]  == EMPTY {
@@ -55,8 +55,8 @@ count++;
 func printBoard (flob [9]int) {
   println();
 
-  i = 0;
-  j = 0;
+  i := 0;
+  j := 0;
   for i = 0; i < SIZE; i++ {
     for j = 0; j < SIZE; j++ {
       print(flob[xy(i, j)]);
@@ -71,7 +71,7 @@ func xy (fx, fy int) int {
 
 
 func full (flob [9]int) int {
-  i = 0;
+  i := 0;
   for i = 0; i < SQSIZE; i++ {
     if flob[i] == EMPTY {
       return FALSE;
@@ -81,7 +81,7 @@ func full (flob [9]int) int {
 }
 
 func line (x int, y int, dx int, dy int, flob [9]int) int {
-    comp = flob[xy(x, y)];
+    comp := flob[xy(x, y)];
     if comp == EMPTY {
         return TIE;
     }
@@ -102,8 +102,8 @@ func line (x int, y int, dx int, dy int, flob [9]int) int {
 }
 
 func winner (flob [9]int) int {
-  i = 0;
-  rt = 0;
+  i := 0;
+  rt := 0;
   for i = 0; i < SIZE; i++ {
 
         rt = line(i, 0, 0, 1, flob);
@@ -131,8 +131,8 @@ func opposite (opx int) int {
 
 func main() {
   var flob [9]int;
-  x = minimax(PLAYER_A, 0, flob);
+  x := minimax(PLAYER_A, 0, flob);
   
 }
 main();
-print(count);
+//print(count);

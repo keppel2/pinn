@@ -1,1 +1,4 @@
-x := 5;
+var k, v int;
+for v = range (2:5) {
+print(k);print(v);println();
+}

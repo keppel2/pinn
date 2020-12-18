@@ -3,7 +3,8 @@ package main
 import "fmt"
 import "reflect"
 import "math/rand"
-import "os"
+
+//import "os"
 
 type emitter struct {
 	rMap    map[string]*mloc
@@ -290,9 +291,7 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
-	ms := fmt.Sprintln(e.p.sb.String(), "\n,msg,", msg, "\n", e.dString())
-	fmt.Fprintln(os.Stderr, ms)
-	panic("")
+	panic(msg)
 }
 
 func (e *emitter) loadml(ml *mloc, r regi) {
@@ -413,13 +412,16 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 
 func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
 	var rt *mloc
-	lmlL := e.newIntml()
 
+	lmlL := e.newIntml()
 	e.assignToReg(be.LHS)
 	e.storeml(lmlL, TR2)
+	//  e.p.push(TR2)
 	e.assignToReg(be.RHS)
+
 	e.p.mov(TR3, TR2)
 	e.loadml(lmlL, TR2)
+	//  e.p.pop(TR2)
 	e.doOp(TR2, TR3, be.op)
 	if be.op == ":" || be.op == "@" {
 		rt = newSent(mlRange)
@@ -871,8 +873,6 @@ func (e *emitter) emitStmt(s Stmt) {
 					}
 					var ml *mloc
 					ml = e.assignToReg(ue.E)
-					//if ml.mlt == ml.mlRange {
-					//}
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)
@@ -882,11 +882,25 @@ func (e *emitter) emitStmt(s Stmt) {
 						e.storeml(key, TR10)
 					}
 
-					e.iLoad(TR9, TR10, ml)
-					e.storeml(iter, TR9)
+					if ml.mlt != mlRange {
+						e.iLoad(TR2, TR10, ml)
+					}
+					e.storeml(iter, TR2)
+					e.p.push(TR2)
+					e.p.push(TR3)
+					e.p.push(TR10)
+
 					e.emitStmt(t.B)
+					e.p.pop(TR10)
+					e.p.pop(TR3)
+					e.p.pop(TR2)
 					e.p.add(TR10, 1)
-					e.p.cmp(TR10, ml.len)
+					if ml.mlt == mlRange {
+						e.p.add(TR2, 1)
+						e.p.cmp(TR2, TR3)
+					} else {
+						e.p.cmp(TR10, ml.len)
+					}
 					e.p.br(lab, "lt")
 					e.p.makeLabel(lab2)
 					return
