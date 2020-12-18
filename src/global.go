@@ -37,7 +37,7 @@ var irs []string = []string{
 var ars []string = []string{
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "19", "20", "21", "22", "23", "24"}
 
-var fmap = make(map[string]func(*emitter, *CallExpr))
+var fmap = make(map[string]func(*emitter, *CallExpr) *mloc)
 
 const (
 	TR1 reg = iota
@@ -90,7 +90,7 @@ func offSet(a, b string) string {
 }
 
 func init() {
-	fmap["assert"] = func(e *emitter, ce *CallExpr) {
+	fmap["assert"] = func(e *emitter, ce *CallExpr) *mloc {
 		if len(ce.Params) != 2 {
 			e.err("")
 		}
@@ -104,8 +104,9 @@ func init() {
 		e.p.mov(TR1, ln)
 		e.p.emitExit()
 		e.p.makeLabel(lab)
+		return nil
 	}
-	fmap["malloc"] = func(e *emitter, ce *CallExpr) {
+	fmap["malloc"] = func(e *emitter, ce *CallExpr) *mloc {
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
@@ -113,8 +114,9 @@ func init() {
 		e.p.mov(TR1, THP)
 		e.p.lsl(TR2, 3)
 		e.p.add(THP, TR2)
+		return newSent(mlMloc)
 	}
-	fmap["bad"] = func(e *emitter, ce *CallExpr) {
+	fmap["bad"] = func(e *emitter, ce *CallExpr) *mloc {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
@@ -126,27 +128,27 @@ func init() {
 			e.p.mov(LR, TMAIN)
 		}
 		e.p.emit("ret")
+		return nil
 	}
 
-	fmap["len"] = func(e *emitter, ce *CallExpr) {
-
+	fmap["len"] = func(e *emitter, ce *CallExpr) *mloc {
+		rt := newSent(mlInt)
 		if len(ce.Params) != 1 {
 			e.err("")
 		}
 		v := ce.Params[0].(*VarExpr).Wl.Value
 		ml := e.rMap[v]
 		if ml.mlt == mlVoid {
-			e.p.mov(TR9, -1)
-			e.iLoad(TR1, TR9, ml)
-			return
+			e.err(v)
 		} else if ml.mlt == mlSlice {
 			e.p.mov(TR5, 0)
 			e.iLoad(TR1, TR5, ml)
-			return
+			return rt
 		}
 		e.p.mov(TR1, ml.len)
+		return rt
 	}
-	fmap["exit"] = func(e *emitter, ce *CallExpr) {
+	fmap["exit"] = func(e *emitter, ce *CallExpr) *mloc {
 
 		if len(ce.Params) != 1 {
 			e.err("")
@@ -154,6 +156,7 @@ func init() {
 		e.assignToReg(ce.Params[0])
 		e.p.mov(TR1, TR2)
 		e.p.emitExit()
+		return nil
 	}
 
 }

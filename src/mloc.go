@@ -10,6 +10,7 @@ const (
 	mlSlice
 	mlRange
 	mlString
+	mlMloc
 )
 
 type mltt int

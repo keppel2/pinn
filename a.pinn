@@ -1,4 +1,3 @@
-var s []int;
-ar := [3,5,7,11, 12, 21, 22];
-s = ar[1:3];
-print(s[1]);
+x := malloc(3);
+x[1] = 42;
+return x[1];

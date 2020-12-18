@@ -121,7 +121,6 @@ func (e *emitter) newVar(s string, k Kind) {
 		e.storeml(ml, TR2)
 		if t.Wl.Value == "void" {
 			e.rMap[s].mlt = mlVoid
-			e.rMap[s].len = -1
 		}
 
 	case *ArKind:
@@ -175,11 +174,9 @@ func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
 			e.loadml(m, TR10)
-			e.p.add(index, 1)
 			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
 		} else {
 			e.loadml(m, TR10)
-			e.p.add(index, 1)
 			e.p.lsl(index, 3)
 			e.p.str(ATeq, dest, TR10, index)
 		}
@@ -209,11 +206,9 @@ func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid { //|| m.mlt == mlSlice {
 		if L {
 			e.loadml(m, TR10)
-			e.p.add(index, 1)
 			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
 		} else {
 			e.loadml(m, TR10)
-			e.p.add(index, 1)
 			e.p.lsl(index, 3)
 			e.p.ldr(ATeq, dest, TR10, index)
 		}
@@ -240,16 +235,10 @@ func (e *emitter) dString() string {
 }
 
 func (e *emitter) rangeCheck(ml *mloc) {
-	if ml.mlt == mlSlice {
+	if ml.mlt == mlVoid {
 		return
 	}
-	if ml.mlt == mlVoid {
-		e.p.mov(TR5, -1)
-		e.iLoad(TR5, TR5, ml)
-		e.p.cmp(TR2, TR5)
-	} else {
-		e.p.cmp(TR2, ml.len)
-	}
+	e.p.cmp(TR2, ml.len)
 
 	lab := e.clab()
 	e.p.br(lab, "lt")
@@ -542,9 +531,8 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		rt = rt2
 
 	case *CallExpr:
-		e.emitCall(t2)
+		rt = e.emitCall(t2)
 		e.p.mov(TR2, TR1)
-		rt = newSent(mlInt)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
@@ -576,12 +564,13 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 	return rt
 }
 
-func (e *emitter) emitCall(ce *CallExpr) {
+func (e *emitter) emitCall(ce *CallExpr) *mloc {
+	var rt *mloc
 	e.st = ce
 	ID := ce.ID.(*VarExpr).Wl.Value
 	if ff, ok := fmap[ID]; ok {
-		ff(e, ce)
-		return
+		rt := ff(e, ce)
+		return rt
 	}
 
 	if ID == "print" || ID == "println" || ID == "printchar" {
@@ -651,6 +640,7 @@ func (e *emitter) emitCall(ce *CallExpr) {
 	e.p.pop(TSS)
 
 	e.popAll()
+	return rt
 
 }
 
@@ -786,16 +776,17 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.p.br(lab, "le")
 				return
 			}
-			if ae, ok := t.RHSa[0].(*CallExpr); ok && ae.ID.(*VarExpr).Wl.Value == "malloc" {
-				e.assignToReg(t.RHSa[0])
+
+			ml := e.assignToReg(t.RHSa[0])
+			if ml != nil && ml.mlt == mlMloc {
+				if e.rMap[id] != nil && e.rMap[id].mlt != mlVoid {
+					e.err(id)
+				}
 				e.storeId(id, TR2)
 				e.rMap[id].mlt = mlVoid
-				e.p.mov(TR3, -1)
-				e.iStore(TR2, TR3, e.rMap[id])
 				return
 			}
 
-			ml := e.assignToReg(t.RHSa[0])
 			if e.rMap[id] != nil && e.rMap[id].mlt == mlSlice {
 				mls := e.rMap[id]
 				e.p.mov(TR4, TR3)
