@@ -1,8 +1,5 @@
-func printB (flob [2]int) {
-  var jj int;
-  //ii := 0;
-  print(jj);
-}
-//ar := [5,7];
-var ar [2]int;
-printB(ar);
+assert(2, 5);
+printchar("apc");
+var ar[2]int;
+ar[7];
+printchar("not");

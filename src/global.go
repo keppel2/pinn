@@ -107,8 +107,15 @@ func init() {
 		e.p.cmp(TR3, TR2)
 		lab := e.clab()
 		e.p.br(lab, "eq")
+		e.p.push(TR3)
+		e.p.emit2Print()
+		e.p.pop(TR2)
+		e.p.emit2Print()
+		e.p.emit2Prints("--assert,")
 		ln := e.st.Gpos().Line
-		e.p.mov(TR1, ln)
+		e.p.mov(TR2, ln)
+		e.p.emit2Print()
+		e.p.mov(TR1, 5)
 		e.p.emitExit()
 		e.p.makeLabel(lab)
 		return nil

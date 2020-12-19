@@ -262,6 +262,26 @@ func (p *phys) dbgExit() {
 	didPrint = true
 	p.emitExit()
 }
+
+func (p *phys) emit2Print() {
+	p.push(TR2)
+	didPrint = true
+	p.emit("call", fmake("print"))
+	p.pop(TR2)
+}
+
+func (p *phys) emit2Prints(s string) {
+	for _, r := range revString(s) {
+		p.mov(TR2, int(r))
+		p.push(TR2)
+		p.mov(TR10, len(s))
+	}
+
+	p.emit("call", fmake("printchar"))
+	p.add(TSP, moffOff(len(s)))
+
+}
+
 func (p *phys) emitExit() {
 	if L {
 		p.emitR("push", TMAIN)
