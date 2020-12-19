@@ -8,11 +8,17 @@ const (
 	mlArray
 	mlInt
 	mlSlice
-	mlRange
-	mlString
-	mlMloc
 )
 
+const (
+	rsInvalid rstate = iota
+	rsInt
+	rsRange
+	rsMloc
+	rsString
+)
+
+type rstate int
 type mltt int
 
 type mloc struct {
@@ -20,11 +26,12 @@ type mloc struct {
 	i   int
 	len int
 	mlt mltt
+	rs  rstate
 }
 
-func newSent(m mltt) *mloc {
+func newSent(r rstate) *mloc {
 	rt := new(mloc)
-	rt.mlt = m
+	rt.rs = r
 	return rt
 }
 

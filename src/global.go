@@ -95,7 +95,7 @@ func init() {
 			e.err("")
 		}
 		e.p.mov(TR1, TSP)
-		return newSent(mlInt)
+		return newSent(rsInt)
 	}
 	fmap["assert"] = func(e *emitter, ce *CallExpr) *mloc {
 		if len(ce.Params) != 2 {
@@ -121,7 +121,7 @@ func init() {
 		e.p.mov(TR1, THP)
 		e.p.lsl(TR2, 3)
 		e.p.add(THP, TR2)
-		return newSent(mlMloc)
+		return newSent(rsMloc)
 	}
 	fmap["bad"] = func(e *emitter, ce *CallExpr) *mloc {
 		if len(ce.Params) != 0 {
@@ -139,7 +139,7 @@ func init() {
 	}
 
 	fmap["len"] = func(e *emitter, ce *CallExpr) *mloc {
-		rt := newSent(mlInt)
+		rt := newSent(rsInt)
 		if len(ce.Params) != 1 {
 			e.err("")
 		}

@@ -1,5 +1,8 @@
-func g() {}
-x := dbg();
-g();
-y := dbg();
-assert(x, y);
+func printB (flob [2]int) {
+  var jj int;
+  //ii := 0;
+  print(jj);
+}
+//ar := [5,7];
+var ar [2]int;
+printB(ar);

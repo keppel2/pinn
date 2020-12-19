@@ -127,5 +127,8 @@ for k, rx = range [12, 32, 187] {
 var sce []int;
 sar := [3,5,7,9,8,6];
 sce = sar[1@3];
+sce[0];
+
+
 assert(sce[0], 5);
 assert(sce[2], 9);

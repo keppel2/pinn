@@ -423,9 +423,9 @@ func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
 	e.p.pop(TR2)
 	e.doOp(TR2, TR3, be.op)
 	if be.op == ":" || be.op == "@" {
-		rt = newSent(mlRange)
+		rt = newSent(rsRange)
 	} else {
-		rt = newSent(mlInt)
+		rt = newSent(rsInt)
 	}
 	return rt
 }
@@ -487,9 +487,9 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		return rt
 	case *NumberExpr:
 		e.p.mov(TR2, atoi(e, t2.Il.Value))
-		return newSent(mlInt)
+		return newSent(rsInt)
 	case *StringExpr:
-		return newSent(mlString)
+		return newSent(rsString)
 	case *VarExpr:
 		rt = e.rMap[t2.Wl.Value]
 		if rt.mlt != mlArray && rt.mlt != mlSlice {
@@ -498,12 +498,13 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 	case *BinaryExpr:
 		rt = e.binaryExpr(t2)
 	case *UnaryExpr:
-		rt = newSent(mlInt)
+		rt = newSent(rsInt)
 		if t2.op == "-" {
 			e.assignToReg(t2.E)
 			e.p.mov(TR5, -1)
 			e.p.mul(TR2, TR5)
 		} else if t2.op == "&" {
+			rt = newSent(rsMloc)
 			switch t3 := t2.E.(type) {
 			case *VarExpr:
 				v := t3.Wl.Value
@@ -550,9 +551,12 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		if ert == nil {
 			e.err(v)
 		}
-		if ert.mlt == mlRange {
-
+		if ert.rs == rsRange {
+			if ml.mlt != mlArray {
+				e.err(v)
+			}
 			rt = ml
+			rt.rs = rsRange
 			break
 		}
 		if ml.mlt == mlSlice {
@@ -569,7 +573,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		}
 		e.rangeCheck(ml)
 		e.iLoad(TR2, TR2, ml)
-		rt = newSent(mlInt)
+		rt = newSent(rsInt)
 	default:
 		e.err("")
 	}
@@ -597,9 +601,9 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		skind := fun.K.(*SKind).Wl.Value
 		switch skind {
 		case "int":
-			rt = newSent(mlInt)
+			rt = newSent(rsInt)
 		case "void":
-			rt = newSent(mlVoid)
+			rt = newSent(rsMloc)
 		}
 	}
 	if len(ce.Params) != fun.PCount {
@@ -764,52 +768,58 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.storeInt(id, TR3)
 				return
 			}
-			if ae, ok := t.RHSa[0].(*BinaryExpr); t.Op == ":=" && ok && (ae.op == ":" || ae.op == "@") {
-				e.p.mov(TR10, THP)
-				e.storeId(id, TR10)
-				e.rMap[id].mlt = mlVoid
-
-				e.assignToReg(ae.LHS)
-				e.p.mov(TR3, TR2)
-
-				e.assignToReg(ae.RHS)
-				e.p.mov(TR9, TR2)
-				e.p.sub(TR9, TR3)
-				if ae.op == "@" {
-					e.p.add(TR9, 1)
-				}
-
-				e.p.mov(TR8, -1)
-				e.iStore(TR9, TR8, e.rMap[id]) //len
-
-				e.p.add(TR9, 1) // Add len at start
-				e.p.lsl(TR9, 3)
-				e.p.add(THP, TR9)
-				e.p.mov(TR9, 0)
-				lab := e.clab()
-				e.p.makeLabel(lab)
-				e.p.mov(TR8, TR9)
-				e.iStore(TR3, TR9, e.rMap[id])
-				e.p.mov(TR9, TR8)
-				e.p.add(TR9, 1)
-				e.p.add(TR3, 1)
-				e.p.cmp(TR3, TR2)
-				e.p.br(lab, "le")
-				return
-			}
-
 			ml := e.assignToReg(t.RHSa[0])
-			if ml.mlt == mlMloc {
+			if ml.mlt == mlInvalid && ml.rs == rsRange {
+				e.err(id)
+				/*
+					e.p.mov(TR10, THP)
+					e.storeId(id, TR10)
+					e.rMap[id].mlt = mlVoid
+
+					e.assignToReg(ae.LHS)
+					e.p.mov(TR3, TR2)
+
+					e.assignToReg(ae.RHS)
+					e.p.mov(TR9, TR2)
+					e.p.sub(TR9, TR3)
+					if ae.op == "@" {
+						e.p.add(TR9, 1)
+					}
+
+					e.p.mov(TR8, -1)
+					e.iStore(TR9, TR8, e.rMap[id]) //len
+
+					e.p.add(TR9, 1) // Add len at start
+					e.p.lsl(TR9, 3)
+					e.p.add(THP, TR9)
+					e.p.mov(TR9, 0)
+					lab := e.clab()
+					e.p.makeLabel(lab)
+					e.p.mov(TR8, TR9)
+					e.iStore(TR3, TR9, e.rMap[id])
+					e.p.mov(TR9, TR8)
+					e.p.add(TR9, 1)
+					e.p.add(TR3, 1)
+					e.p.cmp(TR3, TR2)
+					e.p.br(lab, "le")
+				*/
+				return
+			} else if ml.rs == rsMloc {
 				if e.rMap[id] != nil && e.rMap[id].mlt != mlVoid {
 					e.err(id)
 				}
 				e.storeId(id, TR2)
 				e.rMap[id].mlt = mlVoid
 				return
-			}
-
-			if e.rMap[id] != nil && e.rMap[id].mlt == mlSlice {
+			} else if ml.mlt == mlArray && ml.rs == rsRange {
 				mls := e.rMap[id]
+				if mls == nil {
+					mls = e.newSlc()
+					e.rMap[id] = mls
+				}
+				if mls.mlt != mlSlice {
+					e.err(id)
+				}
 				e.p.mov(TR4, TR3)
 				e.p.sub(TR4, TR2)
 				e.p.mov(TR5, 0)
@@ -881,7 +891,7 @@ func (e *emitter) emitStmt(s Stmt) {
 						e.storeml(key, TR10)
 					}
 
-					if ml.mlt != mlRange {
+					if ml.rs != rsRange {
 						e.iLoad(TR2, TR10, ml)
 					}
 					e.storeml(iter, TR2)
@@ -894,7 +904,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.p.pop(TR3)
 					e.p.pop(TR2)
 					e.p.add(TR10, 1)
-					if ml.mlt == mlRange {
+					if ml.rs == rsRange {
 						e.p.add(TR2, 1)
 						e.p.cmp(TR2, TR3)
 					} else {

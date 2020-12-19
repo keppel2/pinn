@@ -54,19 +54,24 @@ count++;
 }
 
 func printBoard (flob [9]int) {
-  println();
-  print(2);
-
-  i := 0;
-  j := 0;
+  ii := 0;
+  jj := 0;
+  var i, j int;
+    print(i);print(j);
   for i = 0; i < SIZE; i++ {
+    print(i);print(j);
     for j = 0; j < SIZE; j++ {
-    print(5);
+    print(i);print(j);
       print(flob[xy(i, j)]);
     }
     println();
   }
 }
+
+var zz int;
+print(zz);
+var b[9]int;
+printBoard(b);
 
 func xy (fx, fy int) int {
   return fy * SIZE + fx;
@@ -134,8 +139,9 @@ func opposite (opx int) int {
 
 func main() {
   var flob [9]int;
+  printBoard(flob);
   x := minimax(PLAYER_A, 0, flob);
   
 }
-main();
-print(count);
+//main();
+//print(count);
