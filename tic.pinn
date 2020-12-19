@@ -12,12 +12,7 @@ count := 0;
 func minimax (player int, depth int, flob [9]int) int
 {
 
-  printBoard(flob);
-  print(player);
-  print(depth);
-  println();
-  println();
-count++;
+ count++;
  i := 0;
  result := 0;
   best := opposite(player);
@@ -36,7 +31,6 @@ count++;
     for y = 0; y < SIZE; y++ {
       if flob[xy(x, y)]  == EMPTY {
         flob[xy(x, y)] = player;
-        println();
  
         result = minimax(opposite(player), depth + 1, flob);
         if result == player {
@@ -67,11 +61,6 @@ func printBoard (flob [9]int) {
     println();
   }
 }
-
-var zz int;
-print(zz);
-var b[9]int;
-printBoard(b);
 
 func xy (fx, fy int) int {
   return fy * SIZE + fx;
@@ -139,9 +128,8 @@ func opposite (opx int) int {
 
 func main() {
   var flob [9]int;
-  printBoard(flob);
   x := minimax(PLAYER_A, 0, flob);
   
 }
-//main();
-//print(count);
+main();
+print(count);

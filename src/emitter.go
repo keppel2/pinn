@@ -72,14 +72,15 @@ func (e *emitter) newSlc() *mloc {
 func (e *emitter) newIntml() *mloc {
 	ml := new(mloc)
 	ml.init(e.fc, mlInt)
+	e.p.mov(TR5, 0)
 	if ml.fc {
 		e.soff++
 		ml.i = e.soff
+		e.p.push(TR5)
 	} else {
 		ml.i = e.moff
 		e.moff++
 	}
-	e.p.mov(TR5, 0)
 	e.storeml(ml, TR5)
 	return ml
 }
@@ -118,8 +119,6 @@ func (e *emitter) newVar(s string, k Kind) {
 	case *SKind:
 		ml := e.newIntml()
 		e.rMap[s] = ml
-		e.p.mov(TR2, 0)
-		e.storeml(ml, TR2)
 		if t.Wl.Value == "void" {
 			e.rMap[s].mlt = mlVoid
 		}
