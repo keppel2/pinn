@@ -589,7 +589,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		return rt
 	}
 
-	if ID == "print" || ID == "println" || ID == "printchar" {
+	if ID == "print" || ID == "printdec" || ID == "println" || ID == "printchar" {
 		didPrint = true
 	}
 	fn := fmake(ID)

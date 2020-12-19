@@ -1,5 +1,1 @@
-assert(2, 5);
-printchar("apc");
-var ar[2]int;
-ar[7];
-printchar("not");
+print(5);

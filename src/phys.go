@@ -155,6 +155,17 @@ func (p *phys) br(b branchi, s ...string) {
 }
 
 func (p *phys) emitPrint(ugly *emitter) {
+	p.flabel("printdec")
+	p.ldr(ATeq, TR3, TSS)
+	p.mov(TR4, 10)
+	p.mov(TR2, TR3)
+	p.ug.doOp(TR2, TR4, "%")
+	p.add(TR2, int('0'))
+	p.push(TR2)
+	p.emit("call", fmake("printchar"))
+
+	//  p.emitR("syscall")
+
 	p.flabel("printchar")
 	eplab := ugly.clab()
 	eplab2 := ugly.clab()
@@ -205,12 +216,14 @@ func (p *phys) emitPrint(ugly *emitter) {
 	}
 
 	p.flabel("print")
+	//p.mov(TR1, TR2)
+	//p.emitExit()
 	p.mov(TSS, TSP)
-	p.ldr(ATeq, TR5, TSP)
+	p.ldr(ATeq, TR5, TSS)
 
-	p.sub(TSP, 17)
+	p.sub(TSS, 17)
 	p.mov(TR3, int(','))
-	p.str(ATeq, TR3, TSP)
+	p.str(ATeq, TR3, TSS)
 	p.mov(TR2, 0)
 	p.mov(TR3, 0)
 
@@ -230,29 +243,29 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.add(TR2, TR4)
 	p.cmp(TR3, 7)
 	p.br(lab3, "ne")
-	p.str(ATeq, TR2, TSP, 9)
+	p.str(ATeq, TR2, TSS, 9)
 	p.mov(TR2, 0)
 	p.makeLabel(lab3)
 	p.add(TR3, 1)
 	p.cmp(TR3, 16)
 	p.br(lab, "ne")
-	p.str(ATeq, TR2, TSP, 1)
+	p.str(ATeq, TR2, TSS, 1)
 	if L {
 		p.mov(TR1, 0x2000004)
 		p.mov(TR6, 1)
 		p.mov(TR4, 17)
-		p.mov(TR5, TSP)
+		p.mov(TR5, TSS)
 		p.emit("syscall")
 
 	} else {
 
 		p.mov(TR1, 1)
-		p.mov(TR2, TSP)
+		p.mov(TR2, TSS)
 		p.mov(TR3, 17)
 		p.mov(TR9, 64)
 		p.emitR("svc", 0)
 	}
-	p.mov(TSP, TSS)
+	p.mov(TSS, TSP)
 	p.emit("ret")
 }
 
