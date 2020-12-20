@@ -1,0 +1,37 @@
+#define BSIZE 4
+#define BTOT 400
+
+E := 0;
+B := 1;
+W := 2;
+INV := 3;
+SIZER := 2;
+SIZEC := 2;
+
+func hrc (h, r, c int) int {
+  return h * SIZER * SIZEC + (r * SIZEC) + c;
+}
+
+func printAll() {
+  var x int;
+  for x = range 0:hsize {
+    print(x);
+
+}
+func printBoard (i index) {
+  var y int;
+  var x int;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+        print (bd[hrc(i, x, y)]);
+    }
+        println();
+  }
+  println();
+  printchar("---");
+  println();
+}
+
+hsize := 1;
+var bd [BTOT]int;
+printBoard(0);
