@@ -123,6 +123,9 @@ for k, rx = range [12, 32, 187] {
   assert(rx, 12);
   break;
 }
+for k, rx = range 11:14 {
+  assert(k + 11, rx);
+}
 
 var sce []int;
 sar := [3,5,7,9,8,6];

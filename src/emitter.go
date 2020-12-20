@@ -865,7 +865,7 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *ForStmt:
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
-				if ue, ok := rs.RHSa[0].(*UnaryExpr); ok && ue.op == "range" {
+				if rs.irange {
 					var iter, key *mloc
 					if len(rs.LHSa) == 2 {
 						key = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
@@ -874,7 +874,7 @@ func (e *emitter) emitStmt(s Stmt) {
 						iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
 					}
 					var ml *mloc
-					ml = e.assignToReg(ue.E)
+					ml = e.assignToReg(rs.RHSa[0])
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)

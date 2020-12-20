@@ -48,7 +48,7 @@ func (p *parser) want(tok string) {
 
 func (p *parser) unaryExpr() Expr {
 	switch p.s.ct().tok {
-	case "-", "+", "!", "@", "range", "*", "&", ":":
+	case "-", "+", "!", "@", "*", "&", ":":
 		ue := new(UnaryExpr)
 		ue.Init(p.s.ct().p)
 		ue.op = p.s.ct().tok
@@ -440,6 +440,9 @@ func (p *parser) assignStmt(LHSa []Expr) *AssignStmt {
 	rt.Init(p.s.ct().p)
 	rt.Op = p.s.ct().tok
 	p.next()
+	if p.got("range") {
+		rt.irange = true
+	}
 	rt.LHSa = LHSa
 	if rt.Op == "++" || rt.Op == "--" {
 	} else {

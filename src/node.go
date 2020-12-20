@@ -78,9 +78,10 @@ type ExprStmt struct {
 }
 
 type AssignStmt struct {
-	LHSa []Expr
-	RHSa []Expr
-	Op   string
+	LHSa   []Expr
+	RHSa   []Expr
+	Op     string
+	irange bool
 	stmt
 }
 

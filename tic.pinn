@@ -27,8 +27,8 @@ func minimax (player int, depth int, flob [9]int) int
   }
   x := 0;
   y := 0;
-  for x = 0; x < SIZE; x++ {
-    for y = 0; y < SIZE; y++ {
+  for x = range (0:SIZE) {
+    for y = range (0:SIZE) {
       if flob[xy(x, y)]  == EMPTY {
         flob[xy(x, y)] = player;
  
@@ -132,4 +132,4 @@ func main() {
   
 }
 main();
-print(count);
+assert(count, 0x17302);
