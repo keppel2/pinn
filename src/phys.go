@@ -180,14 +180,13 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR6, 1)         //STDOUT
 		p.mov(TR4, 1)         //1 byte
 		p.mov(TR5, TSS)
-		p.emit("syscall")
 	} else {
 		p.mov(TR1, 1) //STDOUT
 		p.mov(TR2, TSS)
 		p.mov(TR3, 1) //1 byte
 		p.mov(TR9, 64)
-		p.emitR("svc", 0)
 	}
+	p.syscall()
 	p.add(TSS, 8)
 	p.br(eplab)
 	p.makeLabel(eplab2)
@@ -200,7 +199,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR6, 1)         //STDOUT
 		p.mov(TR4, 1)         //1 byte
 		p.mov(TR5, TSP)
-		p.emit("syscall")
+		p.syscall()
 		p.add(TSP, 8)
 		p.emit("ret")
 	} else {
@@ -210,7 +209,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR2, TSP)
 		p.mov(TR3, 1)
 		p.mov(TR9, 64)
-		p.emitR("svc", 0)
+		p.syscall()
 		p.add(TSP, 8)
 		p.emit("ret")
 	}
@@ -255,7 +254,6 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR6, 1)
 		p.mov(TR4, 17)
 		p.mov(TR5, TSS)
-		p.emit("syscall")
 
 	} else {
 
@@ -263,8 +261,8 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR2, TSS)
 		p.mov(TR3, 17)
 		p.mov(TR9, 64)
-		p.emitR("svc", 0)
 	}
+	p.syscall()
 	p.mov(TSS, TSP)
 	p.emit("ret")
 }
@@ -316,8 +314,24 @@ func (p *phys) mul(a regi, b regOrConst) {
 	} else {
 		p.nativeOp("mul", a, b)
 	}
-
 }
+
+func (p *phys) fcall(id string) {
+	if L {
+		p.emit("call", fmake(id))
+	} else {
+		p.emit("bl", fmake(id))
+	}
+}
+
+func (p *phys) syscall() {
+	if L {
+		p.emit("syscall")
+	} else {
+		p.emitR("svc", 0)
+	}
+}
+
 func (p *phys) rem(a regi, b regOrConst) {
 	if L {
 		p.mov(TR1, a)

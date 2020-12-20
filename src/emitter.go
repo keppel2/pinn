@@ -592,7 +592,6 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if ID == "print" || ID == "printdec" || ID == "println" || ID == "printchar" {
 		didPrint = true
 	}
-	fn := fmake(ID)
 	fun := e.file.getFunc(ID)
 	if fun == nil {
 		e.err(ID)
@@ -652,12 +651,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 			e.p.push(TR2)
 		}
 	}
-
-	if L {
-		e.p.emit("call", fn)
-	} else {
-		e.p.emit("bl", fn)
-	}
+	e.p.fcall(ID)
 	e.p.add(TSP, moffOff(ssize))
 	if !L {
 		e.p.pop(LR)
