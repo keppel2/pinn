@@ -1,1 +1,3 @@
-print(5);
+printdec(321);
+printchar("\n,,");
+printdec(54321);

@@ -135,9 +135,17 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 	}
 }
 
+func (p *phys) pnull() {
+	p.add(TSP, 8)
+}
+
 func (p *phys) pop(r regi) {
 	p.ldr(ATpost, r, TSP, 8)
 }
+func (p *phys) peek(r regi) {
+	p.ldr(ATeq, r, TSP)
+}
+
 func (p *phys) br(b branchi, s ...string) {
 	if L {
 		br := "jmp"
@@ -156,13 +164,23 @@ func (p *phys) br(b branchi, s ...string) {
 
 func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printdec")
-	p.ldr(ATeq, TR3, TSS)
-	p.mov(TR4, 10)
+	p.peek(TR3)
+	p.mov(TSS, TSP)
+	labpd := p.ug.clab()
+	p.mov(TR10, 0)
+	p.makeLabel(labpd)
+	p.mov(TR6, 10)
 	p.mov(TR2, TR3)
-	p.ug.doOp(TR2, TR4, "%")
+	p.ug.doOp(TR2, TR6, "%")
 	p.add(TR2, int('0'))
 	p.push(TR2)
-	p.emit("call", fmake("printchar"))
+	p.add(TR10, 1)
+	p.div(TR3, TR6)
+	p.cmp(TR3, 0)
+	p.br(labpd, "ne")
+	p.fcall("printchar")
+	p.mov(TSP, TSS)
+	p.emit("ret")
 
 	//  p.emitR("syscall")
 
@@ -278,7 +296,7 @@ func (p *phys) emit2Print() {
 	p.push(TR2)
 	didPrint = true
 	p.emit("call", fmake("print"))
-	p.pop(TR2)
+	p.pnull()
 }
 
 func (p *phys) emit2Prints(s string) {
