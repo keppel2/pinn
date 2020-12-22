@@ -104,3 +104,9 @@ assert(nar[1], x);
 far();
 
 assert(lar[0], 7);
+
+// Array copy
+ac := [2, 4, 5];
+ac2 := ac;
+ac2[0] = 8;
+assert(ac[0], 2);

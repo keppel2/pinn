@@ -1,1 +1,6 @@
-dbg();
+ar := [2, 4, 5];
+ar2 := ar;
+print(ar[1]);
+ar2[1] = 8;
+print(ar[1]);
+print(len(ar2));
