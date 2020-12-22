@@ -287,7 +287,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 
 func (p *phys) dbgExit() {
 	p.push(TR2)
-	p.emit("call", FP+"print")
+	p.fcall("print")
 	didPrint = true
 	p.emitExit()
 }
@@ -295,7 +295,7 @@ func (p *phys) dbgExit() {
 func (p *phys) emit2Print() {
 	p.push(TR2)
 	didPrint = true
-	p.emit("call", fmake("print"))
+	p.fcall("print")
 	p.pnull()
 }
 
@@ -306,7 +306,7 @@ func (p *phys) emit2Prints(s string) {
 		p.mov(TR10, len(s))
 	}
 
-	p.emit("call", fmake("printchar"))
+	p.fcall("printchar")
 	p.add(TSP, moffOff(len(s)))
 
 }
