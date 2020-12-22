@@ -824,10 +824,26 @@ func (e *emitter) emitStmt(s Stmt) {
 				return
 			}
 			if ml.mlt == mlArray {
+				//if t.Op == ":=" &&
 				if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
 					e.err(id)
 				}
 				e.rMap[id] = ml
+				return
+				mld := e.rMap[id]
+				lab := e.clab()
+				lab2 := e.clab()
+
+				e.p.mov(TR2, 0)
+				e.p.makeLabel(lab)
+				e.p.cmp(TR2, ml.len)
+				e.p.br(lab, "ge")
+				e.iLoad(TR3, TR2, ml)
+				e.iStore(TR3, TR2, mld)
+				e.p.add(TR2, 1)
+				e.p.br(lab)
+				e.p.makeLabel(lab2)
+				e.rMap[id] = mld
 				return
 			}
 

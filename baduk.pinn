@@ -4,20 +4,102 @@
 E := 0;
 B := 1;
 W := 2;
-INV := 3;
+N := 3;
+INV := 4;
 SIZER := 2;
 SIZEC := 2;
+
+func score (h int) {
+    var x int;
+    var y int;
+    b := 0;
+    w := 0;
+    var b2 bt;
+                    var c int;
+                  var cs int;
+    for x = range 0:SIZER {
+        for y = range 0:SIZEC {
+            if bd[hrc(h, x, y)] == B {b++;} else
+            if bd[hrc(h, x, y)] == W {w++;} else
+            {
+                  cs = color(h, x, y, N, 0);
+                  if c == B b += cs;
+                  if c == W w += cs;
+                }
+            
+        }
+    }
+        return (b, w);
+
+}
+
+var c int;
+func color (h, x, y, player, score int) int {
+  if bd[hrc(h, x, y)] == INV {
+    c == INV
+    return score
+  }
+
+
+}
 
 func hrc (h, r, c int) int {
   return h * SIZER * SIZEC + (r * SIZEC) + c;
 }
 
+func opposite (opx int) int { 
+ return opx == B ? W : B;
+}
+
+func minimax (player int, passed bool) int
+{
+  var pb bt;
+  var best int;
+  var s int;
+  var b bool;
+  var bh2 []bt;
+  var x int;
+  var y int;
+  if passed {
+    best = pscore(hsize - 1, player);
+  } else {
+    best = minimax(opposite(player), true);
+    best = best * -1;
+  }
+  if full(bh, player) {
+    return (best, bh);
+  }
+    if best == SIZER * SIZEC {
+      return (best, bh);
+    }
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      b = playb(bh, player, x, y);
+
+      if !b { continue; }
+//      println(player, "played", x, y);
+      (s, bh) = minimax(opposite(player), bh, false);
+      s = s * -1;
+      if s > best {
+        best = s;
+      }
+      bh = bh[0:len(bh) - 1];
+    }
+  }
+    return (best, bh);
+}
+
+
 func printAll() {
   var x int;
   for x = range 0:hsize {
     print(x);
+    printBoard(x);
+  }
 
 }
+
+
 func printBoard (i index) {
   var y int;
   var x int;
@@ -35,3 +117,4 @@ func printBoard (i index) {
 hsize := 1;
 var bd [BTOT]int;
 printBoard(0);
+
