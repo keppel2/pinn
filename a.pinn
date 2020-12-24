@@ -1,6 +1,6 @@
-ar := [2, 4, 5];
-ar2 := ar;
-print(ar[1]);
-ar2[1] = 8;
-print(ar[1]);
-print(len(ar2));
+var big[0x10000] int;
+var x int;
+for x = range 0:0x10000 {
+  big[x] = 42;
+  big[x];
+}

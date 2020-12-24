@@ -1,106 +1,204 @@
 #define BSIZE 4
-#define BTOT 400
+#define HIST 0x100
+#define BTOT 0x10000
 
 E := 0;
 B := 1;
 W := 2;
 N := 3;
-INV := 4;
+X := 4;
+I := 5;
 SIZER := 2;
 SIZEC := 2;
+TRUE := 1;
+FALSE := 0;
+_counter := 0;
 
-func score (h int) {
-    var x int;
-    var y int;
+func move (player, x, y int) int {
+  push();
+  bd[hrc(hsize - 1, x, y)] = player;
+  cap(opposite(player), x + 1, y);
+  cap(opposite(player), x - 1, y);
+  cap(opposite(player), x, y + 1);
+  cap(opposite(player), x, y - 1);
+  cap(player, x, y);
+  if sko() == FALSE {
+    hsize--;
+    return FALSE;
+  }
+  return TRUE;
+}
+
+func isSame(h2, h1 int) int {
+  var r, c int;
+  for r = range 0:SIZER {
+    for c = range 0:SIZEC {
+      if bd[hrc(h1, r, c)] != bd[hrc(h2, r, c)] {
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}
+
+func sko () int {
+  var x, r, c int;
+  var same int;
+  for x = 0; x < hsize - 1; x++ {
+    if isSame(x, hsize - 1) == TRUE {
+      return FALSE;
+    }
+    
+  }
+  return TRUE;
+}
+
+func mark (player, x, y int) int {
+    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC {
+      return FALSE;
+    }
+  if cp[rc(x, y)] == E {
+    return TRUE;
+  }
+  if cp[rc(x, y)] == player {
+    cp[rc(x, y)] = I;
+  } else {
+    return FALSE;
+  }
+  rt := FALSE;
+  if mark(player, x + 1, y) == TRUE { rt = TRUE; }
+  if mark(player, x - 1, y) == TRUE { rt = TRUE; }
+  if mark(player, x, y + 1) == TRUE { rt = TRUE; }
+  if mark(player, x, y - 1) == TRUE { rt = TRUE; }
+  return rt;
+}
+
+func cap (player int, x, y int) {
+
+    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC {
+      return;
+    }
+  var r, c int;
+  copy2cp();
+  rt := mark(player, x, y);
+  if rt == TRUE {
+    return;
+  }
+  for r = range 0:SIZER {
+    for c = range 0:SIZEC {
+      if cp[rc(r, c)] == I {
+        cp[rc(r, c)] = E;
+      }
+    }
+  }
+  copy2bd();
+}
+
+var cp [BSIZE] int;
+func copy2bd() {
+  var x int;
+  var y int;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      bd[hrc(hsize - 1, x, y)] = cp[rc(x, y)];
+    }
+  }
+}
+
+func push() {
+  hsize++;
+  var x int;
+  var y int;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      bd[hrc(hsize - 1, x, y)] = bd[hrc(hsize - 2, x, y)];
+    }
+  }
+}
+
+func copy2cp() {
+  var x int;
+  var y int;
+  for x = range 0:SIZER {
+    for y = range 0:SIZEC {
+      cp[rc(x, y)] = bd[hrc(hsize - 1, x, y)];
+    }
+  }
+}
+
+func score (h int) int {
     b := 0;
     w := 0;
-    var b2 bt;
-                    var c int;
-                  var cs int;
+    var cs int;
+    copy2cp();
+    var x, y int;
     for x = range 0:SIZER {
         for y = range 0:SIZEC {
             if bd[hrc(h, x, y)] == B {b++;} else
             if bd[hrc(h, x, y)] == W {w++;} else
             {
-                  cs = color(h, x, y, N, 0);
-                  if c == B b += cs;
-                  if c == W w += cs;
-                }
+              _player = N;
+                  cs = color(x, y, 0);
+                  if _player == B b += cs;
+                  if _player == W w += cs;
+            }
             
         }
     }
-        return (b, w);
-
+    return b - w;
 }
 
-var c int;
-func color (h, x, y, player, score int) int {
-  if bd[hrc(h, x, y)] == INV {
-    c == INV
-    return score
-  }
-
-
+func mscore(player int) int {
+  return player == B ? score(hsize - 1) : -score(hsize - 1);
 }
 
+var _player int;
+func color (x, y, score int) int {
+    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == I {
+      return score;
+    }
+    pin := cp[rc(x, y)];
+    if pin == E {
+      cp[rc(x,y)] = I;
+      score++;
+      score = color(x + 1, y, score);
+      score = color(x - 1, y, score);
+      score = color(x, y + 1, score);
+      score = color(x, y - 1, score);
+    } else if _player == N {
+      _player = pin;
+    } else if _player != pin {
+      _player = X;
+    }
+    return score;
+}
+
+func rc (r, c int) int {
+  return r * SIZEC  + c;
+}
 func hrc (h, r, c int) int {
-  return h * SIZER * SIZEC + (r * SIZEC) + c;
+  if h >= HIST {
+  printchar("bad");
+  bad();
+  }
+  return h * BSIZE + rc(r, c);
 }
 
 func opposite (opx int) int { 
  return opx == B ? W : B;
 }
 
-func minimax (player int, passed bool) int
-{
-  var pb bt;
-  var best int;
-  var s int;
-  var b bool;
-  var bh2 []bt;
-  var x int;
-  var y int;
-  if passed {
-    best = pscore(hsize - 1, player);
-  } else {
-    best = minimax(opposite(player), true);
-    best = best * -1;
-  }
-  if full(bh, player) {
-    return (best, bh);
-  }
-    if best == SIZER * SIZEC {
-      return (best, bh);
-    }
-  for x = range 0:SIZER {
-    for y = range 0:SIZEC {
-      b = playb(bh, player, x, y);
-
-      if !b { continue; }
-//      println(player, "played", x, y);
-      (s, bh) = minimax(opposite(player), bh, false);
-      s = s * -1;
-      if s > best {
-        best = s;
-      }
-      bh = bh[0:len(bh) - 1];
-    }
-  }
-    return (best, bh);
-}
-
-
 func printAll() {
   var x int;
   for x = range 0:hsize {
+    println();
     print(x);
     printBoard(x);
   }
-
 }
 
-
 func printBoard (i index) {
+println();
   var y int;
   var x int;
   for x = range 0:SIZER {
@@ -116,5 +214,66 @@ func printBoard (i index) {
 
 hsize := 1;
 var bd [BTOT]int;
-printBoard(0);
+/*
+bd[hrc(1, 0, 0)] = B;
+bd[hrc(1, 0, 1)] = B;
+bd[hrc(1, 1, 1)] = W;
+printBoard(hsize - 1);
+print(score(0));
+println();
+move(B, 1, 0);
+printBoard(hsize - 1);
+print(score(0));
+println();
+move(B, 1, 1);
+printBoard(hsize - 1);
+print(score(0));
+println();
+*/
+sc := minimax(B, FALSE);
+print(np(sc));
 
+
+
+
+
+
+
+
+
+func minimax (player int, passed int) int
+{
+_counter++;
+if _counter % 100000 == 0 {
+  print(hsize);
+}
+  var best int;
+  if passed == TRUE {
+    best = mscore(player);
+  } else {
+    best = -minimax(opposite(player), TRUE);
+  }
+
+  var s, r, c, b  int;
+  for r = range 0:SIZER {
+    for c = range 0:SIZEC {
+      if bd[hrc(hsize - 1, r, c)] == E {
+        b = move(player, r, c);
+        if b == TRUE {
+
+          s = -minimax(opposite(player), FALSE);
+          if s > best {
+            best = s;
+          }
+          hsize--;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+func np(a int) int {
+  if a < 0 { printchar("-"); return -a; }
+  return a;
+}

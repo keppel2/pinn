@@ -248,11 +248,13 @@ func (e *emitter) rangeCheck(ml *mloc) {
 
 	lab := e.clab()
 	e.p.br(lab, "lt")
+	e.p.emit2Print()
+	e.p.emit2Print()
 	e.p.emit2Prints("range, line")
 	ln := e.st.Gpos().Line
 	e.p.mov(TR2, ln)
-	e.p.emit2Print()
-	e.p.emit2Prints("XIT.")
+	e.p.emit2Printd()
+	e.p.emit2Prints(".EXIT.")
 	e.p.mov(TR1, 7)
 	e.p.emitExit()
 
@@ -385,8 +387,9 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		e.p.makeLabel(lab2)
 	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
 		e.assignToReg(be.LHS)
-		e.p.mov(TR4, TR2)
+		e.p.push(TR2)
 		e.assignToReg(be.RHS)
+		e.p.pop(TR4)
 		e.p.cmp(TR4, TR2)
 		bi := ""
 		switch be.op {
@@ -988,7 +991,7 @@ func (e *emitter) emitF() {
 	e.p.sub(TSP, 0x100)
 	e.p.mov(TSS, TSP)
 	e.p.mov(TBP, TSP)
-	e.p.sub(TBP, 0x1000)
+	e.p.sub(TBP, 0xA0000)
 	e.p.mov(THP, TBP)
 	e.p.sub(THP, 0x1000)
 	lab := e.clab()
