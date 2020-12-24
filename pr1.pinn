@@ -3,4 +3,6 @@ print(2);
 println();
 printchar("achar");
 print(5 + 5);
+printchar(",");
+printdec(12);
 println();

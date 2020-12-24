@@ -596,7 +596,10 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	}
 	fun := e.file.getFunc(ID)
 	if fun == nil {
-		e.err(ID)
+		e.err("Function not found: " + ID)
+	}
+	if fun.PCount == -1 {
+		e.err("Internal function: " + ID)
 	}
 	if fun.K != nil {
 		skind := fun.K.(*SKind).Wl.Value

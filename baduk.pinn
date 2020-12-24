@@ -23,10 +23,25 @@ func move (player, x, y int) int {
   cap(opposite(player), x, y - 1);
   cap(player, x, y);
   if sko() == FALSE {
-    hsize--;
     return FALSE;
   }
   return TRUE;
+}
+
+func hash() int {
+  rt := 0;
+  var r, c int;
+  for r = range 0:SIZER {
+    for c = range 0:SIZEC {
+      rt = rt * 3;
+      printchar("irt");print(rt);print(hrc(hsize - 1, r, c));
+      rt = rt + bd[hrc(hsize - 1, r, c)];
+    }
+  }
+  print(rt);println();
+  println();
+  return rt;
+
 }
 
 func isSame(h2, h1 int) int {
@@ -42,14 +57,12 @@ func isSame(h2, h1 int) int {
 }
 
 func sko () int {
-  var x, r, c int;
-  var same int;
-  for x = 0; x < hsize - 1; x++ {
-    if isSame(x, hsize - 1) == TRUE {
-      return FALSE;
-    }
-    
+  h := hash();
+  if bh[h] == 1 {
+    hsize--;
+    return FALSE;
   }
+  bh[h] = 1;
   return TRUE;
 }
 
@@ -214,6 +227,7 @@ println();
 
 hsize := 1;
 var bd [BTOT]int;
+var bh [81]int;
 /*
 bd[hrc(1, 0, 0)] = B;
 bd[hrc(1, 0, 1)] = B;

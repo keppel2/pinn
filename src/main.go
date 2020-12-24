@@ -55,8 +55,8 @@ func main() {
 	defer func() {
 		err := recover()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, e.p.sb.String(), "ANERR", err, string(debug.Stack()))
-			fmt.Fprintln(os.Stderr, "CDS", e.dString())
+			fmt.Fprintln(os.Stderr, e.p.sb.String(), "STK", string(debug.Stack()))
+			fmt.Fprintln(os.Stderr, "MSG", err, "EDS", e.dString())
 			os.Exit(1)
 		}
 	}()

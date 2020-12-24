@@ -163,6 +163,16 @@ func (p *phys) br(b branchi, s ...string) {
 }
 
 func (p *phys) emitPrint(ugly *emitter) {
+	p.flabel("printch")
+	p.mov(TR1, 0x2000004)
+	p.mov(TR6, 1)
+	p.mov(TR4, 1)
+	p.push(TR8)
+	p.mov(TR5, TSP)
+	p.syscall()
+	p.pnull()
+	p.emit("ret")
+
 	p.flabel("printdec")
 	p.peek(TR3)
 	p.mov(TSS, TSP)
@@ -181,8 +191,6 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.fcall("printchar")
 	p.mov(TSP, TSS)
 	p.emit("ret")
-
-	//  p.emitR("syscall")
 
 	p.flabel("printchar")
 	eplab := ugly.clab()
@@ -209,28 +217,11 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.br(eplab)
 	p.makeLabel(eplab2)
 	p.emit("ret")
+
 	p.flabel("println")
-	if L {
-		p.mov(TR8, int('\n'))
-		p.push(TR8)
-		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
-		p.mov(TR6, 1)         //STDOUT
-		p.mov(TR4, 1)         //1 byte
-		p.mov(TR5, TSP)
-		p.syscall()
-		p.add(TSP, 8)
-		p.emit("ret")
-	} else {
-		p.mov(TR1, int('\n'))
-		p.push(TR1)
-		p.mov(TR1, 1)
-		p.mov(TR2, TSP)
-		p.mov(TR3, 1)
-		p.mov(TR9, 64)
-		p.syscall()
-		p.add(TSP, 8)
-		p.emit("ret")
-	}
+	p.mov(TR8, int('\n'))
+	p.fcall("printch")
+	p.emit("ret")
 
 	p.flabel("print")
 	//p.mov(TR1, TR2)
@@ -306,15 +297,10 @@ func (p *phys) emit2Print() {
 }
 
 func (p *phys) emit2Prints(s string) {
-	for _, r := range revString(s) {
-		p.mov(TR2, int(r))
-		p.push(TR2)
-		p.mov(TR10, len(s))
+	for _, r := range s {
+		p.mov(TR8, int(r))
+		p.fcall("printch")
 	}
-
-	p.fcall("printchar")
-	p.add(TSP, moffOff(len(s)))
-
 }
 
 func (p *phys) emitExit() {
