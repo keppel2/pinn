@@ -294,7 +294,7 @@ func (p *phys) dbgExit() {
 func (p *phys) emit2Printd() {
 	p.push(TR2)
 	didPrint = true
-	p.emit("call", fmake("printdec"))
+	p.fcall("printdec")
 	p.pnull()
 }
 
