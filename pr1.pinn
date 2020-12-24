@@ -1,8 +1,15 @@
 print(7);
-print(2);
 println();
 printchar("achar");
 print(5 + 5);
 printchar(",");
-printdec(12);
+//printdec(12);
+println();
+func fc() {
+print(3);
+printchar("inf");
+print(7);
+printdec(42);
+}
+fc();
 println();

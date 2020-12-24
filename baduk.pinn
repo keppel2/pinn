@@ -34,7 +34,7 @@ func hash() int {
   for r = range 0:SIZER {
     for c = range 0:SIZEC {
       rt = rt * 3;
-      printchar("irt");print(rt);print(hrc(hsize - 1, r, c));
+      print(r);printchar("irt");print(rt);print(hrc(hsize - 1, r, c));
       rt = rt + bd[hrc(hsize - 1, r, c)];
     }
   }
@@ -244,9 +244,10 @@ printBoard(hsize - 1);
 print(score(0));
 println();
 */
-sc := minimax(B, FALSE);
-print(np(sc));
-
+//sc := minimax(B, FALSE);
+//print(np(sc));
+printchar("ish");
+print(hash());
 
 
 
@@ -279,6 +280,7 @@ if _counter % 100000 == 0 {
           if s > best {
             best = s;
           }
+          bh[hash()] = 0;
           hsize--;
         }
       }

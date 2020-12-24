@@ -1,1 +1,7 @@
-return 7;
+func fc() {
+print(3);
+printchar("inf");
+print(3);
+printdec(42);
+}
+fc();

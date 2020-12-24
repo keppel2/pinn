@@ -170,7 +170,7 @@ func (p *phys) pushTen() {
 
 func (p *phys) popTen() {
 	for i := TR10; i >= TR1; i-- {
-		p.push(i)
+		p.pop(i)
 	}
 }
 func (p *phys) emitPrint(ugly *emitter) {
@@ -188,9 +188,8 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emit("ret")
 
 	p.flabel("printdec")
-	p.peek(TR8)
 	p.pushTen()
-	p.mov(TSS, TSP)
+	p.mov(TR3, TSP)
 	labpd := p.ug.clab()
 	p.mov(TR10, 0)
 	p.makeLabel(labpd)
@@ -204,7 +203,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.cmp(TR8, 0)
 	p.br(labpd, "ne")
 	p.fcall("printchar")
-	p.mov(TSP, TSS)
+	p.mov(TSP, TR3)
 	p.popTen()
 	p.emit("ret")
 
@@ -294,7 +293,6 @@ func (p *phys) emitPrint(ugly *emitter) {
 	}
 	p.syscall()
 	p.mov(TSS, TSP)
-	p.pnull()
 	p.popTen()
 	p.emit("ret")
 }
