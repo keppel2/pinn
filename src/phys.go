@@ -162,40 +162,57 @@ func (p *phys) br(b branchi, s ...string) {
 	p.emit(br, makeBranch(b.(branch)))
 }
 
+func (p *phys) pushTen() {
+	for i := TR1; i <= TR10; i++ {
+		p.push(i)
+	}
+}
+
+func (p *phys) popTen() {
+	for i := TR10; i >= TR1; i-- {
+		p.push(i)
+	}
+}
 func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printch")
+	p.pushTen()
 	p.mov(TR1, 0x2000004)
 	p.mov(TR6, 1)
 	p.mov(TR4, 1)
 	p.push(TR8)
 	p.mov(TR5, TSP)
 	p.syscall()
-	p.pnull()
+	p.pop(TR8)
+	p.popTen()
+
 	p.emit("ret")
 
 	p.flabel("printdec")
-	p.peek(TR3)
+	p.peek(TR8)
+	p.pushTen()
 	p.mov(TSS, TSP)
 	labpd := p.ug.clab()
 	p.mov(TR10, 0)
 	p.makeLabel(labpd)
 	p.mov(TR6, 10)
-	p.mov(TR2, TR3)
+	p.mov(TR2, TR8)
 	p.ug.doOp(TR2, TR6, "%")
 	p.add(TR2, int('0'))
 	p.push(TR2)
 	p.add(TR10, 1)
-	p.div(TR3, TR6)
-	p.cmp(TR3, 0)
+	p.div(TR8, TR6)
+	p.cmp(TR8, 0)
 	p.br(labpd, "ne")
 	p.fcall("printchar")
 	p.mov(TSP, TSS)
+	p.popTen()
 	p.emit("ret")
 
 	p.flabel("printchar")
+	p.mov(TR8, TSP)
+	p.pushTen()
 	eplab := ugly.clab()
 	eplab2 := ugly.clab()
-	p.mov(TSS, TSP)
 	p.makeLabel(eplab)
 	p.cmp(TR10, 0)
 	p.br(eplab2, "eq")
@@ -205,17 +222,18 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
 		p.mov(TR6, 1)         //STDOUT
 		p.mov(TR4, 1)         //1 byte
-		p.mov(TR5, TSS)
+		p.mov(TR5, TR8)
 	} else {
 		p.mov(TR1, 1) //STDOUT
-		p.mov(TR2, TSS)
+		p.mov(TR2, TR8)
 		p.mov(TR3, 1) //1 byte
 		p.mov(TR9, 64)
 	}
 	p.syscall()
-	p.add(TSS, 8)
+	p.add(TR8, 8)
 	p.br(eplab)
 	p.makeLabel(eplab2)
+	p.popTen()
 	p.emit("ret")
 
 	p.flabel("println")
@@ -226,6 +244,9 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("print")
 	//p.mov(TR1, TR2)
 	//p.emitExit()
+	p.pop(TR8)
+	p.pushTen()
+	p.push(TR8)
 	p.mov(TSS, TSP)
 	p.ldr(ATeq, TR5, TSS)
 
@@ -273,6 +294,8 @@ func (p *phys) emitPrint(ugly *emitter) {
 	}
 	p.syscall()
 	p.mov(TSS, TSP)
+	p.pnull()
+	p.popTen()
 	p.emit("ret")
 }
 
