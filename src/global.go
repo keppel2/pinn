@@ -94,8 +94,8 @@ func init() {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
-		e.p.mov(TR2, TMAIN)
-		e.p.push(TR2)
+		e.p.mov(TR2, 5)
+		e.p.emit2Print()
 		e.p.emit2Print()
 		return newSent(rsInt)
 	}

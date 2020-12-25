@@ -242,17 +242,13 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emit("ret")
 
 	p.flabel("print")
-	//p.mov(TR1, TR2)
-	//p.emitExit()
-	p.pop(TR8)
+	p.peek(TR8)
 	p.pushTen()
-	p.push(TR8)
-	p.mov(TSS, TSP)
-	p.ldr(ATeq, TR5, TSS)
+	p.mov(TR5, TSP)
 
-	p.sub(TSS, 17)
+	p.sub(TR5, 17)
 	p.mov(TR3, int(','))
-	p.str(ATeq, TR3, TSS)
+	p.str(ATeq, TR3, TR5)
 	p.mov(TR2, 0)
 	p.mov(TR3, 0)
 
@@ -260,30 +256,29 @@ func (p *phys) emitPrint(ugly *emitter) {
 	lab2 := ugly.clab()
 	lab3 := ugly.clab()
 	p.makeLabel(lab)
-	p.mov(TR4, TR5)
+	p.mov(TR4, TR8)
 	p.and(TR4, 0xf)
 	p.cmp(TR4, 10)
 	p.br(lab2, "lt")
 	p.add(TR4, int('a'-':'))
 	p.makeLabel(lab2)
-	p.lsr(TR5, 4)
+	p.lsr(TR8, 4)
 	p.add(TR4, int('0'))
 	p.lsl(TR2, 8)
 	p.add(TR2, TR4)
 	p.cmp(TR3, 7)
 	p.br(lab3, "ne")
-	p.str(ATeq, TR2, TSS, 9)
+	p.str(ATeq, TR2, TR5, 9)
 	p.mov(TR2, 0)
 	p.makeLabel(lab3)
 	p.add(TR3, 1)
 	p.cmp(TR3, 16)
 	p.br(lab, "ne")
-	p.str(ATeq, TR2, TSS, 1)
+	p.str(ATeq, TR2, TR5, 1)
 	if L {
 		p.mov(TR1, 0x2000004)
 		p.mov(TR6, 1)
 		p.mov(TR4, 17)
-		p.mov(TR5, TSS)
 
 	} else {
 
@@ -293,7 +288,6 @@ func (p *phys) emitPrint(ugly *emitter) {
 		p.mov(TR9, 64)
 	}
 	p.syscall()
-	p.mov(TSS, TSP)
 	p.popTen()
 	p.emit("ret")
 }
@@ -315,7 +309,7 @@ func (p *phys) emit2Print() {
 	p.push(TR2)
 	didPrint = true
 	p.fcall("print")
-	p.pnull()
+	p.pop(TR2)
 }
 
 func (p *phys) emit2Prints(s string) {
