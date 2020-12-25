@@ -109,9 +109,10 @@ func init() {
 		e.p.cmp(TR3, TR2)
 		lab := e.clab()
 		e.p.br(lab, "eq")
-		e.p.push(TR3)
+		e.p.mov(TR1, TR2)
+		e.p.mov(TR2, TR3)
 		e.p.emit2Print()
-		e.p.pop(TR2)
+		e.p.mov(TR2, TR1)
 		e.p.emit2Print()
 		e.p.emit2Prints("--assert,")
 		ln := e.st.Gpos().Line
@@ -128,7 +129,7 @@ func init() {
 			e.err("")
 		}
 		e.assignToReg(ce.Params[0])
-		e.p.mov(TR1, THP)
+		e.p.mov(TR4, THP)
 		e.p.lsl(TR2, 3)
 		e.p.add(THP, TR2)
 		return newSent(rsMloc)
@@ -159,10 +160,10 @@ func init() {
 			e.err(v)
 		} else if ml.mlt == mlSlice {
 			e.p.mov(TR5, 0)
-			e.iLoad(TR1, TR5, ml)
+			e.iLoad(TR4, TR5, ml)
 			return rt
 		}
-		e.p.mov(TR1, ml.len)
+		e.p.mov(TR4, ml.len)
 		return rt
 	}
 	fmap["exit"] = func(e *emitter, ce *CallExpr) *mloc {

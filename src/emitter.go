@@ -7,19 +7,20 @@ import "math/rand"
 //import "os"
 
 type emitter struct {
-	rMap    map[string]*mloc
-	cbranch branch
-	ebranch branch
-	moff    int
-	soff    int
-	lstack  [][2]branch
-	fc      bool
-	fexitm  map[string]branch
-	fexit   branch
-	lst     Node
-	st      Node
-	file    *File
-	p       *phys
+	rMap     map[string]*mloc
+	cbranch  branch
+	ebranch  branch
+	ebranch2 branch
+	moff     int
+	soff     int
+	lstack   [][2]branch
+	fc       bool
+	fexitm   map[string]branch
+	fexit    branch
+	lst      Node
+	st       Node
+	file     *File
+	p        *phys
 }
 
 func (e *emitter) checks() {
@@ -469,11 +470,14 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	}
 	e.soff = 0
 	lab := e.clab()
+	lab2 := e.clab()
 	e.ebranch = lab
+	e.ebranch2 = lab2
 	e.emitStmt(f.B)
 	e.p.makeLabel(lab)
 
 	e.p.mov(TSP, TSS)
+	e.p.makeLabel(lab2)
 	e.p.emit("ret")
 	e.checks()
 	e.clearL()
@@ -546,7 +550,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 
 	case *CallExpr:
 		rt = e.emitCall(t2)
-		e.p.mov(TR2, TR1)
+		e.p.mov(TR2, TR4)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		ml := e.rMap[v]
@@ -614,7 +618,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		e.err(ID)
 	}
 
-	e.pushAll()
+	//	e.pushAll()
 	e.p.push(TSS)
 	if !L {
 		e.p.push(LR)
@@ -657,13 +661,16 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		}
 	}
 	e.p.fcall(ID)
+	if fun.K != nil {
+		e.p.pop(TR4)
+	}
 	e.p.add(TSP, moffOff(ssize))
 	if !L {
 		e.p.pop(LR)
 	}
 	e.p.pop(TSS)
 
-	e.popAll()
+	//	e.popAll()
 	return rt
 
 }
@@ -729,12 +736,13 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *ReturnStmt:
 		if t.E != nil {
 			e.assignToReg(t.E)
-			e.p.mov(TR1, TR2)
-		} else {
-			e.p.mov(TR1, 5)
-		}
-		if L {
-		} else {
+			if !e.fc {
+				e.p.mov(TR1, TR2)
+			} else {
+				e.p.mov(TSP, TSS)
+				e.p.push(TR2)
+				e.p.br(e.ebranch2)
+			}
 		}
 		e.p.br(e.ebranch)
 	case *AssignStmt:

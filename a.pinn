@@ -1,1 +1,4 @@
-dbg();
+func r() int {
+return 7;
+}
+return r();

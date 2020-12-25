@@ -114,7 +114,7 @@ func winner (flob [9]int) int {
     if rt != TIE {
         return rt;
     }
-    rt = line(0, SIZE - 1, 1, 0-1, flob);
+    rt = line(0, SIZE - 1, 1, -1, flob);
     return rt;
 }
 
