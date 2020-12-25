@@ -270,6 +270,7 @@ func (e *emitter) init(f *File) {
 	rand.Seed(42)
 	e.p = new(phys)
 	e.p.init(e)
+	e.moff = 1
 	e.rMap = make(map[string]*mloc)
 	e.fexitm = make(map[string]branch)
 	e.cbranch = 1
@@ -1003,18 +1004,19 @@ func (e *emitter) emitF() {
 	if L {
 		e.p.padd(".global _main\n")
 		e.p.label("_main")
-		e.p.emitR("pop", TMAIN)
-		e.p.emitR("push", TMAIN)
+		e.p.emitR("pop", TR1)
+		e.p.emitR("push", TR1)
 	} else {
 		e.p.padd(".global main\n")
 		e.p.label("main")
-		e.p.mov(TMAIN, LR)
+		e.p.mov(TR1, LR)
 	}
 	e.p.mov(TSP, SP)
 	e.p.sub(TSP, 0x100)
 	e.p.mov(TSS, TSP)
 	e.p.mov(TBP, TSP)
 	e.p.sub(TBP, 0xA0000)
+	e.p.str(ATeq, TR1, TBP)
 	e.p.mov(THP, TBP)
 	e.p.sub(THP, 0x1000)
 	e.p.mov(TMAIN, THP)

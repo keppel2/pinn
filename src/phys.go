@@ -335,10 +335,11 @@ func (p *phys) emit2Prints(s string) {
 }
 
 func (p *phys) emitExit() {
+	p.ldr(ATeq, TR1, TBP)
 	if L {
-		p.emitR("push", TMAIN)
+		p.emitR("push", TR1)
 	} else {
-		p.mov(LR, TMAIN)
+		p.mov(LR, TR1)
 	}
 	p.emit("ret")
 }
