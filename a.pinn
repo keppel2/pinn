@@ -1,4 +1,4 @@
-func r() int {
-return 7;
-}
-return r();
+func f() {
+return 5;}
+x := f();
+return x;

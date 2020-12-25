@@ -65,6 +65,9 @@ func (p *phys) cmp(a regi, b regOrConst) {
 		p.emitR("cmp", a, b)
 	}
 }
+func (p *phys) push2(r regi) {
+	p.str(ATpre, r, TMAIN, -8)
+}
 func (p *phys) push(r regi) {
 	p.str(ATpre, r, TSP, -8)
 }
@@ -139,6 +142,9 @@ func (p *phys) pnull() {
 	p.add(TSP, 8)
 }
 
+func (p *phys) pop2(r regi) {
+	p.ldr(ATpost, r, TMAIN, 8)
+}
 func (p *phys) pop(r regi) {
 	p.ldr(ATpost, r, TSP, 8)
 }
@@ -297,6 +303,15 @@ func (p *phys) dbgExit() {
 	p.fcall("print")
 	didPrint = true
 	p.emitExit()
+}
+
+func (p *phys) emitLC() {
+	ln := p.ug.st.Gpos().Line
+	p.mov(TR2, ln)
+	p.push(TR2)
+	p.fcall("printdec")
+	p.pnull()
+
 }
 func (p *phys) emit2Printd() {
 	p.push(TR2)

@@ -253,4 +253,4 @@ func localCond(a string) string {
 	return rt
 }
 
-var didPrint = false
+var didPrint = true

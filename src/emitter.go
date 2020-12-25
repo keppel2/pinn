@@ -614,6 +614,8 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		case "void":
 			rt = newSent(rsMloc)
 		}
+	} else {
+		rt = newSent(rsInvalid)
 	}
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
@@ -679,6 +681,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
 	e.p.emit("//")
+	e.p.push2(TSP)
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)
@@ -686,6 +689,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		for _, s := range t.SList {
 			e.emitStmt(s)
 		}
+		e.p.pop2(TR1)
+		return
 	case *ContinueStmt:
 		e.p.br(e.peekloop()[0])
 	case *BreakStmt:
@@ -748,12 +753,25 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.p.br(e.ebranch)
 	case *AssignStmt:
 		mts := make([]*mloc, len(t.RHSa))
+
+		if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
+			if len(t.RHSa) != 1 || len(t.LHSa) != 1 {
+				e.err(t.Op)
+			}
+		}
+		if t.Op == "--" || t.Op == "++" {
+			if len(t.RHSa) != 0 || len(t.LHSa) != 1 {
+				e.err(t.Op)
+			}
+		}
 		for k, v := range t.RHSa {
 			mts[k] = e.assignToReg(v)
 			e.p.push(TR2)
 		}
 		for k := len(t.LHSa) - 1; k >= 0; k-- {
-			e.p.pop(TR2)
+			if len(mts) > 0 {
+				e.p.pop(TR2)
+			}
 			switch lh2 := t.LHSa[k].(type) {
 			case *UnaryExpr:
 				if lh2.op != "*" {
@@ -838,16 +856,18 @@ func (e *emitter) emitStmt(s Stmt) {
 
 			case *IndexExpr:
 				if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
-					e.assignToReg(lh2)
-					e.p.mov(TR3, TR2)
 					if t.Op[1:2] == "=" {
-						e.assignToReg(t.RHSa[0])
+						e.p.mov(TR1, TR2)
+						e.assignToReg(lh2)
+						e.p.mov(TR3, TR2)
+						e.p.mov(TR2, TR1)
 					} else {
+						e.assignToReg(lh2)
+						e.p.mov(TR3, TR2)
 						e.p.mov(TR2, 1)
 					}
 					e.doOp(TR3, TR2, t.Op[0:1])
 				} else {
-					e.assignToReg(t.RHSa[0])
 					e.p.mov(TR3, TR2)
 				}
 
@@ -867,6 +887,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		for _, v := range t.List {
 			e.newVar(v.Value, t.Kind)
 		}
+		e.p.pop2(TR1)
+		return
 	case *ForStmt:
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
@@ -948,6 +970,19 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.err("")
 
 	}
+	/*
+	  e.p.pop2(TR1)
+	  e.p.cmp(TR1, TSP)
+	  elab := e.clab()
+	  e.p.br(elab, "eq")
+	  e.p.emitLC()
+	  e.p.mov(TR2, TSP)
+	  e.p.emit2Print()
+	  e.p.mov(TR2, TR9)
+	  e.p.emit2Print()
+	  e.p.emitExit()
+	  e.p.makeLabel(elab)
+	*/
 
 }
 
@@ -982,6 +1017,8 @@ func (e *emitter) emitF() {
 	e.p.sub(TBP, 0xA0000)
 	e.p.mov(THP, TBP)
 	e.p.sub(THP, 0x1000)
+	e.p.mov(TMAIN, THP)
+	e.p.sub(TMAIN, 0x1000)
 	lab := e.clab()
 	e.ebranch = lab
 	for _, s := range e.file.SList {
