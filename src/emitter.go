@@ -250,6 +250,7 @@ func (e *emitter) rangeCheck(ml *mloc) {
 	lab := e.clab()
 	e.p.br(lab, "lt")
 	e.p.emit2Print()
+	e.p.mov(TR2, ml.len)
 	e.p.emit2Print()
 	e.p.emit2Prints("range, line")
 	ln := e.st.Gpos().Line

@@ -1,15 +1,15 @@
 #define BSIZE 4
 #define HIST 0x100
-#define BTOT 0x10000
+#define BTOT 0x1000
 
 E := 0;
 B := 1;
+SIZEC := 2;
 W := 2;
 N := 3;
 X := 4;
 I := 5;
 SIZER := 2;
-SIZEC := 2;
 TRUE := 1;
 FALSE := 0;
 _counter := 0;
@@ -184,7 +184,11 @@ func color (x, y, score int) int {
 }
 
 func rc (r, c int) int {
-  return r * SIZEC  + c;
+println();print(r);print(c);printchar("RC<-");
+  rcr := r * SIZEC  + c;
+  print(rcr);print(SIZEC);println();
+  return rcr;
+
 }
 func hrc (h, r, c int) int {
   if h >= HIST {
@@ -224,27 +228,18 @@ println();
 
 hsize := 1;
 var bd [BTOT]int;
+
+
+
 var bh [81]int;
-/*
-bd[hrc(1, 0, 0)] = B;
-bd[hrc(1, 0, 1)] = B;
-bd[hrc(1, 1, 1)] = W;
-printBoard(hsize - 1);
-print(score(0));
-println();
-move(B, 1, 0);
-printBoard(hsize - 1);
-print(score(0));
-println();
-move(B, 1, 1);
-printBoard(hsize - 1);
-print(score(0));
-println();
-*/
 bh[hash()] = 1;
 hsize++;
 bd[hrc(1, 0, 0)] = W;
 bh[hash()] = 1;
+
+
+
+
 sc := minimax(B, FALSE);
 println();
 println();
@@ -262,10 +257,10 @@ print(np(sc));
 func minimax (player int, passed int) int
 {
 _counter++;
-if _counter % 1000000 == 0 {
+//if _counter % 1000000 == 0 {
 //  print(hsize);
 //  println();
-}
+//}
   var best int;
   if passed == TRUE {
     best = mscore(player);
