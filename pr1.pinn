@@ -1,3 +1,4 @@
+printdec(187);
 print(7);
 println();
 printchar("achar");

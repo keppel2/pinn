@@ -188,6 +188,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emit("ret")
 
 	p.flabel("printdec")
+	p.peek(TR8)
 	p.pushTen()
 	p.mov(TR3, TSP)
 	labpd := p.ug.clab()
