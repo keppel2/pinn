@@ -1,7 +1,4 @@
-func fc() {
-print(3);
-printchar("inf");
-print(3);
-printdec(42);
-}
-fc();
+x := 2;
+y := 4;
+x, y = y, x;
+print(x);print(y);

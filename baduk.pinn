@@ -34,12 +34,9 @@ func hash() int {
   for r = range 0:SIZER {
     for c = range 0:SIZEC {
       rt = rt * 3;
-      print(r);printchar("irt");print(rt);print(hrc(hsize - 1, r, c));
       rt = rt + bd[hrc(hsize - 1, r, c)];
     }
   }
-  print(rt);println();
-  println();
   return rt;
 
 }
@@ -244,10 +241,16 @@ printBoard(hsize - 1);
 print(score(0));
 println();
 */
-//sc := minimax(B, FALSE);
-//print(np(sc));
-printchar("ish");
-print(hash());
+bh[hash()] = 1;
+hsize++;
+bd[hrc(1, 0, 0)] = W;
+bh[hash()] = 1;
+sc := minimax(B, FALSE);
+println();
+println();
+print(np(sc));
+//printchar("ish");
+//print(hash());
 
 
 
@@ -259,8 +262,9 @@ print(hash());
 func minimax (player int, passed int) int
 {
 _counter++;
-if _counter % 100000 == 0 {
-  print(hsize);
+if _counter % 1000000 == 0 {
+//  print(hsize);
+//  println();
 }
   var best int;
   if passed == TRUE {
