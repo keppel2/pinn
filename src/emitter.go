@@ -485,7 +485,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 
 	e.p.mov(TSP, TSS)
 	e.p.makeLabel(lab2)
-	e.p.emit("ret")
+	e.p.emitRet()
 	e.checks()
 	e.clearL()
 }
@@ -779,11 +779,13 @@ func (e *emitter) emitStmt(s Stmt) {
 			mts[k] = e.assignToReg(v)
 			e.p.push(TR2)
 		}
-		for k := len(t.LHSa) - 1; k >= 0; k-- {
+		for k, v := range t.LHSa {
 			if len(mts) > 0 {
+				e.p.add(TSP, 8*(len(t.LHSa)-k-1))
 				e.p.pop(TR2)
+				e.p.sub(TSP, 8*(len(t.LHSa)-k))
 			}
-			switch lh2 := t.LHSa[k].(type) {
+			switch lh2 := v.(type) {
 			case *UnaryExpr:
 				if lh2.op != "*" {
 					e.err(lh2.op)
@@ -897,6 +899,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 
 		}
+		e.p.add(TSP, 8*len(t.RHSa))
 		return
 
 	case *VarStmt:
@@ -1047,7 +1050,7 @@ func (e *emitter) emitF() {
 	}
 	e.p.mov(TR1, 0)
 	e.p.makeLabel(lab)
-	e.p.emit("ret")
+	e.p.emitRet()
 	e.checks()
 	e.fc = true
 	for _, s := range e.file.FList {
@@ -1060,5 +1063,4 @@ func (e *emitter) emitF() {
 	}
 	e.p.makeLabel(e.fexit)
 	//e.p.mov(TR1, 7)
-	e.p.emit("ret")
 }

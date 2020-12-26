@@ -194,7 +194,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.pop(TR8)
 	p.popTen()
 
-	p.emit("ret")
+	p.emitRet()
 
 	p.flabel("printdec")
 	p.peek(TR8)
@@ -215,7 +215,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.fcall("printchar")
 	p.mov(TSP, TR3)
 	p.popTen()
-	p.emit("ret")
+	p.emitRet()
 
 	p.flabel("printchar")
 	p.mov(TR8, TSP)
@@ -243,12 +243,12 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.br(eplab)
 	p.makeLabel(eplab2)
 	p.popTen()
-	p.emit("ret")
+	p.emitRet()
 
 	p.flabel("println")
 	p.mov(TR8, int('\n'))
 	p.fcall("printch")
-	p.emit("ret")
+	p.emitRet()
 
 	p.flabel("print")
 	p.peek(TR8)
@@ -298,7 +298,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	}
 	p.syscall()
 	p.popTen()
-	p.emit("ret")
+	p.emitRet()
 }
 
 func (p *phys) dbgExit() {
@@ -344,7 +344,7 @@ func (p *phys) emitExit() {
 	} else {
 		p.mov(LR, TR3)
 	}
-	p.emit("ret")
+	p.emitRet()
 }
 
 func (p *phys) sub(a regi, b regOrConst) {
@@ -367,6 +367,10 @@ func (p *phys) fcall(id string) {
 	} else {
 		p.emit("bl", fmake(id))
 	}
+}
+
+func (p *phys) emitRet() {
+	p.emit("ret")
 }
 
 func (p *phys) syscall() {
