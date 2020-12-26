@@ -103,8 +103,9 @@ func init() {
 			e.err("")
 		}
 		e.assignToReg(ce.Params[0])
-		e.p.mov(TR3, TR2)
+		e.p.push(TR2)
 		e.assignToReg(ce.Params[1])
+		e.p.pop(TR3)
 		e.p.cmp(TR3, TR2)
 		lab := e.clab()
 		e.p.br(lab, "eq")
