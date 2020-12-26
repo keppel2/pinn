@@ -1,14 +1,5 @@
-assert(2, 5);
-var ar[100]int;
-var k, v int;
-for v = range 0:8 {
-ar[v] = v + 0x10;
-}
-println();
-print(ar[0]);
-println();
-
-for v = range 0:8 {
-print(v);print(ar[v]);printchar("asdf");
-assert(ar[v], v + 0x10);
-}
+func r() int { }
+r();
+r();
+r();
+r();

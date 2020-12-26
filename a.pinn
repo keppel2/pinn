@@ -1,1 +1,10 @@
-return 3;
+glob := 1;
+func f() {
+if glob > 0 {
+  glob--;
+  f();
+}
+}
+dbg();
+f();
+dbg();

@@ -141,6 +141,9 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 func (p *phys) pnull() {
 	p.add(TSP, 8)
 }
+func (p *phys) pnull2() {
+	p.add(TMAIN, 8)
+}
 
 func (p *phys) pop2(r regi) {
 	p.ldr(ATpost, r, TMAIN, 8)
@@ -335,11 +338,11 @@ func (p *phys) emit2Prints(s string) {
 }
 
 func (p *phys) emitExit() {
-	p.ldr(ATeq, TR1, TBP)
+	p.ldr(ATeq, TR3, TBP)
 	if L {
-		p.emitR("push", TR1)
+		p.emitR("push", TR3)
 	} else {
-		p.mov(LR, TR1)
+		p.mov(LR, TR3)
 	}
 	p.emit("ret")
 }

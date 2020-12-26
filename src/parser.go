@@ -260,6 +260,14 @@ func (p *parser) funcDecl() *FuncDecl {
 		rt.K = p.kind()
 	}
 	rt.B = p.blockStmt()
+	/*
+	  if rt.K != nil {
+	    if ls, ok := rt.B.SList[len(rt.B.SList - 1)].(*ReturnStmt); ok {
+	      if !ok {p.err(rt.Wl.Value)}
+	    }
+	  }
+	*/
+
 	rt.transform()
 
 	return rt

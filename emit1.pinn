@@ -178,8 +178,15 @@ func fact(fa int) int {
 }
 
 
-a = fact(4);
-assert(a, 24);
+func fl() {
+var fll int;
+fll = fact(4);
+fll2 := 5;
+assert(fll, 24);
+print(fll2);
+
+}
+fl();
 
 b = 0;
 for a = 5; a < 7; a = a + 1 {

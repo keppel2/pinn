@@ -476,6 +476,11 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.ebranch = lab
 	e.ebranch2 = lab2
 	e.emitStmt(f.B)
+	if f.K != nil {
+		e.p.mov(TR1, 8)
+		e.p.emitExit()
+	}
+
 	e.p.makeLabel(lab)
 
 	e.p.mov(TSP, TSS)
@@ -687,10 +692,10 @@ func (e *emitter) emitStmt(s Stmt) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)
 	case *BlockStmt:
+		e.p.pnull2()
 		for _, s := range t.SList {
 			e.emitStmt(s)
 		}
-		e.p.pop2(TR1)
 		return
 	case *ContinueStmt:
 		e.p.br(e.peekloop()[0])
@@ -720,6 +725,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.poploop()
 
 	case *IfStmt:
+		e.p.pnull2()
 		lab := e.clab()
 		if t.Else == nil {
 			lab2 := e.clab()
@@ -741,6 +747,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.p.makeLabel(lab)
 
 	case *ReturnStmt:
+		e.p.pnull2()
 		if t.E != nil {
 			e.assignToReg(t.E)
 			if !e.fc {
@@ -854,6 +861,10 @@ func (e *emitter) emitStmt(s Stmt) {
 				}
 
 				e.storeId(id, TR2)
+				if t.Op == ":=" && e.fc {
+					e.p.pnull2()
+					return
+				}
 
 			case *IndexExpr:
 				if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
@@ -888,8 +899,10 @@ func (e *emitter) emitStmt(s Stmt) {
 		for _, v := range t.List {
 			e.newVar(v.Value, t.Kind)
 		}
-		e.p.pop2(TR1)
-		return
+		if e.fc {
+			e.p.pnull2()
+			return
+		}
 	case *ForStmt:
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
@@ -971,19 +984,19 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.err("")
 
 	}
-	/*
-	  e.p.pop2(TR1)
-	  e.p.cmp(TR1, TSP)
-	  elab := e.clab()
-	  e.p.br(elab, "eq")
-	  e.p.emitLC()
-	  e.p.mov(TR2, TSP)
-	  e.p.emit2Print()
-	  e.p.mov(TR2, TR9)
-	  e.p.emit2Print()
-	  e.p.emitExit()
-	  e.p.makeLabel(elab)
-	*/
+
+	e.p.pop2(TR1)
+	e.p.cmp(TR1, TSP)
+	elab := e.clab()
+	e.p.br(elab, "eq")
+	e.p.br(elab)
+	e.p.emitLC()
+	e.p.mov(TR2, TSP)
+	e.p.emit2Print()
+	e.p.mov(TR2, TR1)
+	e.p.emit2Print()
+	e.p.emitExit()
+	e.p.makeLabel(elab)
 
 }
 
