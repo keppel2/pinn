@@ -745,6 +745,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.emitStmt(t.Else)
 		}
 		e.p.makeLabel(lab)
+		return
 
 	case *ReturnStmt:
 		e.p.pnull2()
@@ -759,7 +760,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 		}
 		e.p.br(e.ebranch)
+		return
 	case *AssignStmt:
+		e.p.pnull2()
 		mts := make([]*mloc, len(t.RHSa))
 
 		if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
@@ -894,6 +897,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 
 		}
+		return
 
 	case *VarStmt:
 		for _, v := range t.List {
@@ -903,7 +907,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.p.pnull2()
 			return
 		}
+		return
 	case *ForStmt:
+		e.p.pnull2()
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
 				if rs.irange {
@@ -979,6 +985,7 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		e.p.makeLabel(lab2)
 		e.poploop()
+		return
 
 	default:
 		e.err("")
@@ -989,7 +996,6 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.p.cmp(TR1, TSP)
 	elab := e.clab()
 	e.p.br(elab, "eq")
-	e.p.br(elab)
 	e.p.emitLC()
 	e.p.mov(TR2, TSP)
 	e.p.emit2Print()

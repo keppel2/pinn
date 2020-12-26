@@ -1,6 +1,6 @@
 package main
 
-//import "fmt"
+import "fmt"
 //import "runtime/debug"
 //import "strings"
 
@@ -8,7 +8,8 @@ package main
 var s []int
 
 func main() {
-  x := 2
-  y := 4
-  x, y += 1, 5
+  s := []int{2, 5};
+  e := 0;
+  s[e], e = 7, 1;
+  fmt.Println(s)
 }
