@@ -1,1 +1,1 @@
-./pp.sh pparse && ./mt.sh emit1 && ./mt.sh emit2 && ./mt.sh emit3 && ./mt.sh emit4 && ./pr.sh pr1
+./pp.sh pparse && ./mt.sh em1 && ./mt.sh em2 && ./mt.sh em3 && ./mt.sh em4 && ./pr.sh pr1
