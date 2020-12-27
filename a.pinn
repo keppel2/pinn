@@ -1,1 +1,5 @@
-assert(0-5, 0-5);
+func ftran(fa int) {
+  return fa;
+}
+
+return ftran(5);

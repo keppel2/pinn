@@ -15,6 +15,7 @@ type emitter struct {
 	soff     int
 	lstack   [][2]branch
 	fc       bool
+	f        *FuncDecl
 	fexitm   map[string]branch
 	fexit    branch
 	lst      Node
@@ -437,6 +438,7 @@ func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
 }
 
 func (e *emitter) emitFunc(f *FuncDecl) {
+	e.f = f
 	e.p.flabel(f.Wl.Value)
 	e.soff = 0
 	e.p.mov(TSS, TSP)
@@ -632,7 +634,9 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if !L {
 		e.p.push(LR)
 	}
+	e.p.push3(TSP)
 	ssize := fun.PSize
+	_ = ssize
 
 	for k, v := range ce.Params {
 		if v, ok := v.(*StringExpr); ok {
@@ -673,7 +677,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if fun.K != nil {
 		e.p.pop(TR4)
 	}
-	e.p.add(TSP, moffOff(ssize))
+	e.p.pop3(TSP)
 	if !L {
 		e.p.pop(LR)
 	}
@@ -687,12 +691,10 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
 	e.p.emit("//")
-	e.p.push2(TSP)
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)
 	case *BlockStmt:
-		e.p.pnull2()
 		for _, s := range t.SList {
 			e.emitStmt(s)
 		}
@@ -725,7 +727,6 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.poploop()
 
 	case *IfStmt:
-		e.p.pnull2()
 		lab := e.clab()
 		if t.Else == nil {
 			lab2 := e.clab()
@@ -748,12 +749,14 @@ func (e *emitter) emitStmt(s Stmt) {
 		return
 
 	case *ReturnStmt:
-		e.p.pnull2()
 		if t.E != nil {
 			e.assignToReg(t.E)
 			if !e.fc {
 				e.p.mov(TR1, TR2)
 			} else {
+				if e.f.K == nil {
+					e.err(e.f.Wl.Value)
+				}
 				e.p.mov(TSP, TSS)
 				e.p.push(TR2)
 				e.p.br(e.ebranch2)
@@ -762,7 +765,6 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.p.br(e.ebranch)
 		return
 	case *AssignStmt:
-		e.p.pnull2()
 		mts := make([]*mloc, len(t.RHSa))
 
 		if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
@@ -867,7 +869,6 @@ func (e *emitter) emitStmt(s Stmt) {
 
 				e.storeId(id, TR2)
 				if t.Op == ":=" && e.fc {
-					e.p.pnull2()
 					return
 				}
 
@@ -907,12 +908,10 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.newVar(v.Value, t.Kind)
 		}
 		if e.fc {
-			e.p.pnull2()
 			return
 		}
 		return
 	case *ForStmt:
-		e.p.pnull2()
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {
 				if rs.irange {
@@ -994,18 +993,6 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.err("")
 
 	}
-
-	e.p.pop2(TR1)
-	e.p.cmp(TR1, TSP)
-	elab := e.clab()
-	e.p.br(elab, "eq")
-	e.p.emitLC()
-	e.p.mov(TR2, TSP)
-	e.p.emit2Print()
-	e.p.mov(TR2, TR1)
-	e.p.emit2Print()
-	e.p.emitExit()
-	e.p.makeLabel(elab)
 
 }
 

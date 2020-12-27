@@ -24,9 +24,23 @@ sdb := -1;
 -(4);
 +10;
 
+// Function
+
+func fA() {}
+fA();
+
+func fB(p int) {}
+fB(42);
+
+func fR() int { return 5; }
+fR();
+
+func fRR(p int) int { return p + 1; }
+fRR(12);
+fRR(fR());
+fRR(fRR(2));
 
 // Expressions
-// 4 / 3
 assert(7 + 3, 10);
 assert(7 - 3, 4);
 assert(7 * 3, 21);
@@ -46,17 +60,17 @@ assert(1 + 2 * 3, 9);
 assert(1 + (2 * 3), 7);
 
 assert(1 + 1 + 1 + 1, 4);
-
 assert(-5, 0 - 5);
-
-
 assert(+3, 3);
 
 
 // Basics
 var v int;
 v = 0;
+assert(v, v);
+assert(0, 0);
 assert(v, 0);
+assert(0, v);
 v = 2;
 assert(v, 2);
 v = v + 5;
@@ -102,6 +116,41 @@ me := 0;
 mar[me], me = 7, 1;
 assert(mar[0], 7);
 assert(mar[1], 5);
+
+// Function assertions
+
+func fret() int {
+return 187;
+}
+assert(fret(), 187);
+
+func fin(fa int) {
+  assert(fa, 187);
+}
+
+fin(187);
+fin(fret());
+
+func ftran(fa int) int {
+  return fa + 5;
+}
+
+
+assert(ftran(ftran(5)), 15);
+
+fglob := 5;
+func fas(fa int) int {
+lglob := fglob + 1;
+fglob = fglob - fa;
+return lglob;
+}
+
+assert(fas(2), 6);
+assert(fas(3), 4);
+
+
+
+
 
 a = 5;
 if a <= 2 {
