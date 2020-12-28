@@ -74,6 +74,7 @@ func (e *emitter) newSlc() *mloc {
 func (e *emitter) newIntml() *mloc {
 	ml := new(mloc)
 	ml.init(e.fc, mlInt)
+	ml.rs = rsInt
 	e.p.mov(TR5, 0)
 	if ml.fc {
 		e.soff++
@@ -90,6 +91,7 @@ func (e *emitter) newIntml() *mloc {
 func (e *emitter) newArml(len int) *mloc {
 	ml := new(mloc)
 	ml.init(e.fc, mlArray)
+	ml.rs = rsInt
 	ml.len = len //atoi(e, t.Len.(*NumberExpr).Il.Value)
 	if e.fc {
 		e.soff += ml.len
@@ -423,9 +425,15 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 func (e *emitter) binaryExpr(be *BinaryExpr) *mloc {
 	var rt *mloc
 
-	e.assignToReg(be.LHS)
+	lh := e.assignToReg(be.LHS)
+	if lh.rs == rsInvalid {
+		e.err("")
+	}
 	e.p.push(TR2)
-	e.assignToReg(be.RHS)
+	rh := e.assignToReg(be.RHS)
+	if rh.rs == rsInvalid {
+		e.err("")
+	}
 	e.p.mov(TR3, TR2)
 	e.p.pop(TR2)
 	e.doOp(TR2, TR3, be.op)
@@ -467,6 +475,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			}
 			ml := new(mloc)
 			ml.init(e.fc, mlInt)
+			ml.rs = rsInt
 			e.soff++
 			ml.i = -(f.PSize - e.soff)
 			e.rMap[vd2.Value] = ml
@@ -779,6 +788,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		}
 		for k, v := range t.RHSa {
 			mts[k] = e.assignToReg(v)
+			if mts[k].rs == rsInvalid {
+				e.err(t.Op)
+			}
 			e.p.push(TR2)
 		}
 		for k, v := range t.LHSa {

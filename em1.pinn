@@ -138,6 +138,9 @@ func ftran(fa int) int {
 
 assert(ftran(ftran(5)), 15);
 
+//bad();
+//jj := fin(187);
+
 fglob := 5;
 func fas(fa int) int {
 lglob := fglob + 1;

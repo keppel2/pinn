@@ -1,5 +1,3 @@
-func ftran(fa int) {
-  return fa;
-}
+func f() {}
 
-return ftran(5);
+x := f() + 2;
