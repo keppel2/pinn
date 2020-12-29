@@ -148,6 +148,9 @@ func (p *phys) pnull3() {
 func (p *phys) pop3(r regi) {
 	p.ldr(ATpost, r, TMAIN, 8)
 }
+func (p *phys) peek3(r regi) {
+	p.ldr(ATeq, r, TMAIN)
+}
 func (p *phys) pop(r regi) {
 	p.ldr(ATpost, r, TSP, 8)
 }

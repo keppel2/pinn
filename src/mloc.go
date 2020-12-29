@@ -29,6 +29,16 @@ type mloc struct {
 	rs  rstate
 }
 
+func fromKind(k string) rstate {
+	switch k {
+	case "int":
+		return rsInt
+	case "string":
+		return rsString
+	}
+	return rsInvalid
+}
+
 func newSent(r rstate) *mloc {
 	rt := new(mloc)
 	rt.rs = r

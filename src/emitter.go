@@ -449,39 +449,29 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.f = f
 	e.p.flabel(f.Wl.Value)
 	e.soff = 0
-	e.p.mov(TSS, TSP)
-	for _, field := range f.PList {
-		if ark, ok := field.Kind.(*ArKind); ok {
-			for _, vd2 := range field.List {
-
-				if _, ok := e.rMap[vd2.Value]; ok {
-					e.err(vd2.Value)
-				}
-				ml := new(mloc)
-				ml.init(e.fc, mlArray)
-				plen := atoi(e, ark.Len.(*NumberExpr).Il.Value)
-				e.soff += plen
-				ml.len = plen
-				ml.i = -(f.PSize - e.soff)
-				e.rMap[vd2.Value] = ml
-			}
-			continue
-
+	e.p.peek3(TSS)
+	for _, nt := range f.NTlist {
+		if _, ok := e.rMap[nt.N.Value]; ok {
+			e.err(nt.N.Value)
 		}
-		for _, vd2 := range field.List {
-
-			if _, ok := e.rMap[vd2.Value]; ok {
-				e.err(vd2.Value)
-			}
+		if ark, ok := nt.K.(*ArKind); ok {
+			ml := new(mloc)
+			ml.init(e.fc, mlArray)
+			ml.rs = fromKind(ark.K.(*SKind).Wl.Value)
+			plen := atoi(e, ark.Len.(*NumberExpr).Il.Value)
+			e.soff += plen
+			ml.len = plen
+			ml.i = e.soff
+			e.rMap[nt.N.Value] = ml
+		} else {
 			ml := new(mloc)
 			ml.init(e.fc, mlInt)
 			ml.rs = rsInt
 			e.soff++
-			ml.i = -(f.PSize - e.soff)
-			e.rMap[vd2.Value] = ml
+			ml.i = e.soff
+			e.rMap[nt.N.Value] = ml
 		}
 	}
-	e.soff = 0
 	lab := e.clab()
 	lab2 := e.clab()
 	e.ebranch = lab

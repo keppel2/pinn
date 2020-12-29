@@ -144,7 +144,7 @@ assert(ftran(ftran(5)), 15);
 fglob := 5;
 func fas(fa int) int {
 lglob := fglob + 1;
-fglob = fglob - fa;
+fglob -= fa;
 return lglob;
 }
 

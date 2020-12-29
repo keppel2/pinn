@@ -1,14 +1,27 @@
-0;
+//Expressions
 
+0;
 24;
 101 + 24;
-
 1 + 5 * 12 * 101;
+1 + 2 - 3 * 4 / 5 % 6;
+
+//Expressions with vars
+a << b >> c & d | e ^ f;
+a && b || c;
+
+//Function calls
+
+
 f(0);
 2 + f(42);
 f(101) + 202;
+
+//Functions
 func f(a int, b bool) int { 42; }
 func fe(a ...bool) {}
+
+
 type t atype;
 var v avar;
 f[141];
@@ -56,11 +69,6 @@ z = [1, 2 ? 3 : 4, 10];
 return 10;
 
 loop {42;}
-1 + 2 - 3 * 4 / 5 % 6;
-a << b >> c & d | e ^ f;
-1 == 2 != 3 > 4 < 5 >= 6 <= 7;
-a && b || c;
-
 for a, b  := range 24 { 25; }
 for a := range 10 { 101; }
 for z = range 23 {}
