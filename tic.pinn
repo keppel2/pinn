@@ -62,11 +62,8 @@ func printBoard (flob [9]int) {
 }
 
 func xy (fx, fy int) int {
-print(SIZE);print(fx);print(fy);
   rt := fy * SIZE;
   rt += fx;
-  print(rt);
-  println();
   return rt;
 }
 
@@ -107,7 +104,6 @@ func winner (flob [9]int) int {
   var ii int;
   rt := 0;
   for ii = 0; ii < SIZE; ii++ {
-  print(ii);println();
 
         rt = line(ii, 0, 0, 1, flob);
         if rt != TIE
@@ -115,7 +111,6 @@ func winner (flob [9]int) int {
         rt = line(0, ii, 1, 0, flob);
         if rt != TIE
             return rt;
-  print(ii);println();
     }
     rt = line(0, 0, 1, 1, flob);
     if rt != TIE {

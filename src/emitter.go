@@ -392,9 +392,15 @@ func (e *emitter) condExpr(dest branch, be *BinaryExpr) {
 		e.condExpr(dest, be.RHS.(*BinaryExpr))
 		e.p.makeLabel(lab2)
 	} else if be.op == "==" || be.op == "!=" || be.op == "<" || be.op == "<=" || be.op == ">" || be.op == ">=" {
-		e.assignToReg(be.LHS)
+		lh := e.assignToReg(be.LHS)
+		if lh.rs != rsInt {
+			e.err(be.op)
+		}
 		e.p.push(TR2)
-		e.assignToReg(be.RHS)
+		rh := e.assignToReg(be.RHS)
+		if rh.rs != rsInt {
+			e.err(be.op)
+		}
 		e.p.pop(TR4)
 		e.p.cmp(TR4, TR2)
 		bi := ""
