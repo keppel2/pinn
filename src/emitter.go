@@ -677,6 +677,9 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 			kind = fun.NTlist[k].K
 		}
 		if ie, ok := v.(*VarExpr); ok && e.rMap[ie.Wl.Value].len > 0 {
+			if ie.Wl.Value == "_" {
+				e.err("+_")
+			}
 			if atoi(e, kind.(*ArKind).Len.(*NumberExpr).Il.Value) != e.rMap[ie.Wl.Value].len {
 				e.err(ID)
 			}
