@@ -1,1 +1,3 @@
-//stress
+var ar[0x1000] int;
+
+for k, v := 

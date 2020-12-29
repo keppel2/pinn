@@ -1,12 +1,2 @@
-printdec(123);
-func f(fa int, ar [3]int, fc int) {
-print(fa);
-print(ar[0]);
-print(ar[1]);
-print(ar[2]);
-printdec(123);
-print(fc);
-}
-
-mar := [7, 5, 3];
-f(12, mar, 187);
+_ = 5;
+_ = 10;

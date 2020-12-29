@@ -115,6 +115,9 @@ func (e *emitter) newArml(len int) *mloc {
 }
 
 func (e *emitter) newVar(s string, k Kind) {
+	if s == "_" {
+		e.err(s)
+	}
 
 	if _, ok := e.rMap[s]; ok {
 		e.err(s)
@@ -457,6 +460,9 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.soff = 0
 	e.p.peek3(TSS)
 	for _, nt := range f.NTlist {
+		if nt.N.Value == "_" {
+			continue
+		}
 		if _, ok := e.rMap[nt.N.Value]; ok {
 			e.err(nt.N.Value)
 		}
@@ -512,6 +518,9 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 	case *StringExpr:
 		return newSent(rsString)
 	case *VarExpr:
+		if t2.Wl.Value == "_" {
+			e.err(t2.Wl.Value)
+		}
 		rt = e.rMap[t2.Wl.Value]
 		if rt.mlt != mlArray && rt.mlt != mlSlice {
 			e.loadId(t2.Wl.Value, TR2)
@@ -529,12 +538,18 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 			switch t3 := t2.E.(type) {
 			case *VarExpr:
 				v := t3.Wl.Value
+				if v == "_" {
+					e.err(v)
+				}
 				ml := e.rMap[v]
 				e.p.mov(TR2, 0)
 				e.setIndex(TR2, ml)
 				e.getaddr(ml)
 			case *IndexExpr:
 				v := t3.X.(*VarExpr).Wl.Value
+				if v == "_" {
+					e.err(v)
+				}
 				ml := e.rMap[v]
 				e.assignToReg(t3.E)
 				e.rangeCheck(ml)
@@ -567,6 +582,9 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		e.p.mov(TR2, TR4)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
+		if v == "_" {
+			e.err(v)
+		}
 		ml := e.rMap[v]
 		ert := e.assignToReg(t2.E)
 		if ert == nil {
@@ -805,11 +823,16 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.p.str(ATeq, TR3, TR2)
 			case *VarExpr:
 				id := lh2.Wl.Value
+				if t.Op == ":=" && id == "_" {
+					e.err(id)
+				}
 				if t.Op == ":=" && e.rMap[id] != nil {
 					e.err(id)
 				}
 				if t.Op == "=" && e.rMap[id] == nil {
-					e.err(id)
+					if id != "_" {
+						e.err(id)
+					}
 				}
 				if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
 					if len(t.LHSa) > 1 {
@@ -925,10 +948,18 @@ func (e *emitter) emitStmt(s Stmt) {
 				if rs.irange {
 					var iter, key *mloc
 					if len(rs.LHSa) == 2 {
-						key = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
-						iter = e.rMap[rs.LHSa[1].(*VarExpr).Wl.Value]
+						first, second := rs.LHSa[0].(*VarExpr).Wl.Value, rs.LHSa[1].(*VarExpr).Wl.Value
+						if first != "_" {
+							key = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
+						}
+						if second != "_" {
+							iter = e.rMap[rs.LHSa[1].(*VarExpr).Wl.Value]
+						}
 					} else {
-						iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
+						first := rs.LHSa[0].(*VarExpr).Wl.Value
+						if first != "_" {
+							iter = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
+						}
 					}
 					var ml *mloc
 					ml = e.assignToReg(rs.RHSa[0])
@@ -944,7 +975,9 @@ func (e *emitter) emitStmt(s Stmt) {
 					if ml.rs != rsRange {
 						e.iLoad(TR2, TR10, ml)
 					}
-					e.storeml(iter, TR2)
+					if iter != nil {
+						e.storeml(iter, TR2)
+					}
 					e.p.push(TR2)
 					e.p.push(TR3)
 					e.p.push(TR10)
