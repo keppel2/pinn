@@ -32,8 +32,7 @@ if n4() != n7() - 3 {
   bad();
 }
 
-var gar[3]int;
-gar = [1, 5, 10];
+gar := [1, 5, 10];
 func afu(lar [3]int) {
   assert(lar[0], 1);
   assert(lar[2], 10);

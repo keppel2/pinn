@@ -148,9 +148,7 @@ func score (h int) int {
             if bd[hrc(h, x, y)] == W {w++;} else
             {
               _player = N;
-    printchar("fscoreA");
                   cs = color(x, y, 0);
-    printchar("fscoreB");
                   if _player == B b += cs;
                   if _player == W w += cs;
             }
@@ -168,43 +166,23 @@ var _player int;
 func color (x, y, score int) int {
 
 
-    printchar("fscore1");
     if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == I {
-    printchar("fscore3");
       return score;
     }
     mscore := score;
-    println();printchar("ms");print(mscore);println();
     pin := cp[rc(x, y)];
     if pin == E {
       cp[rc(x,y)] = I;
       mscore++;
       mscore = color(x + 1, y, score);
-    print(0x44321);
-    println();
       mscore = color(x - 1, y, score);
-    print(0x33321);
-    println();
       mscore = color(x, y + 1, score);
-    print(0x22321);
-    println();
       mscore = color(x, y - 1, score);
-    print(0x11123);
-    println();
     } else if _player == N {
       _player = pin;
     } else if _player != pin {
       _player = X;
     }
-    printchar("bug");
-    print(0x321);
-    println();
-    printchar("bug");
-    if mscore > 10 {
-      bad();
-    }
-    print(mscore);
-    println();
     return mscore;
 }
 
@@ -257,17 +235,14 @@ var bd [BTOT]int;
 var bh [81]int;
 bh[hash()] = 1;
 hsize++;
-//bd[hrc(1, 0, 0)] = W;
-//bh[hash()] = 1;
+bd[hrc(1, 0, 0)] = W;
+bh[hash()] = 1;
 
 
 
 
 sc := minimax(B, FALSE);
-println();
-println();
 print(np(sc));
-//print(hash());
 
 
 

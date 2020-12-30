@@ -129,8 +129,8 @@ far();
 assert(lar[0], 7);
 
 // Array copy
-var ac2, ac [3]int;
-ac = [2, 4, 5];
+var ac2 [3]int;
+ac := [2, 4, 5];
 
 ac2 = ac;
 ac2[0] = 8;

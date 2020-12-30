@@ -126,8 +126,7 @@ assert(sx, 4);
 assert(sy, 2);
 
 sxx := 4;
-var sar [2]int;
-sar = [5, 8];
+sar := [5, 8];
 sxx, sar[0] = sar[1], sxx;
 assert(sxx, 8);
 assert(sar[0], 4);

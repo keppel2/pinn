@@ -503,6 +503,15 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.clearL()
 }
 
+func (e *emitter) getType(ex Expr) *mloc {
+	switch t := ex.(type) {
+	case *ArrayExpr:
+		mloc := e.newArml(len(t.EL))
+		return mloc
+	}
+	return e.newIntml()
+}
+
 func (e *emitter) assignToReg(ex Expr) *mloc {
 	var rt *mloc
 	e.lst = e.st
@@ -805,9 +814,9 @@ func (e *emitter) emitStmt(s Stmt) {
 		}
 
 		if t.Op == ":=" {
-			for _, v := range t.LHSa {
+			for k, v := range t.LHSa {
 				id := v.(*VarExpr).Wl.Value
-				ml := e.newIntml()
+				ml := e.getType(t.RHSa[k])
 				if e.rMap[id] != nil {
 					e.err(id)
 				}

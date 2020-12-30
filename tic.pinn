@@ -1,30 +1,17 @@
-#define BSIZE 4
+#define BSIZE 9
 EMPTY := 0;
 FALSE := 0;
 TRUE := 1;
 TIE := 3;
 PLAYER_A := 1;
 PLAYER_B := 2;
-SIZE := 2;
+SIZE := 3;
 SQSIZE := SIZE * SIZE;
 count := 0;
 
 
 func minimax (player int, depth int, flob [BSIZE]int) int
 {
-flob[xy(0, 0)] = 7;
-println();print(flob[0]);println();
-
-
-bad();
-
-
-if player == PLAYER_B {
-bad();
-}
-print(count);print(depth);println();
-printBoard(flob);
-
  count++;
  i := 0;
  result := 0;
@@ -44,15 +31,6 @@ printBoard(flob);
   for x = range (0:SIZE) {
     for y = range (0:SIZE) {
       if flob[xy(x, y)]  == EMPTY {
-        println();print(x);print(y);print(xy(x, y));;println();
-        mxy = xy(x, y);
-
-        //flob[mxy] = player;
-        flob[xy(x, y)] = player;
-        //flob[0] = player;
-        println();print(player);print(flob[0]);println();
-        printBoard(flob);
- 
         result = minimax(opposite(player), depth + 1, flob);
         if result == player {
           return player;
@@ -81,10 +59,8 @@ func printBoard (flob [BSIZE]int) {
 }
 
 func xy (fx, fy int) int {
-println();printchar("size");print(SIZE);println();
   rt := fy * SIZE;
   rt += fx;
-println();printchar("rt");print(rt);println();
   return rt;
 }
 
@@ -104,7 +80,6 @@ func line (x int, y int, dx int, dy int, flob [BSIZE]int) int {
     if comp == EMPTY {
         return TIE;
     }
-    exit(7);
     loop {
       if x + dx < SIZE {
         if y + dy < SIZE {
