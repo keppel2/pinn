@@ -126,13 +126,15 @@ assert(sx, 4);
 assert(sy, 2);
 
 sxx := 4;
-sar := [5, 8];
+var sar [2]int;
+sar = [5, 8];
 sxx, sar[0] = sar[1], sxx;
 assert(sxx, 8);
 assert(sar[0], 4);
 assert(sar[1], 8);
 
-mar := [2, 5];
+var mar [2]int;
+mar = [2, 5];
 me := 0;
 mar[me], me = 7, 1;
 assert(mar[0], 7);

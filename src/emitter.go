@@ -803,6 +803,17 @@ func (e *emitter) emitStmt(s Stmt) {
 				e.err(t.Op)
 			}
 		}
+
+		if t.Op == ":=" {
+			for _, v := range t.LHSa {
+				id := v.(*VarExpr).Wl.Value
+				ml := e.newIntml()
+				if e.rMap[id] != nil {
+					e.err(id)
+				}
+				e.rMap[id] = ml
+			}
+		}
 		for k, v := range t.RHSa {
 			mts[k] = e.assignToReg(v)
 			if mts[k].rs == rsInvalid {
@@ -813,8 +824,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		for k, v := range t.LHSa {
 			if len(mts) > 0 {
 				e.p.add(TSP, 8*(len(t.LHSa)-k-1))
-				e.p.pop(TR2)
-				e.p.sub(TSP, 8*(len(t.LHSa)-k))
+				e.p.peek(TR2)
+				e.p.sub(TSP, 8*(len(t.LHSa)-k-1))
 			}
 			switch lh2 := v.(type) {
 			case *UnaryExpr:
@@ -827,9 +838,6 @@ func (e *emitter) emitStmt(s Stmt) {
 			case *VarExpr:
 				id := lh2.Wl.Value
 				if t.Op == ":=" && id == "_" {
-					e.err(id)
-				}
-				if t.Op == ":=" && e.rMap[id] != nil {
 					e.err(id)
 				}
 				if t.Op == "=" && e.rMap[id] == nil {
@@ -848,7 +856,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					}
 					e.doOp(TR3, TR2, t.Op[0:1])
 					e.storeInt(id, TR3)
-					return
+					break
 				}
 				ml := mts[k]
 				if ml.mlt == mlInvalid && ml.rs == rsRange {
@@ -859,7 +867,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					}
 					e.storeId(id, TR2)
 					e.rMap[id].mlt = mlVoid
-					return
+					break
 				} else if ml.mlt == mlArray && ml.rs == rsRange {
 					mls := e.rMap[id]
 					if mls == nil {
@@ -877,7 +885,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.setIndex(TR2, ml)
 					e.getaddr(ml)
 					e.iStore(TR2, TR5, mls)
-					return
+					break
 				}
 				if ml.mlt == mlArray {
 					if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
@@ -898,13 +906,10 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.p.add(TR2, 1)
 					e.p.br(lab)
 					e.p.makeLabel(lab2)
-					return
+					break
 				}
 
 				e.storeId(id, TR2)
-				if t.Op == ":=" && e.fc {
-					return
-				}
 
 			case *IndexExpr:
 				if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
@@ -935,7 +940,6 @@ func (e *emitter) emitStmt(s Stmt) {
 
 		}
 		e.p.add(TSP, 8*len(t.RHSa))
-		return
 
 	case *VarStmt:
 		for _, v := range t.List {
@@ -944,7 +948,6 @@ func (e *emitter) emitStmt(s Stmt) {
 		if e.fc {
 			return
 		}
-		return
 	case *ForStmt:
 		if t.Inits != nil {
 			if rs, ok := t.Inits.(*AssignStmt); ok {

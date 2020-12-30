@@ -17,6 +17,9 @@ func (p *phys) padd(i string) {
 	p.sb.WriteString(i)
 }
 
+func (p *phys) emitC(i string) {
+	p.emit("//ec," + i)
+}
 func (p *phys) emit(i string, ops ...string) {
 	const ind = "  "
 	const AM = " "

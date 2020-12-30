@@ -113,7 +113,8 @@ fgmm();
 assert(gmm, 2);
 
 
-lar := [7, 187];
+var lar [2]int;
+lar = [7, 187];
 
 g := 3;
 func far() {
@@ -128,7 +129,9 @@ far();
 assert(lar[0], 7);
 
 // Array copy
-ac := [2, 4, 5];
-ac2 := ac;
+var ac2, ac [3]int;
+ac = [2, 4, 5];
+
+ac2 = ac;
 ac2[0] = 8;
 assert(ac[0], 2);
