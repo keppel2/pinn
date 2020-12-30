@@ -1,3 +1,24 @@
+func fact(fa int) int {
+  if fa == 1 {
+    return 1;
+  }
+  ffx := fa;
+  ffy := fact(fa - 1);
+  return ffx * ffy;
+}
+
+
+func fla() {
+var fll int;
+fll = fact(4);
+fll2 := 5;
+assert(fll, 24);
+
+}
+fla();
+
+assert(fact(5), 120);
+assert(fact(10), 3628800);
 
 
 func f(aa, bb int) int {

@@ -150,7 +150,11 @@ func (p *parser) fileA() *File {
 
 	for p.s.ct().tok != "EOF" {
 		if p.s.ct().tok == "func" {
-			f.FList = append(f.FList, p.funcDecl())
+			fd := p.funcDecl()
+			if f.getFunc(fd.Wl.Value) != nil {
+				p.err("")
+			}
+			f.FList = append(f.FList, fd)
 		} else {
 			f.SList = append(f.SList, p.stmt())
 		}
@@ -244,6 +248,7 @@ func (p *parser) funcDecl() *FuncDecl {
 	if fmap[rt.Wl.Value] != nil {
 		p.err(rt.Wl.Value)
 	}
+
 	p.want("(")
 	if !p.got(")") {
 		for {

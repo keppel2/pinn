@@ -4,12 +4,12 @@
 
 E := 0;
 B := 1;
-SIZEC := 3;
+SIZEC := 1;
 W := 2;
 N := 3;
 X := 4;
 I := 5;
-SIZER := 1;
+SIZER := 3;
 TRUE := 1;
 FALSE := 0;
 _counter := 0;
@@ -148,7 +148,9 @@ func score (h int) int {
             if bd[hrc(h, x, y)] == W {w++;} else
             {
               _player = N;
+    printchar("fscoreA");
                   cs = color(x, y, 0);
+    printchar("fscoreB");
                   if _player == B b += cs;
                   if _player == W w += cs;
             }
@@ -164,23 +166,46 @@ func mscore(player int) int {
 
 var _player int;
 func color (x, y, score int) int {
+
+
+    printchar("fscore1");
     if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == I {
+    printchar("fscore3");
       return score;
     }
+    mscore := score;
+    println();printchar("ms");print(mscore);println();
     pin := cp[rc(x, y)];
     if pin == E {
       cp[rc(x,y)] = I;
-      score++;
-      score = color(x + 1, y, score);
-      score = color(x - 1, y, score);
-      score = color(x, y + 1, score);
-      score = color(x, y - 1, score);
+      mscore++;
+      mscore = color(x + 1, y, score);
+    print(0x44321);
+    println();
+      mscore = color(x - 1, y, score);
+    print(0x33321);
+    println();
+      mscore = color(x, y + 1, score);
+    print(0x22321);
+    println();
+      mscore = color(x, y - 1, score);
+    print(0x11123);
+    println();
     } else if _player == N {
       _player = pin;
     } else if _player != pin {
       _player = X;
     }
-    return score;
+    printchar("bug");
+    print(0x321);
+    println();
+    printchar("bug");
+    if mscore > 10 {
+      bad();
+    }
+    print(mscore);
+    println();
+    return mscore;
 }
 
 func rc (r, c int) int {
@@ -232,8 +257,8 @@ var bd [BTOT]int;
 var bh [81]int;
 bh[hash()] = 1;
 hsize++;
-bd[hrc(1, 0, 0)] = W;
-bh[hash()] = 1;
+//bd[hrc(1, 0, 0)] = W;
+//bh[hash()] = 1;
 
 
 
@@ -242,7 +267,6 @@ sc := minimax(B, FALSE);
 println();
 println();
 print(np(sc));
-//printchar("ish");
 //print(hash());
 
 
@@ -254,14 +278,16 @@ print(np(sc));
 
 func minimax (player int, passed int) int
 {
+if _counter % 1000000 == 0 {
+  print(hsize);
+  println();
+}
 _counter++;
-//if _counter % 1000000 == 0 {
-//  print(hsize);
-//  println();
-//}
   var best int;
   if passed == TRUE {
+printchar("ish");
     best = mscore(player);
+printchar("ish");
   } else {
     best = -minimax(opposite(player), TRUE);
   }

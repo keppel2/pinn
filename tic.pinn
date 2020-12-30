@@ -1,17 +1,29 @@
+#define BSIZE 4
 EMPTY := 0;
 FALSE := 0;
 TRUE := 1;
-var BLAH [42]int;
 TIE := 3;
 PLAYER_A := 1;
 PLAYER_B := 2;
-SIZE := 3;
+SIZE := 2;
 SQSIZE := SIZE * SIZE;
 count := 0;
 
 
-func minimax (player int, depth int, flob [9]int) int
+func minimax (player int, depth int, flob [BSIZE]int) int
 {
+flob[xy(0, 0)] = 7;
+println();print(flob[0]);println();
+
+
+bad();
+
+
+if player == PLAYER_B {
+bad();
+}
+print(count);print(depth);println();
+printBoard(flob);
 
  count++;
  i := 0;
@@ -28,10 +40,18 @@ func minimax (player int, depth int, flob [9]int) int
   }
   x := 0;
   y := 0;
+  var mxy int;
   for x = range (0:SIZE) {
     for y = range (0:SIZE) {
       if flob[xy(x, y)]  == EMPTY {
+        println();print(x);print(y);print(xy(x, y));;println();
+        mxy = xy(x, y);
+
+        //flob[mxy] = player;
         flob[xy(x, y)] = player;
+        //flob[0] = player;
+        println();print(player);print(flob[0]);println();
+        printBoard(flob);
  
         result = minimax(opposite(player), depth + 1, flob);
         if result == player {
@@ -48,27 +68,28 @@ func minimax (player int, depth int, flob [9]int) int
   return best;
 }
 
-func printBoard (flob [9]int) {
+func printBoard (flob [BSIZE]int) {
+  println();
   var i, j int;
-    print(i);print(j);
   for i = 0; i < SIZE; i++ {
-    print(i);print(j);
     for j = 0; j < SIZE; j++ {
-    print(i);print(j);
       print(flob[xy(i, j)]);
     }
     println();
   }
+  println();
 }
 
 func xy (fx, fy int) int {
+println();printchar("size");print(SIZE);println();
   rt := fy * SIZE;
   rt += fx;
+println();printchar("rt");print(rt);println();
   return rt;
 }
 
 
-func full (flob [9]int) int {
+func full (flob [BSIZE]int) int {
   i := 0;
   for i = 0; i < SQSIZE; i++ {
     if flob[i] == EMPTY {
@@ -78,7 +99,7 @@ func full (flob [9]int) int {
   return TRUE;
 }
 
-func line (x int, y int, dx int, dy int, flob [9]int) int {
+func line (x int, y int, dx int, dy int, flob [BSIZE]int) int {
     comp := flob[xy(x, y)];
     if comp == EMPTY {
         return TIE;
@@ -100,7 +121,7 @@ func line (x int, y int, dx int, dy int, flob [9]int) int {
     return comp;
 }
 
-func winner (flob [9]int) int {
+func winner (flob [BSIZE]int) int {
   var ii int;
   rt := 0;
   for ii = 0; ii < SIZE; ii++ {
@@ -129,7 +150,7 @@ func opposite (opx int) int {
 
 
 func main() {
-  var flob [9]int;
+  var flob [BSIZE]int;
   x := minimax(PLAYER_A, 0, flob);
   
 }

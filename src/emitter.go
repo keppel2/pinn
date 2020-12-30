@@ -1032,7 +1032,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.p.makeLabel(lab2)
 		e.poploop()
 		return
-
+	case nil:
 	default:
 		e.err("")
 

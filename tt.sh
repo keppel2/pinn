@@ -1,1 +1,1 @@
-./pp.sh pparse && ./mt.sh em1 && ./mt.sh em2 && ./mt.sh em3 && ./mt.sh em4 && ./pr.sh pr1
+./pp.sh pparse && for i in {1..5}; do ./mt.sh em$i; done  && ./pr.sh pr1

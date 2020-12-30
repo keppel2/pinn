@@ -189,7 +189,9 @@ func visitLoopStmt(n *LoopStmt) {
 }
 func visitIfStmt(n *IfStmt) {
 	visitExpr(n.Cond)
-	visitStmt(n.Then)
+	if n.Then != nil {
+		visitStmt(n.Then)
+	}
 	if n.Else != nil {
 		visitStmt(n.Else)
 	}

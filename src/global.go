@@ -115,10 +115,7 @@ func init() {
 		e.p.mov(TR2, TR1)
 		e.p.emit2Print()
 		e.p.emit2Prints("--assert,")
-		ln := e.st.Gpos().Line
-		e.p.mov(TR2, ln)
-		e.p.push(TR2)
-		e.p.fcall("printdec")
+		e.p.emitLC()
 		e.p.mov(TR1, 5)
 		e.p.emitExit()
 		e.p.makeLabel(lab)
@@ -140,12 +137,7 @@ func init() {
 		}
 		ln := e.st.Gpos().Line
 		e.p.mov(TR1, ln)
-		if L {
-			e.p.emitR("push", TMAIN)
-		} else {
-			e.p.mov(LR, TMAIN)
-		}
-		e.p.emit("ret")
+		e.p.emitExit()
 		return nil
 	}
 
