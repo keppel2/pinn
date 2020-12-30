@@ -458,7 +458,8 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.f = f
 	e.p.flabel(f.Wl.Value)
 	e.soff = 0
-	e.p.peek3(TSS)
+	e.p.mov(TSS, TSP)
+	e.p.add(TSS, moffOff(f.PSize))
 	for _, nt := range f.NTlist {
 		if nt.N.Value == "_" {
 			continue
