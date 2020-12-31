@@ -515,6 +515,13 @@ func (e *emitter) getType(ex Expr) *mloc {
 			rt.mlt = mlVoid
 			return rt
 		}
+	case *IndexExpr:
+		if v, ok := t.E.(*BinaryExpr); ok {
+			if v.op == ":" || v.op == "@" {
+				rt := e.newSlc()
+				return rt
+			}
+		}
 
 	}
 	return e.newIntml()
@@ -652,6 +659,9 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 	if as.Op == ":=" {
 		for k, v := range as.LHSa {
 			id := makeVar(v)
+			if id == "_" {
+				e.err(id)
+			}
 			if e.rMap[id] != nil {
 				e.err(id)
 			}
@@ -678,41 +688,39 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 			if lh2.op != "*" {
 				e.err(lh2.op)
 			}
-			e.p.mov(TR3, TR2)
+			e.p.push(TR2)
 			e.assignToReg(lh2.E)
-			e.p.str(ATeq, TR3, TR2)
+			e.p.mov(TR1, TR2)
+			e.p.pop(TR2)
+			e.p.str(ATeq, TR2, TR1)
 		case *VarExpr:
 			id := lh2.Wl.Value
-			if as.Op == ":=" && id == "_" {
-				e.err(id)
-			}
 			if as.Op == "=" && e.rMap[id] == nil {
 				if id != "_" {
 					e.err(id)
 				}
 			}
 			if as.Op == "+=" || as.Op == "-=" || as.Op == "/=" || as.Op == "*=" || as.Op == "%=" || as.Op == "++" || as.Op == "--" {
-				if len(as.LHSa) > 1 {
-					e.err("")
+				if id == "_" {
+					e.err(id)
 				}
-				e.loadId(id, TR3)
+				e.loadId(id, TR1)
 				if as.Op[1:2] == "=" {
 				} else {
 					e.p.mov(TR2, 1)
 				}
-				e.doOp(TR3, TR2, as.Op[0:1])
-				e.storeInt(id, TR3)
+				e.doOp(TR1, TR2, as.Op[0:1])
+				e.storeInt(id, TR1)
 				break
 			}
 			ml := mts[k]
 			if ml.mlt == mlInvalid && ml.rs == rsRange {
 				e.err(id)
 			} else if ml.rs == rsMloc {
-				if e.rMap[id] != nil && e.rMap[id].mlt != mlVoid {
+				if e.rMap[id].mlt != mlVoid {
 					e.err(id)
 				}
 				e.storeId(id, TR2)
-				e.rMap[id].mlt = mlVoid
 				break
 			} else if ml.mlt == mlArray && ml.rs == rsRange {
 				mls := e.rMap[id]
@@ -774,7 +782,7 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 				e.p.mov(TR3, TR2)
 			}
 
-			v := lh2.X.(*VarExpr).Wl.Value
+			v := makeVar(lh2.X)
 			ml := e.rMap[v]
 
 			e.assignToReg(lh2.E)
@@ -791,7 +799,7 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	var rt *mloc
 	e.st = ce
-	ID := ce.ID.(*VarExpr).Wl.Value
+	ID := makeVar(ce.ID)
 	if ff, ok := fmap[ID]; ok {
 		rt := ff(e, ce)
 		return rt
@@ -965,7 +973,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				if rs.irange {
 					var iter, key *mloc
 					if len(rs.LHSa) == 2 {
-						first, second := rs.LHSa[0].(*VarExpr).Wl.Value, rs.LHSa[1].(*VarExpr).Wl.Value
+						first, second := makeVar(rs.LHSa[0]), makeVar(rs.LHSa[1])
 						if first != "_" {
 							key = e.rMap[rs.LHSa[0].(*VarExpr).Wl.Value]
 						}
