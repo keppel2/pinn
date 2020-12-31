@@ -35,6 +35,8 @@ func fromKind(k string) rstate {
 		return rsInt
 	case "string":
 		return rsString
+	case "ptr":
+		return rsMloc
 	}
 	return rsInvalid
 }

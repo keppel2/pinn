@@ -509,6 +509,13 @@ func (e *emitter) getType(ex Expr) *mloc {
 	case *ArrayExpr:
 		mloc := e.newArml(len(t.EL))
 		return mloc
+	case *CallExpr:
+		if makeVar(t.ID) == "malloc" {
+			rt := e.newIntml()
+			rt.mlt = mlVoid
+			return rt
+		}
+
 	}
 	return e.newIntml()
 }
@@ -644,14 +651,15 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 
 	if as.Op == ":=" {
 		for k, v := range as.LHSa {
-			id := v.(*VarExpr).Wl.Value
-			ml := e.getType(as.RHSa[k])
+			id := makeVar(v)
 			if e.rMap[id] != nil {
 				e.err(id)
 			}
+			ml := e.getType(as.RHSa[k])
 			e.rMap[id] = ml
 		}
 	}
+
 	for k, v := range as.RHSa {
 		mts[k] = e.assignToReg(v)
 		if mts[k].rs == rsInvalid {
@@ -798,12 +806,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	}
 	if fun.K != nil {
 		skind := fun.K.(*SKind).Wl.Value
-		switch skind {
-		case "int":
-			rt = newSent(rsInt)
-		case "void":
-			rt = newSent(rsMloc)
-		}
+		rt = newSent(fromKind(skind))
 	} else {
 		rt = newSent(rsInvalid)
 	}

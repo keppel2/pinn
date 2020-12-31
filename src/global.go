@@ -209,6 +209,10 @@ func makeConst(i int, pref bool) string {
 	}
 }
 
+func makeVar(e Expr) string {
+	return e.(*VarExpr).Wl.Value
+}
+
 func makeBranch(i branchi) string {
 	return fmt.Sprintf("%v%v", BP, i)
 }
