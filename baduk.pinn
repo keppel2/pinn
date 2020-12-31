@@ -260,9 +260,7 @@ if _counter % 1000000 == 0 {
 _counter++;
   var best int;
   if passed == TRUE {
-printchar("ish");
     best = mscore(player);
-printchar("ish");
   } else {
     best = -minimax(opposite(player), TRUE);
   }

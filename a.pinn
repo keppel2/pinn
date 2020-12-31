@@ -1,6 +1,9 @@
-func f() {
-printchar("as");
-printchar("asd");
-printchar("asde");
+func f7(a int) int { return a; }
+
+func fc() {
+
+var ar[10]int;
+ar[f7(2)] = 3;
+print(ar[2]);
 }
-f();
+fc();

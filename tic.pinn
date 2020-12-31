@@ -28,8 +28,9 @@ func minimax (player int, depth int, flob [BSIZE]int) int
   x := 0;
   y := 0;
   var mxy int;
-  for x = range (0:SIZE) {
-    for y = range (0:SIZE) {
+  for x = range 0:SIZE {
+    for y = range 0:SIZE {
+
       if flob[xy(x, y)]  == EMPTY {
         result = minimax(opposite(player), depth + 1, flob);
         if result == player {

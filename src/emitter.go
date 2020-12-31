@@ -628,6 +628,158 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 	return rt
 }
 
+func (e *emitter) emitAssign(as *AssignStmt) {
+	mts := make([]*mloc, len(as.RHSa))
+
+	if as.Op == "+=" || as.Op == "-=" || as.Op == "/=" || as.Op == "*=" || as.Op == "%=" {
+		if len(as.RHSa) != 1 || len(as.LHSa) != 1 {
+			e.err(as.Op)
+		}
+	}
+	if as.Op == "--" || as.Op == "++" {
+		if len(as.RHSa) != 0 || len(as.LHSa) != 1 {
+			e.err(as.Op)
+		}
+	}
+
+	if as.Op == ":=" {
+		for k, v := range as.LHSa {
+			id := v.(*VarExpr).Wl.Value
+			ml := e.getType(as.RHSa[k])
+			if e.rMap[id] != nil {
+				e.err(id)
+			}
+			e.rMap[id] = ml
+		}
+	}
+	for k, v := range as.RHSa {
+		mts[k] = e.assignToReg(v)
+		if mts[k].rs == rsInvalid {
+			e.err(as.Op)
+		}
+		e.p.push(TR2)
+	}
+	for k, v := range as.LHSa {
+		if len(mts) > 0 {
+			e.p.add(TSP, 8*(len(as.LHSa)-k-1))
+			e.p.peek(TR2)
+			e.p.sub(TSP, 8*(len(as.LHSa)-k-1))
+		}
+		switch lh2 := v.(type) {
+		case *UnaryExpr:
+			if lh2.op != "*" {
+				e.err(lh2.op)
+			}
+			e.p.mov(TR3, TR2)
+			e.assignToReg(lh2.E)
+			e.p.str(ATeq, TR3, TR2)
+		case *VarExpr:
+			id := lh2.Wl.Value
+			if as.Op == ":=" && id == "_" {
+				e.err(id)
+			}
+			if as.Op == "=" && e.rMap[id] == nil {
+				if id != "_" {
+					e.err(id)
+				}
+			}
+			if as.Op == "+=" || as.Op == "-=" || as.Op == "/=" || as.Op == "*=" || as.Op == "%=" || as.Op == "++" || as.Op == "--" {
+				if len(as.LHSa) > 1 {
+					e.err("")
+				}
+				e.loadId(id, TR3)
+				if as.Op[1:2] == "=" {
+				} else {
+					e.p.mov(TR2, 1)
+				}
+				e.doOp(TR3, TR2, as.Op[0:1])
+				e.storeInt(id, TR3)
+				break
+			}
+			ml := mts[k]
+			if ml.mlt == mlInvalid && ml.rs == rsRange {
+				e.err(id)
+			} else if ml.rs == rsMloc {
+				if e.rMap[id] != nil && e.rMap[id].mlt != mlVoid {
+					e.err(id)
+				}
+				e.storeId(id, TR2)
+				e.rMap[id].mlt = mlVoid
+				break
+			} else if ml.mlt == mlArray && ml.rs == rsRange {
+				mls := e.rMap[id]
+				if mls == nil {
+					mls = e.newSlc()
+					e.rMap[id] = mls
+				}
+				if mls.mlt != mlSlice {
+					e.err(id)
+				}
+				e.p.mov(TR4, TR3)
+				e.p.sub(TR4, TR2)
+				e.p.mov(TR5, 0)
+				e.iStore(TR4, TR5, mls)
+				e.p.mov(TR5, 1)
+				e.setIndex(TR2, ml)
+				e.getaddr(ml)
+				e.iStore(TR2, TR5, mls)
+				break
+			}
+			if ml.mlt == mlArray {
+				if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
+					e.err(id)
+				}
+				nml := e.newArml(ml.len)
+				e.rMap[id] = nml
+
+				lab := e.clab()
+				lab2 := e.clab()
+
+				e.p.mov(TR2, 0)
+				e.p.makeLabel(lab)
+				e.p.cmp(TR2, ml.len)
+				e.p.br(lab2, "ge")
+				e.iLoad(TR3, TR2, ml)
+				e.iStore(TR3, TR2, nml)
+				e.p.add(TR2, 1)
+				e.p.br(lab)
+				e.p.makeLabel(lab2)
+				break
+			}
+
+			e.storeId(id, TR2)
+
+		case *IndexExpr:
+			if as.Op == "+=" || as.Op == "-=" || as.Op == "/=" || as.Op == "*=" || as.Op == "%=" || as.Op == "++" || as.Op == "--" {
+				if as.Op[1:2] == "=" {
+					e.p.mov(TR1, TR2)
+					e.assignToReg(lh2)
+					e.p.mov(TR3, TR2)
+					e.p.mov(TR2, TR1)
+				} else {
+					e.assignToReg(lh2)
+					e.p.mov(TR3, TR2)
+					e.p.mov(TR2, 1)
+				}
+				e.doOp(TR3, TR2, as.Op[0:1])
+			} else {
+				e.p.mov(TR3, TR2)
+			}
+
+			v := lh2.X.(*VarExpr).Wl.Value
+			ml := e.rMap[v]
+
+			e.assignToReg(lh2.E)
+			e.rangeCheck(ml)
+			e.iStore(TR3, TR2, ml)
+		default:
+			e.err("")
+		}
+
+	}
+	e.p.add(TSP, 8*len(as.RHSa))
+
+}
 func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	var rt *mloc
 	e.st = ce
@@ -795,155 +947,7 @@ func (e *emitter) emitStmt(s Stmt) {
 		e.p.br(e.ebranch)
 		return
 	case *AssignStmt:
-		mts := make([]*mloc, len(t.RHSa))
-
-		if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" {
-			if len(t.RHSa) != 1 || len(t.LHSa) != 1 {
-				e.err(t.Op)
-			}
-		}
-		if t.Op == "--" || t.Op == "++" {
-			if len(t.RHSa) != 0 || len(t.LHSa) != 1 {
-				e.err(t.Op)
-			}
-		}
-
-		if t.Op == ":=" {
-			for k, v := range t.LHSa {
-				id := v.(*VarExpr).Wl.Value
-				ml := e.getType(t.RHSa[k])
-				if e.rMap[id] != nil {
-					e.err(id)
-				}
-				e.rMap[id] = ml
-			}
-		}
-		for k, v := range t.RHSa {
-			mts[k] = e.assignToReg(v)
-			if mts[k].rs == rsInvalid {
-				e.err(t.Op)
-			}
-			e.p.push(TR2)
-		}
-		for k, v := range t.LHSa {
-			if len(mts) > 0 {
-				e.p.add(TSP, 8*(len(t.LHSa)-k-1))
-				e.p.peek(TR2)
-				e.p.sub(TSP, 8*(len(t.LHSa)-k-1))
-			}
-			switch lh2 := v.(type) {
-			case *UnaryExpr:
-				if lh2.op != "*" {
-					e.err(lh2.op)
-				}
-				e.p.mov(TR3, TR2)
-				e.assignToReg(lh2.E)
-				e.p.str(ATeq, TR3, TR2)
-			case *VarExpr:
-				id := lh2.Wl.Value
-				if t.Op == ":=" && id == "_" {
-					e.err(id)
-				}
-				if t.Op == "=" && e.rMap[id] == nil {
-					if id != "_" {
-						e.err(id)
-					}
-				}
-				if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
-					if len(t.LHSa) > 1 {
-						e.err("")
-					}
-					e.loadId(id, TR3)
-					if t.Op[1:2] == "=" {
-					} else {
-						e.p.mov(TR2, 1)
-					}
-					e.doOp(TR3, TR2, t.Op[0:1])
-					e.storeInt(id, TR3)
-					break
-				}
-				ml := mts[k]
-				if ml.mlt == mlInvalid && ml.rs == rsRange {
-					e.err(id)
-				} else if ml.rs == rsMloc {
-					if e.rMap[id] != nil && e.rMap[id].mlt != mlVoid {
-						e.err(id)
-					}
-					e.storeId(id, TR2)
-					e.rMap[id].mlt = mlVoid
-					break
-				} else if ml.mlt == mlArray && ml.rs == rsRange {
-					mls := e.rMap[id]
-					if mls == nil {
-						mls = e.newSlc()
-						e.rMap[id] = mls
-					}
-					if mls.mlt != mlSlice {
-						e.err(id)
-					}
-					e.p.mov(TR4, TR3)
-					e.p.sub(TR4, TR2)
-					e.p.mov(TR5, 0)
-					e.iStore(TR4, TR5, mls)
-					e.p.mov(TR5, 1)
-					e.setIndex(TR2, ml)
-					e.getaddr(ml)
-					e.iStore(TR2, TR5, mls)
-					break
-				}
-				if ml.mlt == mlArray {
-					if e.rMap[id] != nil && !e.rMap[id].typeOk(ml) {
-						e.err(id)
-					}
-					nml := e.newArml(ml.len)
-					e.rMap[id] = nml
-
-					lab := e.clab()
-					lab2 := e.clab()
-
-					e.p.mov(TR2, 0)
-					e.p.makeLabel(lab)
-					e.p.cmp(TR2, ml.len)
-					e.p.br(lab2, "ge")
-					e.iLoad(TR3, TR2, ml)
-					e.iStore(TR3, TR2, nml)
-					e.p.add(TR2, 1)
-					e.p.br(lab)
-					e.p.makeLabel(lab2)
-					break
-				}
-
-				e.storeId(id, TR2)
-
-			case *IndexExpr:
-				if t.Op == "+=" || t.Op == "-=" || t.Op == "/=" || t.Op == "*=" || t.Op == "%=" || t.Op == "++" || t.Op == "--" {
-					if t.Op[1:2] == "=" {
-						e.p.mov(TR1, TR2)
-						e.assignToReg(lh2)
-						e.p.mov(TR3, TR2)
-						e.p.mov(TR2, TR1)
-					} else {
-						e.assignToReg(lh2)
-						e.p.mov(TR3, TR2)
-						e.p.mov(TR2, 1)
-					}
-					e.doOp(TR3, TR2, t.Op[0:1])
-				} else {
-					e.p.mov(TR3, TR2)
-				}
-
-				v := lh2.X.(*VarExpr).Wl.Value
-				ml := e.rMap[v]
-
-				e.assignToReg(lh2.E)
-				e.rangeCheck(ml)
-				e.iStore(TR3, TR2, ml)
-			default:
-				e.err("")
-			}
-
-		}
-		e.p.add(TSP, 8*len(t.RHSa))
+		e.emitAssign(t)
 
 	case *VarStmt:
 		for _, v := range t.List {
