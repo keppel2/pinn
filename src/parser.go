@@ -138,13 +138,29 @@ func (p *parser) fileA() *File {
 	p.next()
 	f := new(File)
 	f.Init(p.s.ct().p)
+	ss := make([]string, 0)
 	for p.got("#") {
 		p.want("define")
 		str := p.s.ct().lit
+		for p.s.ct().tok != ";" {
+			t := p.s.ct().tok
+			if p.dm[t] != "" {
+				t = p.dm[t]
+			}
+			ss = append(ss, p.s.ct().tok)
+			p.next()
+		}
 		p.next()
-		rep := p.s.ct().lit
-		p.next()
-		p.dm[str] = rep
+		if len(ss) == 3 {
+			if ss[1] == "*" {
+				na := atoi(p, ss[0])
+				nb := atoi(p, ss[2])
+				nc := na * nb
+				p.dm[str] = fmt.Sprint(nc)
+			}
+		} else {
+			p.dm[str] = ss[0]
+		}
 	}
 	f.FList = append(f.FList, p.pseudoF("printdec", 1), p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("printchar", 1), p.pseudoF("printch", -1))
 
@@ -573,10 +589,7 @@ func (p *parser) varExpr() Expr {
 	if rep, ok := p.dm[w]; ok {
 		nrt := new(NumberExpr)
 		nrt.Init(p.s.ct().p)
-		il := new(WLit)
-		il.Init(p.s.ct().p)
-		il.Value = rep
-		nrt.Il = il
+		nrt.Il = newW(rep)
 		return nrt
 	} else {
 		wl := new(WLit)

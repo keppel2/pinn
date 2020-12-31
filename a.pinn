@@ -1,1 +1,4 @@
-var x int;
+#define A 4;
+#define B A*3;
+
+print(A);

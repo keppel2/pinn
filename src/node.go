@@ -126,6 +126,12 @@ type WLit struct {
 	lit
 }
 
+func newW(a string) *WLit {
+	rt := new(WLit)
+	rt.Value = a
+	return rt
+}
+
 type StringExpr struct {
 	W *WLit
 	expr

@@ -4,12 +4,12 @@
 
 E := 0;
 B := 1;
-SIZEC := 1;
+SIZEC := 3;
 W := 2;
 N := 3;
 X := 4;
 I := 5;
-SIZER := 3;
+SIZER := 1;
 TRUE := 1;
 FALSE := 0;
 _counter := 0;
@@ -234,9 +234,9 @@ var bd [BTOT]int;
 
 var bh [81]int;
 bh[hash()] = 1;
-hsize++;
-bd[hrc(1, 0, 0)] = W;
-bh[hash()] = 1;
+//hsize++;
+//bd[hrc(1, 0, 0)] = W;
+//bh[hash()] = 1;
 
 
 

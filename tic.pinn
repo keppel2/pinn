@@ -32,6 +32,7 @@ func minimax (player int, depth int, flob [BSIZE]int) int
     for y = range 0:SIZE {
 
       if flob[xy(x, y)]  == EMPTY {
+        flob[xy(x, y)] = player;
         result = minimax(opposite(player), depth + 1, flob);
         if result == player {
           return player;
@@ -130,5 +131,14 @@ func main() {
   x := minimax(PLAYER_A, 0, flob);
   
 }
+pcount := 0;
+loop {
+count = 0;
 main();
 assert(count, 0x17302);
+if pcount % 100 == 0 {
+  print(pcount);
+  println();
+}
+pcount++;
+}

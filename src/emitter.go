@@ -347,10 +347,12 @@ func (e *emitter) storeInt(v string, r regi) {
 }
 
 func (e *emitter) storeId(v string, r regi) {
-	ml, ok := e.rMap[v]
+	if v == "_" {
+		return
+	}
+	_, ok := e.rMap[v]
 	if !ok {
-		ml = e.newIntml()
-		e.rMap[v] = ml
+		e.err(v)
 	}
 
 	e.storeInt(v, r)
@@ -768,25 +770,23 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 		case *IndexExpr:
 			if as.Op == "+=" || as.Op == "-=" || as.Op == "/=" || as.Op == "*=" || as.Op == "%=" || as.Op == "++" || as.Op == "--" {
 				if as.Op[1:2] == "=" {
-					e.p.mov(TR1, TR2)
+					e.p.push(TR2)
 					e.assignToReg(lh2)
-					e.p.mov(TR3, TR2)
-					e.p.mov(TR2, TR1)
+					e.p.pop(TR3)
 				} else {
 					e.assignToReg(lh2)
-					e.p.mov(TR3, TR2)
-					e.p.mov(TR2, 1)
+					e.p.mov(TR3, 1)
 				}
-				e.doOp(TR3, TR2, as.Op[0:1])
-			} else {
-				e.p.mov(TR3, TR2)
+				e.doOp(TR2, TR3, as.Op[0:1])
 			}
 
 			v := makeVar(lh2.X)
 			ml := e.rMap[v]
 
+			e.p.push(TR2)
 			e.assignToReg(lh2.E)
 			e.rangeCheck(ml)
+			e.p.pop(TR3)
 			e.iStore(TR3, TR2, ml)
 		default:
 			e.err("")
