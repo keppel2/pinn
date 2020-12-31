@@ -193,7 +193,7 @@ func makeReg(i regi) string {
 func atoi(e errp, s string) int {
 	x, err := strconv.ParseInt(s, 0, 0)
 	if err != nil {
-		e.err(err.Error())
+		e.err(err.Error() + "," + s)
 	}
 	return int(x)
 }

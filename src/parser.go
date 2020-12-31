@@ -144,6 +144,9 @@ func (p *parser) fileA() *File {
 		str := p.s.ct().lit
 		for p.s.ct().tok != ";" {
 			t := p.s.ct().tok
+			if t == "name" || t == "literal" {
+				t = p.s.ct().lit
+			}
 			if p.dm[t] != "" {
 				t = p.dm[t]
 			}

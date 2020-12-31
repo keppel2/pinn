@@ -1,4 +1,4 @@
 #define A 4;
-#define B A*3;
+#define B 5;
 
 print(A);
