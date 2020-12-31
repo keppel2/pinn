@@ -637,9 +637,6 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		return rt
 	}
 
-	if ID == "print" || ID == "printdec" || ID == "println" || ID == "printchar" {
-		didPrint = true
-	}
 	fun := e.file.getFunc(ID)
 	if fun == nil {
 		e.err("Function not found: " + ID)
@@ -667,7 +664,6 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if !L {
 		e.p.push(LR)
 	}
-	e.p.push3(TSP)
 	ssize := fun.PSize
 	_ = ssize
 
@@ -713,13 +709,11 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if fun.K != nil {
 		e.p.pop(TR4)
 	}
-	e.p.pop3(TSP)
 	if !L {
 		e.p.pop(LR)
 	}
 	e.p.pop(TSS)
 
-	//	e.popAll()
 	return rt
 
 }

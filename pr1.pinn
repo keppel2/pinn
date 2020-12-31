@@ -4,8 +4,8 @@ println();
 printchar("achar");
 print(5 + 5);
 printchar(",");
-//printdec(12);
 println();
+
 func fc() {
 print(3);
 printchar("inf");

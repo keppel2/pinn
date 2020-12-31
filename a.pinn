@@ -1,4 +1,6 @@
-func f(a int) int {
-return a; }
-
-return f(3);
+func f() {
+printchar("as");
+printchar("asd");
+printchar("asde");
+}
+f();

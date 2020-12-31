@@ -94,8 +94,7 @@ func init() {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
-		e.p.mov(TR2, TSP)
-		e.p.emit2Print()
+		e.p.mov(TR4, TSP)
 		return newSent(rsInt)
 	}
 	fmap["assert"] = func(e *emitter, ce *CallExpr) *mloc {

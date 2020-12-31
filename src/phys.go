@@ -203,7 +203,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emitRet()
 
 	p.flabel("printdec")
-	p.peek(TR8)
+	p.pop(TR8)
 	p.pushTen()
 	p.mov(TR3, TSP)
 	labpd := p.ug.clab()
@@ -226,8 +226,8 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printchar")
 	p.mov(TR8, TSP)
 	p.pushTen()
-	eplab := ugly.clab()
-	eplab2 := ugly.clab()
+	eplab := p.ug.clab()
+	eplab2 := p.ug.clab()
 	p.makeLabel(eplab)
 	p.cmp(TR10, 0)
 	p.br(eplab2, "eq")
@@ -248,7 +248,9 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.add(TR8, 8)
 	p.br(eplab)
 	p.makeLabel(eplab2)
+	p.mov(TMAIN, TR8)
 	p.popTen()
+	p.mov(TSP, TMAIN)
 	p.emitRet()
 
 	p.flabel("println")
@@ -257,7 +259,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emitRet()
 
 	p.flabel("print")
-	p.peek(TR8)
+	p.pop(TR8)
 	p.pushTen()
 	p.mov(TR5, TSP)
 
