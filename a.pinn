@@ -1,2 +1,7 @@
-#define B 2 3 ^;
-print(B);
+var ma[22]int;
+  var a, z int;
+  a = dbg();
+  print(dbg());
+  z;//ma[0];
+  print(dbg());
+  assert(a, dbg());

@@ -116,19 +116,17 @@ func push() {
   }
 }
 
-func f12()int { return 12; }
-
 func copy2cp() {
   var x int;
   var y int;
-  var da, dd int;
+  var da, db, dd int;
   for x = range 0:SIZER {
     for y = range 0:SIZEC {
       da = dbg(); 
-      dd = bd[f12];
-      assert(da, dbg());
+      dd = bd[hrc(hsize - 1, x, y)];
+      db = dbg();
+      assert(da, db);
       cp[rc(x, y)] = dd;
-      bad();
 
     }
   }
@@ -139,9 +137,7 @@ func score (h int) int {
     w := 0;
     var cs int;
     var da int;
-    da = dbg();
     copy2cp();
-    assert(da, dbg());
     var x, y int;
     for x = range 0:SIZER {
         for y = range 0:SIZEC {
@@ -235,17 +231,22 @@ print(np(sc));
 
 func minimax (player int, passed int) int
 {
-  if _counter % 10 == 0 {
+  if _counter % 100 == 0 {
+    printBoard(hsize - 1);
     print(_counter);
     println();
   }
-  var da int;
+  var da, db int;
   _counter++;
   var best int;
   if passed == TRUE {
     best = mscore(player);
   } else {
+
+          da = dbg();
     best = -minimax(opposite(player), TRUE);
+          db = dbg();
+          assert(da, db);
   }
 
   var s, r, c, b  int;
@@ -254,7 +255,10 @@ func minimax (player int, passed int) int
       if bd[hrc(hsize - 1, r, c)] == E {
         b = move(player, r, c);
         if b == TRUE {
+          da = dbg();
           s = -minimax(opposite(player), FALSE);
+          db = dbg();
+          assert(da, db);
           if s > best {
             best = s;
           }
