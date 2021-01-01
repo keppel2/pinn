@@ -116,6 +116,8 @@ func push() {
   }
 }
 
+func f12()int { return 12; }
+
 func copy2cp() {
   var x int;
   var y int;
@@ -123,7 +125,7 @@ func copy2cp() {
   for x = range 0:SIZER {
     for y = range 0:SIZEC {
       da = dbg(); 
-      dd = bd[hrc(hsize - 1, x, y)];
+      dd = bd[f12];
       assert(da, dbg());
       cp[rc(x, y)] = dd;
       bad();
