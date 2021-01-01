@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io"
 	//	"strconv"
-	//	"os"
+	"os"
 )
+
+var _ = os.Stderr
 
 type errp interface {
 	err(string)
@@ -138,10 +140,11 @@ func (p *parser) fileA() *File {
 	p.next()
 	f := new(File)
 	f.Init(p.s.ct().p)
-	ss := make([]string, 0)
 	for p.got("#") {
+		ss := make([]string, 0)
 		p.want("define")
 		str := p.s.ct().lit
+		p.next()
 		for p.s.ct().tok != ";" {
 			t := p.s.ct().tok
 			if t == "name" || t == "literal" {
@@ -150,20 +153,11 @@ func (p *parser) fileA() *File {
 			if p.dm[t] != "" {
 				t = p.dm[t]
 			}
-			ss = append(ss, p.s.ct().tok)
+			ss = append(ss, t)
 			p.next()
 		}
 		p.next()
-		if len(ss) == 3 {
-			if ss[1] == "*" {
-				na := atoi(p, ss[0])
-				nb := atoi(p, ss[2])
-				nc := na * nb
-				p.dm[str] = fmt.Sprint(nc)
-			}
-		} else {
-			p.dm[str] = ss[0]
-		}
+		p.dm[str] = rpn(ss)
 	}
 	f.FList = append(f.FList, p.pseudoF("printdec", 1), p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("printchar", 1), p.pseudoF("printch", -1))
 

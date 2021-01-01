@@ -2,6 +2,9 @@ package main
 
 import "fmt"
 import "strconv"
+import "os"
+
+var _ = os.Stderr
 
 var L = false
 
@@ -74,6 +77,49 @@ var IR reg = -1
 func fmake(s string) string {
 	return FP + s
 }
+
+func push(sa []string, b string) []string {
+	rt := append(sa, b)
+	return rt
+}
+
+func pop(sa []string) ([]string, string) {
+	rt := sa[len(sa)-1]
+	sa = sa[0 : len(sa)-1]
+	return sa, rt
+}
+
+func rpn(sa []string) string {
+	stack := make([]string, 0)
+	for _, s := range sa {
+		if s == "+" || s == "-" || s == "*" || s == "/" || s == "%" {
+			var smb, sma string
+			stack, smb = pop(stack)
+			mb := atoi(nil, smb)
+			stack, sma = pop(stack)
+			ma := atoi(nil, sma)
+			var m int
+			switch s {
+			case "+":
+				m = ma + mb
+			case "-":
+				m = ma - mb
+			case "*":
+				m = ma * mb
+			case "/":
+				m = ma / mb
+			case "%":
+				m = ma % mb
+			}
+			stack = push(stack, fmt.Sprint(m))
+		} else {
+			stack = push(stack, s)
+		}
+	}
+	stack, rt := pop(stack)
+	return rt
+}
+
 func moffOff(a int) int {
 	return a * 8
 }

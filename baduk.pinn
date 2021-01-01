@@ -1,15 +1,15 @@
-#define BSIZE 3
-#define HIST 0x100
-#define BTOT 0x1000
+#define SIZER 1;
+#define SIZEC 3;
+#define BSIZE SIZER SIZEC *;
+#define HIST 0x100;
+#define BTOT BSIZE HIST *;
 
 E := 0;
 B := 1;
-SIZEC := 3;
 W := 2;
 N := 3;
 X := 4;
 I := 5;
-SIZER := 1;
 TRUE := 1;
 FALSE := 0;
 _counter := 0;

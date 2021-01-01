@@ -1,4 +1,2 @@
-#define A 4;
-#define B 5;
-
-print(A);
+#define B 2 3 *;
+print(B);
