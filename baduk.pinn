@@ -1,4 +1,4 @@
-#define SIZER 4;
+#define SIZER 2;
 #define SIZEC 1;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
@@ -54,17 +54,13 @@ func sko () int {
 }
 
 func mark (player, x, y int) int {
-    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC {
-      return FALSE;
-    }
+  if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == opposite(player) {
+    return FALSE;
+  }
   if cp[rc(x, y)] == E {
     return TRUE;
   }
-  if cp[rc(x, y)] == player {
-    cp[rc(x, y)] = I;
-  } else {
-    return FALSE;
-  }
+  cp[rc(x, y)] = I;
   rt := FALSE;
   if mark(player, x + 1, y) == TRUE { rt = TRUE; }
   if mark(player, x - 1, y) == TRUE { rt = TRUE; }
@@ -75,19 +71,20 @@ func mark (player, x, y int) int {
 
 func cap (player int, x, y int) {
 
-    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC {
-      return;
-    }
+  if x < 0 || x >= SIZER || y < 0 || y >= SIZEC {
+    return;
+  }
   var r, c int;
   copy2cp();
   rt := mark(player, x, y);
-  if rt == TRUE {
-    return;
-  }
   for r = range 0:SIZER {
     for c = range 0:SIZEC {
       if cp[rc(r, c)] == I {
-        cp[rc(r, c)] = E;
+        if rt == TRUE {
+          cp[rc(r, c)] = player;
+        } else {
+          cp[rc(r, c)] = E;
+        }
       }
     }
   }
