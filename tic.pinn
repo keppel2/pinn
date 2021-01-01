@@ -1,4 +1,4 @@
-#define SIZE 3;
+#define SIZE 4;
 #define SQSIZE SIZE SIZE *;
 EMPTY := 0;
 FALSE := 0;

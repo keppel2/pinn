@@ -1,2 +1,2 @@
-#define B 2 3 *;
+#define B 2 3 ^;
 print(B);

@@ -1,8 +1,8 @@
-#define SIZER 1;
-#define SIZEC 3;
+#define SIZER 4;
+#define SIZEC 1;
 #define BSIZE SIZER SIZEC *;
-#define HIST 0x100;
-#define BTOT BSIZE HIST *;
+#define HASHT 3 BSIZE ^;
+#define BTOT BSIZE HASHT *;
 
 E := 0;
 B := 1;
@@ -13,6 +13,9 @@ I := 5;
 TRUE := 1;
 FALSE := 0;
 _counter := 0;
+
+var bd [BTOT]int;
+var bh [HASHT]int;
 
 func move (player, x, y int) int {
   push();
@@ -40,19 +43,6 @@ func hash() int {
   return rt;
 
 }
-
-func isSame(h2, h1 int) int {
-  var r, c int;
-  for r = range 0:SIZER {
-    for c = range 0:SIZEC {
-      if bd[hrc(h1, r, c)] != bd[hrc(h2, r, c)] {
-        return FALSE;
-      }
-    }
-  }
-  return TRUE;
-}
-
 func sko () int {
   h := hash();
   if bh[h] == 1 {
@@ -129,9 +119,15 @@ func push() {
 func copy2cp() {
   var x int;
   var y int;
+  var da, dd int;
   for x = range 0:SIZER {
     for y = range 0:SIZEC {
-      cp[rc(x, y)] = bd[hrc(hsize - 1, x, y)];
+      da = dbg(); 
+      dd = bd[hrc(hsize - 1, x, y)];
+      assert(da, dbg());
+      cp[rc(x, y)] = dd;
+      bad();
+
     }
   }
 }
@@ -140,7 +136,10 @@ func score (h int) int {
     b := 0;
     w := 0;
     var cs int;
+    var da int;
+    da = dbg();
     copy2cp();
+    assert(da, dbg());
     var x, y int;
     for x = range 0:SIZER {
         for y = range 0:SIZEC {
@@ -164,8 +163,6 @@ func mscore(player int) int {
 
 var _player int;
 func color (x, y, score int) int {
-
-
     if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == I {
       return score;
     }
@@ -187,15 +184,9 @@ func color (x, y, score int) int {
 }
 
 func rc (r, c int) int {
-  rcr := r * SIZEC  + c;
-  return rcr;
-
+  return r * SIZEC  + c;
 }
 func hrc (h, r, c int) int {
-  if h >= HIST {
-  printchar("bad");
-  bad();
-  }
   return h * BSIZE + rc(r, c);
 }
 
@@ -228,36 +219,26 @@ println();
 }
 
 hsize := 1;
-var bd [BTOT]int;
-
-
-
-var bh [81]int;
 bh[hash()] = 1;
+
+
 //hsize++;
 //bd[hrc(1, 0, 0)] = W;
 //bh[hash()] = 1;
-
-
 
 
 sc := minimax(B, FALSE);
 print(np(sc));
 
 
-
-
-
-
-
-
 func minimax (player int, passed int) int
 {
-if _counter % 1000000 == 0 {
-  print(hsize);
-  println();
-}
-_counter++;
+  if _counter % 10 == 0 {
+    print(_counter);
+    println();
+  }
+  var da int;
+  _counter++;
   var best int;
   if passed == TRUE {
     best = mscore(player);
@@ -271,7 +252,6 @@ _counter++;
       if bd[hrc(hsize - 1, r, c)] == E {
         b = move(player, r, c);
         if b == TRUE {
-
           s = -minimax(opposite(player), FALSE);
           if s > best {
             best = s;

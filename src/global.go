@@ -92,7 +92,7 @@ func pop(sa []string) ([]string, string) {
 func rpn(sa []string) string {
 	stack := make([]string, 0)
 	for _, s := range sa {
-		if s == "+" || s == "-" || s == "*" || s == "/" || s == "%" {
+		if s == "+" || s == "-" || s == "*" || s == "/" || s == "%" || s == "^" {
 			var smb, sma string
 			stack, smb = pop(stack)
 			mb := atoi(nil, smb)
@@ -110,6 +110,11 @@ func rpn(sa []string) string {
 				m = ma / mb
 			case "%":
 				m = ma % mb
+			case "^":
+				m = 1
+				for i := 0; i < mb; i++ {
+					m *= ma
+				}
 			}
 			stack = push(stack, fmt.Sprint(m))
 		} else {
