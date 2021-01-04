@@ -883,7 +883,12 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
-	e.p.emit("//")
+	/*
+		e.p.emit("//")
+	  e.p.emit2Prints(".")
+	  e.p.emit2Print()
+	  e.p.emitLC()
+	*/
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)

@@ -1,7 +1,2 @@
-var ma[22]int;
-  var a, z int;
-  a = dbg();
-  print(dbg());
-  z;//ma[0];
-  print(dbg());
-  assert(a, dbg());
+  a := dbg();
+  print(a);

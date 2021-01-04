@@ -185,8 +185,7 @@ func init() {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
-		ln := e.st.Gpos().Line
-		e.p.mov(TR1, ln)
+		e.p.mov(TR1, 7)
 		e.p.emitExit()
 		return nil
 	}

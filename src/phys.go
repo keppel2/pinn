@@ -317,6 +317,9 @@ func (p *phys) dbgExit() {
 }
 
 func (p *phys) emitLC() {
+	if p.ug.st == nil {
+		return
+	}
 	ln := p.ug.st.Gpos().Line
 	p.mov(TR2, ln)
 	p.push(TR2)

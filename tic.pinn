@@ -131,6 +131,7 @@ func main() {
   
 }
 pcount := 0;
+  print(pcount);
 loop {
 count = 0;
 main();

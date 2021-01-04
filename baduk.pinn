@@ -1,5 +1,5 @@
-#define SIZER 2;
-#define SIZEC 1;
+#define SIZER 1;
+#define SIZEC 2;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
 #define BTOT BSIZE HASHT *;
@@ -17,6 +17,7 @@ _counter := 0;
 var bd [BTOT]int;
 var bh [HASHT]int;
 
+printchar("wot");
 func move (player, x, y int) int {
   push();
   bd[hrc(hsize - 1, x, y)] = player;
@@ -32,12 +33,24 @@ func move (player, x, y int) int {
 }
 
 func hash() int {
+  printchar("hash");
+  println();
   rt := 0;
-  var r, c int;
+  var r, c, hc int;
+  var da, db int;
+  da = dbg();
+  print(da);
+  bad();
   for r = range 0:SIZER {
     for c = range 0:SIZEC {
+      printchar("rc");println();
       rt = rt * 3;
-      rt = rt + bd[hrc(hsize - 1, r, c)];
+      da = dbg();
+      print(da);
+      hc = hrc(hsize - 1, r, c); 
+      db = dbg();
+      assert(da, db);
+      rt = rt + bd[hc];//hrc(hsize - 1, r, c)];
     }
   }
   return rt;
@@ -77,14 +90,13 @@ func cap (player int, x, y int) {
   var r, c int;
   copy2cp();
   rt := mark(player, x, y);
+  if rt == TRUE {
+    return;
+  }
   for r = range 0:SIZER {
     for c = range 0:SIZEC {
       if cp[rc(r, c)] == I {
-        if rt == TRUE {
-          cp[rc(r, c)] = player;
-        } else {
-          cp[rc(r, c)] = E;
-        }
+        cp[rc(r, c)] = E;
       }
     }
   }
@@ -214,6 +226,10 @@ println();
 }
 
 hsize := 1;
+printchar("ddd");
+print(dbg());
+
+
 bh[hash()] = 1;
 
 
@@ -239,11 +255,13 @@ func minimax (player int, passed int) int
   if passed == TRUE {
     best = mscore(player);
   } else {
-
           da = dbg();
     best = -minimax(opposite(player), TRUE);
           db = dbg();
           assert(da, db);
+  }
+  if best == BSIZE {
+    return best;
   }
 
   var s, r, c, b  int;
@@ -261,6 +279,9 @@ func minimax (player int, passed int) int
           }
           bh[hash()] = 0;
           hsize--;
+          if best == BSIZE {
+            return best;
+          }
         }
       }
     }
