@@ -10,13 +10,6 @@ var xb [2]int;
 xa;
 xa++;
 xa--;
-xa += xa;
-xa *= xa;
-xa = 0;
-xa = 1;
-xb[0];
-xb[0] = 0;
-xb[1] = xb[0];
 
 sda := 0;
 sdb := -1;

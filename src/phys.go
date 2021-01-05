@@ -317,6 +317,17 @@ func (p *phys) dbgExit() {
 	p.emitExit()
 }
 
+func (p *phys) emitScheck() {
+	p.lsl(TR9, 3)
+	p.add(TR9, TSP)
+	p.cmp(TR9, TSS)
+	labx := p.ug.clab()
+	p.br(labx, "eq")
+	p.emitExit8()
+
+	p.makeLabel(labx)
+
+}
 func (p *phys) emitLC() {
 	if p.ug.st == nil {
 		return
@@ -347,6 +358,11 @@ func (p *phys) emit2Prints(s string) {
 		p.mov(TR8, int(r))
 		p.fcall("printch")
 	}
+}
+
+func (p *phys) emitExit8() {
+	p.mov(TR1, 8)
+	p.emitExit()
 }
 
 func (p *phys) emitExit() {

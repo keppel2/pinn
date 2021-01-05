@@ -49,13 +49,17 @@ func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
 	return ml
 }
 
+func (e *emitter) pushSoff(a int) {
+	e.soff += a
+	e.p.add(TR9, a)
+}
+
 func (e *emitter) newSlc() *mloc {
 	ml := new(mloc)
 	e.p.mov(TR5, 0)
 	ml.init(e.fc, mlSlice)
 	if ml.fc {
-		e.soff++
-		e.soff++
+		e.pushSoff(2)
 		ml.i = e.soff
 		e.p.push(TR5)
 		e.p.push(TR5)
@@ -77,7 +81,7 @@ func (e *emitter) newIntml() *mloc {
 	ml.rs = rsInt
 	e.p.mov(TR5, 0)
 	if ml.fc {
-		e.soff++
+		e.pushSoff(1)
 		ml.i = e.soff
 		e.p.push(TR5)
 	} else {
@@ -94,7 +98,7 @@ func (e *emitter) newArml(len int) *mloc {
 	ml.rs = rsInt
 	ml.len = len //atoi(e, t.Len.(*NumberExpr).Il.Value)
 	if e.fc {
-		e.soff += ml.len
+		e.pushSoff(ml.len)
 		ml.i = e.soff
 		e.p.mov(TR2, 0)
 		for i := 0; i < ml.len; i++ {
@@ -461,6 +465,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.p.flabel(f.Wl.Value)
 	e.soff = 0
 	e.p.mov(TSS, TSP)
+	e.p.mov(TR9, 0)
 	e.p.add(TSS, moffOff(f.PSize))
 	for _, nt := range f.NTlist {
 		if nt.N.Value == "_" {
@@ -474,7 +479,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			ml.init(e.fc, mlArray)
 			ml.rs = fromKind(ark.K.(*SKind).Wl.Value)
 			plen := atoi(e, ark.Len.(*NumberExpr).Il.Value)
-			e.soff += plen
+			e.pushSoff(plen)
 			ml.len = plen
 			ml.i = e.soff
 			e.rMap[nt.N.Value] = ml
@@ -482,7 +487,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			ml := new(mloc)
 			ml.init(e.fc, mlInt)
 			ml.rs = rsInt
-			e.soff++
+			e.pushSoff(1)
 			ml.i = e.soff
 			e.rMap[nt.N.Value] = ml
 		}
@@ -498,7 +503,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	}
 
 	e.p.makeLabel(lab)
-
+	e.p.emitScheck()
 	e.p.mov(TSP, TSS)
 	e.p.makeLabel(lab2)
 	e.p.emitRet()
@@ -956,6 +961,7 @@ func (e *emitter) emitStmt(s Stmt) {
 				if e.f.K == nil {
 					e.err(e.f.Wl.Value)
 				}
+				e.p.emitScheck()
 				e.p.mov(TSP, TSS)
 				e.p.push(TR2)
 				e.p.br(e.ebranch2)
