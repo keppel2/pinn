@@ -150,13 +150,13 @@ func (e *emitter) resetRegs() {
 
 func (e *emitter) pushAll() {
 
-	for i := TR2; i <= TR3; i++ {
+	for i := TR9; i <= TR9; i++ {
 		e.p.push(i)
 	}
 
 }
 func (e *emitter) popAll() {
-	for i := TR3; i >= TR2; i-- {
+	for i := TR9; i >= TR9; i-- {
 		e.p.pop(i)
 	}
 }
@@ -822,7 +822,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		e.err(ID)
 	}
 
-	//	e.pushAll()
+	e.pushAll()
 	e.p.push(TSS)
 	if !L {
 		e.p.push(LR)
@@ -876,6 +876,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 		e.p.pop(LR)
 	}
 	e.p.pop(TSS)
+	e.popAll()
 
 	return rt
 
@@ -883,12 +884,12 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
-	/*
-		e.p.emit("//")
-	  e.p.emit2Prints(".")
-	  e.p.emit2Print()
-	  e.p.emitLC()
-	*/
+	e.p.emit("//")
+	//	  e.p.emit2Prints(".")
+	//	  e.p.emit2Print()
+	//	  e.p.emit2Prints("<")
+	//	  e.p.emitLC()
+	//	  e.p.emit2Prints(">")
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)

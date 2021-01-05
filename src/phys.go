@@ -259,13 +259,13 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emitRet()
 
 	p.flabel("print")
+	p.mov(TR8, int('('))
+	p.fcall("printch")
 	p.pop(TR8)
 	p.pushTen()
 	p.mov(TR5, TSP)
 
-	p.sub(TR5, 17)
-	p.mov(TR3, int(','))
-	p.str(ATeq, TR3, TR5)
+	p.sub(TR5, 16)
 	p.mov(TR2, 0)
 	p.mov(TR3, 0)
 
@@ -285,27 +285,28 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.add(TR2, TR4)
 	p.cmp(TR3, 7)
 	p.br(lab3, "ne")
-	p.str(ATeq, TR2, TR5, 9)
+	p.str(ATeq, TR2, TR5, 8)
 	p.mov(TR2, 0)
 	p.makeLabel(lab3)
 	p.add(TR3, 1)
 	p.cmp(TR3, 16)
 	p.br(lab, "ne")
-	p.str(ATeq, TR2, TR5, 1)
+	p.str(ATeq, TR2, TR5)
 	if L {
 		p.mov(TR1, 0x2000004)
 		p.mov(TR6, 1)
-		p.mov(TR4, 17)
+		p.mov(TR4, 16)
 
 	} else {
-
 		p.mov(TR1, 1)
 		p.mov(TR2, TSS)
-		p.mov(TR3, 17)
+		p.mov(TR3, 16)
 		p.mov(TR9, 64)
 	}
 	p.syscall()
 	p.popTen()
+	p.mov(TR8, int('.'))
+	p.fcall("printch")
 	p.emitRet()
 }
 

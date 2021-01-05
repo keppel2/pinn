@@ -17,7 +17,6 @@ _counter := 0;
 var bd [BTOT]int;
 var bh [HASHT]int;
 
-printchar("wot");
 func move (player, x, y int) int {
   push();
   bd[hrc(hsize - 1, x, y)] = player;
@@ -33,24 +32,17 @@ func move (player, x, y int) int {
 }
 
 func hash() int {
-  printchar("hash");
-  println();
   rt := 0;
   var r, c, hc int;
   var da, db int;
-  da = dbg();
-  print(da);
-  bad();
   for r = range 0:SIZER {
     for c = range 0:SIZEC {
-      printchar("rc");println();
       rt = rt * 3;
       da = dbg();
-      print(da);
       hc = hrc(hsize - 1, r, c); 
       db = dbg();
       assert(da, db);
-      rt = rt + bd[hc];//hrc(hsize - 1, r, c)];
+      rt = rt + bd[hc];
     }
   }
   return rt;
@@ -145,7 +137,7 @@ func score (h int) int {
     b := 0;
     w := 0;
     var cs int;
-    var da int;
+    var da, db int;
     copy2cp();
     var x, y int;
     for x = range 0:SIZER {
@@ -154,7 +146,10 @@ func score (h int) int {
             if bd[hrc(h, x, y)] == W {w++;} else
             {
               _player = N;
+                  da = dbg();
                   cs = color(x, y, 0);
+                  db = dbg();
+                  assert(da, db);
                   if _player == B b += cs;
                   if _player == W w += cs;
             }
@@ -211,7 +206,9 @@ func printAll() {
 }
 
 func printBoard (i index) {
-println();
+  println();
+  printchar("^^^");
+  println();
   var y int;
   var x int;
   for x = range 0:SIZER {
@@ -226,9 +223,6 @@ println();
 }
 
 hsize := 1;
-printchar("ddd");
-print(dbg());
-
 
 bh[hash()] = 1;
 
@@ -236,7 +230,6 @@ bh[hash()] = 1;
 //hsize++;
 //bd[hrc(1, 0, 0)] = W;
 //bh[hash()] = 1;
-
 
 sc := minimax(B, FALSE);
 print(np(sc));
@@ -246,14 +239,16 @@ func minimax (player int, passed int) int
 {
   if _counter % 100 == 0 {
     printBoard(hsize - 1);
-    print(_counter);
     println();
   }
   var da, db int;
   _counter++;
   var best int;
   if passed == TRUE {
+          da = dbg();
     best = mscore(player);
+          db = dbg();
+          assert(da, db);
   } else {
           da = dbg();
     best = -minimax(opposite(player), TRUE);

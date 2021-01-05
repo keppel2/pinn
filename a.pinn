@@ -1,2 +1,9 @@
-  a := dbg();
-  print(a);
+
+func fR() int { return 5; }
+fR();
+
+func fRR(p int) int { return p + 1; }
+fRR(12);
+fRR(fR());
+fRR(fRR(2));
+
