@@ -1,4 +1,4 @@
-#define SIZE 4;
+#define SIZE 3;
 #define SQSIZE SIZE SIZE *;
 EMPTY := 0;
 FALSE := 0;
@@ -11,12 +11,17 @@ count := 0;
 
 func minimax (player int, depth int, flob [SQSIZE]int) int
 {
+ var da, db, x, y int;
+  var mxy int;
  count++;
  i := 0;
  result := 0;
-  best := opposite(player);
-
+ var best int;
+da = dbg();
+  best = opposite(player);
   result = winner(flob);
+        db = dbg();
+        assert(da, db);
 
   if result != TIE {
     return result;
@@ -24,9 +29,8 @@ func minimax (player int, depth int, flob [SQSIZE]int) int
   if full(flob) == TRUE {
         return TIE;
   }
-  x := 0;
-  y := 0;
-  var mxy int;
+  x = 0;
+  y = 0;
   for x = range 0:SIZE {
     for y = range 0:SIZE {
 
@@ -42,6 +46,7 @@ func minimax (player int, depth int, flob [SQSIZE]int) int
         flob[xy(x, y)] = EMPTY;
  
       }
+
     }
   }
   return best;
@@ -131,7 +136,7 @@ func main() {
   
 }
 pcount := 0;
-  print(pcount);
+print(pcount);
 loop {
 count = 0;
 main();

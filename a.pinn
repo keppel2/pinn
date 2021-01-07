@@ -1,4 +1,5 @@
-func f() {
-var x int;
+for _ = range 1:3 {
 }
-f();
+
+
+

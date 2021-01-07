@@ -890,10 +890,12 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 func (e *emitter) emitStmt(s Stmt) {
 	e.st = s
 	e.p.emit("//")
-	//	  e.p.emit2Prints(".")
+	//		  e.p.emit2Prints(".")
 	//	  e.p.emit2Print()
 	//	  e.p.emit2Prints("<")
-	//	  e.p.emitLC()
+	//		  e.p.emit2Prints(".")
+	//		  e.p.emitLC()
+	//		  e.p.emit2Prints(",")
 	//	  e.p.emit2Prints(">")
 	switch t := s.(type) {
 	case *ExprStmt:
@@ -1018,11 +1020,13 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.p.push(TR2)
 					e.p.push(TR3)
 					e.p.push(TR10)
+					e.p.add(TR9, 3)
 
 					e.emitStmt(t.B)
 					e.p.pop(TR10)
 					e.p.pop(TR3)
 					e.p.pop(TR2)
+					e.p.sub(TR9, 3)
 					e.p.add(TR10, 1)
 					if ml.rs == rsRange {
 						e.p.add(TR2, 1)
@@ -1031,7 +1035,15 @@ func (e *emitter) emitStmt(s Stmt) {
 						e.p.cmp(TR10, ml.len)
 					}
 					e.p.br(lab, "lt")
+					labExit := e.clab()
+					e.p.br(labExit)
 					e.p.makeLabel(lab2)
+					e.poploop()
+					e.p.pnull()
+					e.p.pnull()
+					e.p.pnull()
+					e.p.sub(TR9, 3)
+					e.p.makeLabel(labExit)
 					return
 				}
 			}
@@ -1110,11 +1122,21 @@ func (e *emitter) emitF() {
 	e.p.sub(TMAIN, 0x1000)
 	lab := e.clab()
 	e.ebranch = lab
+	e.p.mov(TR9, TSP)
 	for _, s := range e.file.SList {
 		e.emitStmt(s)
 	}
 	e.p.mov(TR1, 0)
 	e.p.makeLabel(lab)
+	e.p.cmp(TR9, TSP)
+	tc := e.clab()
+	e.p.br(tc, "eq")
+	e.p.mov(TR2, TR9)
+	e.p.sub(TR2, TSP)
+	e.p.emit2Print()
+	e.p.emitExit8()
+	e.p.makeLabel(tc)
+
 	e.p.emitRet()
 	e.checks()
 	e.fc = true
@@ -1128,4 +1150,7 @@ func (e *emitter) emitF() {
 	}
 	e.p.makeLabel(e.fexit)
 	//e.p.mov(TR1, 7)
+	if len(e.lstack) != 0 {
+		e.err("Loop stack")
+	}
 }

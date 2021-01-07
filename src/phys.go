@@ -323,6 +323,7 @@ func (p *phys) emitScheck() {
 	p.cmp(TR9, TSS)
 	labx := p.ug.clab()
 	p.br(labx, "eq")
+	p.emitLC()
 	p.emitExit8()
 
 	p.makeLabel(labx)
@@ -336,21 +337,18 @@ func (p *phys) emitLC() {
 	p.mov(TR2, ln)
 	p.push(TR2)
 	p.fcall("printdec")
-	p.pnull()
 
 }
 func (p *phys) emit2Printd() {
 	p.push(TR2)
 	didPrint = true
 	p.fcall("printdec")
-	p.pnull()
 }
 
 func (p *phys) emit2Print() {
 	p.push(TR2)
 	didPrint = true
 	p.fcall("print")
-	p.pop(TR2)
 }
 
 func (p *phys) emit2Prints(s string) {
