@@ -846,7 +846,8 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 				e.p.mov(TR2, int(r))
 				e.p.push(TR2)
 			}
-			e.p.mov(TR10, sl)
+			e.p.mov(TR2, sl)
+			e.p.push(TR2)
 			ssize = sl
 			break
 		}
