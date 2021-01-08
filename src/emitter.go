@@ -715,13 +715,13 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 				if id == "_" {
 					e.err(id)
 				}
-				e.loadId(id, TR1)
+				e.loadId(id, TR3)
 				if as.Op[1:2] == "=" {
 				} else {
 					e.p.mov(TR2, 1)
 				}
-				e.doOp(TR1, TR2, as.Op[0:1])
-				e.storeInt(id, TR1)
+				e.doOp(TR3, TR2, as.Op[0:1])
+				e.storeInt(id, TR3)
 				break
 			}
 			ml := mts[k]

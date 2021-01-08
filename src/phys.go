@@ -207,33 +207,33 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.pushTen()
 	p.mov(TR3, TSP)
 	labpd := p.ug.clab()
-	p.mov(TR10, 0)
+	p.mov(TR1, 0)
 	p.makeLabel(labpd)
 	p.mov(TR6, 10)
 	p.mov(TR2, TR8)
 	p.ug.doOp(TR2, TR6, "%")
 	p.add(TR2, int('0'))
 	p.push(TR2)
-	p.add(TR10, 1)
+	p.add(TR1, 1)
 	p.div(TR8, TR6)
 	p.cmp(TR8, 0)
 	p.br(labpd, "ne")
-	p.push(TR10)
+	p.push(TR1)
 	p.fcall("printchar")
 	p.mov(TSP, TR3)
 	p.popTen()
 	p.emitRet()
 
 	p.flabel("printchar")
-	p.pop(TR10)
+	p.pop(TR2)
 	p.mov(TR8, TSP)
 	p.pushTen()
 	eplab := p.ug.clab()
 	eplab2 := p.ug.clab()
 	p.makeLabel(eplab)
-	p.cmp(TR10, 0)
+	p.cmp(TR2, 0)
 	p.br(eplab2, "eq")
-	p.sub(TR10, 1)
+	p.sub(TR2, 1)
 
 	if L {
 		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
@@ -411,10 +411,15 @@ func (p *phys) syscall() {
 
 func (p *phys) rem(a regi, b regOrConst) {
 	if L {
+		p.push(TR1)
+		p.push(TR4)
 		p.mov(TR1, a)
 		p.mov(TR4, 0)
 		p.emitR("div", b)
 		p.mov(a, TR4)
+		p.pop(TR4)
+		p.pop(TR1)
+
 	} else {
 		p.mov(TR5, a)
 		p.emitR("udiv", a, TR5, b)
@@ -423,10 +428,14 @@ func (p *phys) rem(a regi, b regOrConst) {
 }
 func (p *phys) div(a regi, b regOrConst) {
 	if L {
+		p.push(TR1)
+		p.push(TR4)
 		p.mov(TR1, a)
 		p.mov(TR4, 0)
 		p.emitR("div", b)
 		p.mov(a, TR1)
+		p.pop(TR4)
+		p.pop(TR1)
 	} else {
 		p.nativeOp("udiv", a, b)
 	}
