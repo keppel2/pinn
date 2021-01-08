@@ -590,6 +590,10 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		} else if t2.op == "*" {
 			e.assignToReg(t2.E)
 			e.p.ldr(ATeq, TR2, TR2)
+		} else if t2.op == "+" {
+			e.assignToReg(t2.E)
+		} else {
+			e.err(t2.op)
 		}
 	case *TrinaryExpr:
 		lab := e.clab()
@@ -892,11 +896,11 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.p.emit("//")
 	//		  e.p.emit2Prints(".")
 	//	  e.p.emit2Print()
-	//	  e.p.emit2Prints("<")
-	//		  e.p.emit2Prints(".")
+	//		  e.p.emit2Prints("<")
+	//e.p.emitC("<")
 	//		  e.p.emitLC()
-	//		  e.p.emit2Prints(",")
-	//	  e.p.emit2Prints(">")
+	//e.p.emitC(">")
+	//		  e.p.emit2Prints(">")
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)

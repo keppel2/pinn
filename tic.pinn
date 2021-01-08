@@ -141,7 +141,7 @@ loop {
 count = 0;
 main();
 assert(count, 0x17302);
-if pcount % 0x1000 == 0 {
+if pcount % 0x100 == 0 {
   print(pcount);
 }
 pcount++;

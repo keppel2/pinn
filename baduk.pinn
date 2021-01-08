@@ -58,9 +58,11 @@ func sko () int {
   return TRUE;
 }
 
+//var _db int;
 func mark (player, x, y int) int {
   var da int;
   var rt int;
+  //da = dbg();
   if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == opposite(player) {
     return FALSE;
   }
@@ -69,13 +71,13 @@ func mark (player, x, y int) int {
   }
   cp[rc(x, y)] = I;
   rt = FALSE;
-  //da = dbg();
   if mark(player, x + 1, y) == TRUE { rt = TRUE; }
-  //db = dbg();
-  //assert(da, db);
   if mark(player, x - 1, y) == TRUE { rt = TRUE; }
   if mark(player, x, y + 1) == TRUE { rt = TRUE; }
+
   if mark(player, x, y - 1) == TRUE { rt = TRUE; }
+  //_db = dbg();
+  //assert(da, _db);
   return rt;
 }
 
@@ -87,7 +89,6 @@ func cap (player int, x, y int) {
   var r, c int;
   copy2cp();
   rt := mark(player, x, y);
-  print(8);
   if rt == TRUE {
     return;
   }
