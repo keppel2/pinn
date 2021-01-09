@@ -228,6 +228,7 @@ func (p *phys) dbgExit() {
 }
 
 func (p *phys) emitScheck() {
+	p.emitC("emitSch")
 	p.lsl(TR9, 3)
 	p.add(TR9, TSP)
 	p.cmp(TR9, TSS)
