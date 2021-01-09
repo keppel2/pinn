@@ -100,8 +100,7 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 func (p *phys) pnull() {
 	p.add(TSP, 8)
 }
-func (p *phys) pop(r regi) {
-	p.ldr(ATpost, r, TSP, 8)
+func (p *phys) tspchk() {
 	p.cmp(TSP, TMAIN)
 	lab := p.ug.clab()
 	p.br(lab, "le")
@@ -109,6 +108,11 @@ func (p *phys) pop(r regi) {
 	p.emitExit()
 
 	p.makeLabel(lab)
+
+}
+func (p *phys) pop(r regi) {
+	p.ldr(ATpost, r, TSP, 8)
+	p.tspchk()
 
 }
 

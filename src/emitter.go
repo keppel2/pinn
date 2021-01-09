@@ -473,6 +473,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.p.makeLabel(lab)
 	e.p.emitScheck()
 	e.p.mov(TSP, TSS)
+	e.p.tspchk()
 	e.p.makeLabel(lab2)
 	e.p.emitRet()
 	e.checks()
@@ -659,8 +660,10 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 	for k, v := range as.LHSa {
 		if len(mts) > 0 {
 			e.p.add(TSP, 8*(len(as.LHSa)-k-1))
+			e.p.tspchk()
 			e.p.peek(TR2)
 			e.p.sub(TSP, 8*(len(as.LHSa)-k-1))
+			e.p.tspchk()
 		}
 		switch lh2 := v.(type) {
 		case *UnaryExpr:
@@ -771,6 +774,7 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 
 	}
 	e.p.add(TSP, 8*len(as.RHSa))
+	e.p.tspchk()
 
 }
 func (e *emitter) emitCall(ce *CallExpr) *mloc {
@@ -1071,7 +1075,7 @@ func (e *emitter) emitF() {
 	e.p.emitR("pop", TR1)
 	e.p.emitR("push", TR1)
 	e.p.mov(TSP, SP)
-	e.p.sub(TSP, 0x100)
+	e.p.sub(TSP, 0x1000)
 	e.p.mov(TSS, TSP)
 	e.p.mov(TMAIN, TSP)
 	e.p.mov(TBP, TSS)
