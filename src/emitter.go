@@ -795,8 +795,8 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if fun.PCount == -1 {
 		e.err("Internal function: " + ID)
 	}
-	if fun.K != nil {
-		skind := fun.K.(*SKind).Wl.Value
+	if len(fun.K) != 0 {
+		skind := fun.K[0].(*SKind).Wl.Value
 		rt = newSent(fromKind(skind))
 	} else {
 		rt = newSent(rsInvalid)
@@ -850,7 +850,18 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 			e.p.push(TR2)
 		}
 	}
+	e.p.add(TMAIN, 1)
+	e.p.cmp(TMAIN, 0x100)
+	labm := e.clab()
+	e.p.br(labm, "le")
+	e.p.mov(TR1, 4)
+	e.p.emitExit()
+	e.p.makeLabel(labm)
+
 	e.p.fcall(ID)
+
+	e.p.sub(TMAIN, 1)
+
 	if fun.K != nil {
 		e.p.pop(TR4)
 	}
@@ -936,7 +947,7 @@ func (e *emitter) emitStmt(s Stmt) {
 			if !e.fc {
 				e.p.mov(TR1, TR2)
 			} else {
-				if e.f.K == nil {
+				if len(e.f.K) == 0 {
 					e.err(e.f.Wl.Value)
 				}
 				e.p.emitScheck()
@@ -1077,7 +1088,8 @@ func (e *emitter) emitF() {
 	e.p.mov(TSP, SP)
 	e.p.sub(TSP, 0x1000)
 	e.p.mov(TSS, TSP)
-	e.p.mov(TMAIN, TSP)
+	//e.p.mov(TMAIN, TSP)
+	e.p.mov(TMAIN, 0)
 	e.p.mov(TBP, TSS)
 	e.p.sub(TBP, 0xA0000)
 	e.p.str(ATeq, TR1, TBP)

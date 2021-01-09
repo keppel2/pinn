@@ -275,8 +275,12 @@ func (p *parser) funcDecl() *FuncDecl {
 	}
 
 	if p.s.ct().tok != "{" {
-		rt.K = p.kind()
+		rt.K = append(rt.K, p.kind())
+		for p.got(",") {
+			rt.K = append(rt.K, p.kind())
+		}
 	}
+
 	rt.B = p.blockStmt()
 	/*
 	  if rt.K != nil {

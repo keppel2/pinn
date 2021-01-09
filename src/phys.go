@@ -101,13 +101,15 @@ func (p *phys) pnull() {
 	p.add(TSP, 8)
 }
 func (p *phys) tspchk() {
-	p.cmp(TSP, TMAIN)
-	lab := p.ug.clab()
-	p.br(lab, "le")
-	p.mov(TR1, 3)
-	p.emitExit()
+	/*
+		p.cmp(TSP, TMAIN)
+		lab := p.ug.clab()
+		p.br(lab, "le")
+		p.mov(TR1, 3)
+		p.emitExit()
 
-	p.makeLabel(lab)
+		p.makeLabel(lab)
+	*/
 
 }
 func (p *phys) pop(r regi) {

@@ -7,9 +7,7 @@ import "fmt"
 
 var s []int
 
-func f(_ int) { }
+func f() int, int { }
 
 func main() {
-  a, b := 2, 3
-  a, b += 4, 5
 }

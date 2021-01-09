@@ -71,8 +71,8 @@ func visitFuncDecl(n *FuncDecl) {
 	for _, vd := range n.PList {
 		visitField(vd)
 	}
-	if n.K != nil {
-		visitKind(n.K)
+	for _, k := range n.K {
+		visitKind(k)
 	}
 	if n.B != nil {
 		defer iminus()

@@ -1,5 +1,5 @@
 #define SIZER 1;
-#define SIZEC 2;
+#define SIZEC 4;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
 #define BTOT BSIZE HASHT *;
@@ -62,7 +62,7 @@ func mark (player, x, y int) int {
   var da int;
   var rt int;
   //da = dbg();
-  if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == opposite(player) {
+  if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == opposite(player) || cp[rc(x, y)] == I {
     return FALSE;
   }
   if cp[rc(x, y)] == E {

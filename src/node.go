@@ -245,7 +245,7 @@ type FuncDecl struct {
 	NTlist []*NameType
 	PCount int
 	PSize  int
-	K      Kind
+	K      []Kind
 	B      *BlockStmt
 	node
 }
