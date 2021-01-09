@@ -13,7 +13,7 @@ var ar[0x1000] int;
 
 func f() {
   var far[0x100]int;
-  for _ = range 1@232354 {
+  for _ = range 1@23 {
     far[rand(0x100)] = rand(0x1000);
   }
 }

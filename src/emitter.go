@@ -807,7 +807,9 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 }
 func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	var rt *mloc
+	e.lst = e.st
 	e.st = ce
+	defer func() { e.st = e.lst }()
 	ID := makeVar(ce.ID)
 	if ff, ok := fmap[ID]; ok {
 		rt := ff(e, ce)
@@ -827,6 +829,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	} else {
 		rt = newSent(rsInvalid)
 	}
+
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
 	}
