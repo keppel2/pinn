@@ -189,7 +189,7 @@ func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 		} else {
 			e.loadml(m, TR1)
 			e.p.lsl(index, 3)
-			e.p.str(ATeq, dest, TR10, index)
+			e.p.str(ATeq, dest, TR1, index)
 		}
 		return
 	}
