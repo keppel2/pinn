@@ -191,12 +191,8 @@ func (p *phys) popTen() {
 func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printch")
 	p.pushTen()
-	p.mov(TR1, 0x2000004)
-	p.mov(TR6, 1)
-	p.mov(TR4, 1)
 	p.push(TR8)
-	p.mov(TR5, TSP)
-	p.syscall()
+	p.emitSprint(1, TSP)
 	p.pop(TR8)
 	p.popTen()
 
@@ -235,7 +231,6 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.br(eplab2, "eq")
 	p.sub(TR2, 1)
 	p.emitSprint(1, TR8)
-	p.syscall()
 	p.add(TR8, 8)
 	p.br(eplab)
 	p.makeLabel(eplab2)
@@ -284,7 +279,6 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.br(lab, "ne")
 	p.str(ATeq, TR2, TR5)
 	p.emitSprint(16, TR5)
-	p.syscall()
 	p.popTen()
 	p.mov(TR8, int('.'))
 	p.fcall("printch")
@@ -346,7 +340,7 @@ func (p *phys) emitExit8() {
 
 func (p *phys) emitSprint(count int, source regOrConst) {
 	p.mov(TR1, 0x2000004)
-	p.mov(TR6, 1)
+	p.mov(TR6, 1) //STDOUT
 	p.mov(TR4, count)
 	p.mov(TR5, source)
 	p.syscall()
