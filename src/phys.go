@@ -178,13 +178,13 @@ func (p *phys) br(b branchi, s ...string) {
 }
 
 func (p *phys) pushTen() {
-	for i := TR1; i <= TR10; i++ {
+	for i := TR1; i <= TR9; i++ {
 		p.push(i)
 	}
 }
 
 func (p *phys) popTen() {
-	for i := TR10; i >= TR1; i-- {
+	for i := TR9; i >= TR1; i-- {
 		p.pop(i)
 	}
 }
@@ -234,9 +234,9 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.add(TR8, 8)
 	p.br(eplab)
 	p.makeLabel(eplab2)
-	p.mov(TMAIN, TR8)
+	p.mov(TR10, TR8)
 	p.popTen()
-	p.mov(TSP, TMAIN)
+	p.mov(TSP, TR10)
 	p.emitRet()
 
 	p.flabel("println")
