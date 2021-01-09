@@ -1,3 +1,4 @@
+//OutARM
 package main
 
 import "fmt"
