@@ -942,21 +942,28 @@ func (e *emitter) emitStmt(s Stmt) {
 		return
 
 	case *ReturnStmt:
-		if t.E != nil {
-			e.assignToReg(t.E)
-			if !e.fc {
-				e.p.mov(TR1, TR2)
-			} else {
-				if len(e.f.K) == 0 {
-					e.err(e.f.Wl.Value)
-				}
-				e.p.emitScheck()
-				e.p.mov(TSP, TSS)
-				e.p.push(TR2)
-				e.p.br(e.ebranch2)
-			}
+		if len(e.f.K) != len(t.EL) {
+			e.err("")
 		}
-		e.p.br(e.ebranch)
+		if len(t.EL) == 0 {
+			e.p.br(e.ebranch)
+			return
+		}
+		if !e.fc {
+			if len(t.EL) != 1 {
+				e.err("")
+			}
+			e.p.mov(TR1, TR2)
+			e.p.br(e.ebranch)
+		}
+
+		e.p.mov(TSP, TSS)
+		for _, ex := range t.EL {
+			e.assignToReg(ex)
+			e.p.push(TR2)
+		}
+		e.p.br(e.ebranch2)
+
 		return
 	case *AssignStmt:
 		e.emitAssign(t)

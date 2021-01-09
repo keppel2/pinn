@@ -59,8 +59,8 @@ func visitForStmt(n *ForStmt) {
 }
 
 func visitReturnStmt(n *ReturnStmt) {
-	if n.E != nil {
-		visitExpr(n.E)
+	for _, v := range n.EL {
+		visitExpr(v)
 	}
 }
 

@@ -316,7 +316,7 @@ func (p *parser) returnStmt() *ReturnStmt {
 	rt.Init(p.s.ct().p)
 	p.want("return")
 	if !p.got(";") {
-		rt.E = p.uexpr()
+		rt.EL = p.elist()
 		p.want(";")
 	}
 	return rt
@@ -553,6 +553,15 @@ func (p *parser) indexExpr(lhs Expr) Expr {
 	return rt
 }
 
+func (p *parser) elist() []Expr {
+	rt := make([]Expr, 0)
+	rt = append(rt, p.uexpr())
+	for p.got(",") {
+		rt = append(rt, p.uexpr())
+	}
+	return rt
+}
+
 func (p *parser) callExpr(lhs Expr) Expr {
 	p.want("(")
 	rt := new(CallExpr)
@@ -561,11 +570,7 @@ func (p *parser) callExpr(lhs Expr) Expr {
 	if p.got(")") {
 		return rt
 	}
-	e := p.uexpr()
-	rt.Params = append(rt.Params, e)
-	for p.got(",") {
-		rt.Params = append(rt.Params, p.uexpr())
-	}
+	rt.Params = p.elist()
 	p.want(")")
 	return rt
 }

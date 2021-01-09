@@ -60,7 +60,7 @@ type ContinueStmt struct {
 }
 
 type ReturnStmt struct {
-	E Expr
+	EL []Expr
 	stmt
 }
 
