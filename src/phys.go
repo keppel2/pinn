@@ -234,18 +234,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.cmp(TR2, 0)
 	p.br(eplab2, "eq")
 	p.sub(TR2, 1)
-
-	if L {
-		p.mov(TR1, 0x2000004) //SYSCALL 1 on linux
-		p.mov(TR6, 1)         //STDOUT
-		p.mov(TR4, 1)         //1 byte
-		p.mov(TR5, TR8)
-	} else {
-		p.mov(TR1, 1) //STDOUT
-		p.mov(TR2, TR8)
-		p.mov(TR3, 1) //1 byte
-		p.mov(TR9, 64)
-	}
+	p.emitSprint(1, TR8)
 	p.syscall()
 	p.add(TR8, 8)
 	p.br(eplab)
@@ -294,17 +283,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.cmp(TR3, 16)
 	p.br(lab, "ne")
 	p.str(ATeq, TR2, TR5)
-	if L {
-		p.mov(TR1, 0x2000004)
-		p.mov(TR6, 1)
-		p.mov(TR4, 16)
-
-	} else {
-		p.mov(TR1, 1)
-		p.mov(TR2, TSS)
-		p.mov(TR3, 16)
-		p.mov(TR9, 64)
-	}
+	p.emitSprint(16, TR5)
 	p.syscall()
 	p.popTen()
 	p.mov(TR8, int('.'))
@@ -363,6 +342,14 @@ func (p *phys) emit2Prints(s string) {
 func (p *phys) emitExit8() {
 	p.mov(TR1, 8)
 	p.emitExit()
+}
+
+func (p *phys) emitSprint(count int, source regOrConst) {
+	p.mov(TR1, 0x2000004)
+	p.mov(TR6, 1)
+	p.mov(TR4, count)
+	p.mov(TR5, source)
+	p.syscall()
 }
 
 func (p *phys) emitExit() {
