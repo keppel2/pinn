@@ -896,14 +896,16 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 }
 
 func (e *emitter) emitStmt(s Stmt) {
+	e.lst = e.st
 	e.st = s
+	defer func() { e.st = e.lst }()
 	e.p.emit("//")
 	//		  e.p.emit2Prints(".")
 	//	  e.p.emit2Print()
-	//		  e.p.emit2Prints("<")
+	//			  e.p.emit2Prints("<")
 	//e.p.emitC("<")
-	//		  e.p.emitLC()
-	//e.p.emitC(">")
+	//			  e.p.emitLC()
+	//	e.p.emitC(">")
 	//		  e.p.emit2Prints(">")
 	switch t := s.(type) {
 	case *ExprStmt:
@@ -1123,7 +1125,6 @@ func (e *emitter) emitF() {
 	e.p.mov(TSS, TSP)
 	e.p.mov(TBP, TSP)
 	e.p.sub(TBP, 0xA0000)
-	e.p.str(ATeq, TR1, TBP)
 	e.p.mov(THP, TBP)
 	e.p.sub(THP, 0x1000)
 	lab := e.clab()

@@ -58,7 +58,6 @@ func sko () int {
   return TRUE;
 }
 
-//var _db int;
 func mark (player, x, y int) int {
   var da int;
   var rt int;
@@ -101,7 +100,7 @@ func cap (player int, x, y int) {
   }
   copy2bd();
 }
-
+var asd int;
 var cp [BSIZE] int;
 func copy2bd() {
   var x int;
@@ -295,3 +294,4 @@ func np(a int) int {
   if a < 0 { printchar("-"); return -a; }
   return a;
 }
+
