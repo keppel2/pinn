@@ -184,10 +184,10 @@ func (e *emitter) setIndex(index regi, m *mloc) {
 func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
 		if L {
-			e.loadml(m, TR10)
-			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)))
+			e.loadml(m, TR1)
+			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR1), makeReg(index)))
 		} else {
-			e.loadml(m, TR10)
+			e.loadml(m, TR1)
 			e.p.lsl(index, 3)
 			e.p.str(ATeq, dest, TR10, index)
 		}
@@ -216,12 +216,12 @@ func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	}
 	if m.mlt == mlVoid { //|| m.mlt == mlSlice {
 		if L {
-			e.loadml(m, TR10)
-			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR10), makeReg(index)), makeReg(dest))
+			e.loadml(m, TR1)
+			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR1), makeReg(index)), makeReg(dest))
 		} else {
-			e.loadml(m, TR10)
+			e.loadml(m, TR1)
 			e.p.lsl(index, 3)
-			e.p.ldr(ATeq, dest, TR10, index)
+			e.p.ldr(ATeq, dest, TR1, index)
 		}
 		return
 	}
@@ -1010,34 +1010,34 @@ func (e *emitter) emitStmt(s Stmt) {
 					lab := e.clab()
 					lab2 := e.clab()
 					e.pushloop(lab, lab2)
-					e.p.mov(TR10, 0)
+					e.p.mov(TR1, 0)
 					e.p.makeLabel(lab)
 					if key != nil {
-						e.storeml(key, TR10)
+						e.storeml(key, TR1)
 					}
 
 					if ml.rs != rsRange {
-						e.iLoad(TR2, TR10, ml)
+						e.iLoad(TR2, TR1, ml)
 					}
 					if iter != nil {
 						e.storeml(iter, TR2)
 					}
 					e.p.push(TR2)
 					e.p.push(TR3)
-					e.p.push(TR10)
+					e.p.push(TR1)
 					e.p.add(TR9, 3)
 
 					e.emitStmt(t.B)
-					e.p.pop(TR10)
+					e.p.pop(TR1)
 					e.p.pop(TR3)
 					e.p.pop(TR2)
 					e.p.sub(TR9, 3)
-					e.p.add(TR10, 1)
+					e.p.add(TR1, 1)
 					if ml.rs == rsRange {
 						e.p.add(TR2, 1)
 						e.p.cmp(TR2, TR3)
 					} else {
-						e.p.cmp(TR10, ml.len)
+						e.p.cmp(TR1, ml.len)
 					}
 					e.p.br(lab, "lt")
 					labExit := e.clab()
