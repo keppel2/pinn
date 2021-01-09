@@ -68,9 +68,6 @@ func (p *phys) cmp(a regi, b regOrConst) {
 		p.emitR("cmp", a, b)
 	}
 }
-func (p *phys) push3(r regi) {
-	p.str(ATpre, r, TMAIN, -8)
-}
 func (p *phys) push(r regi) {
 	p.str(ATpre, r, TSP, -8)
 }
@@ -143,16 +140,6 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 
 func (p *phys) pnull() {
 	p.add(TSP, 8)
-}
-func (p *phys) pnull3() {
-	p.add(TMAIN, 8)
-}
-
-func (p *phys) pop3(r regi) {
-	p.ldr(ATpost, r, TMAIN, 8)
-}
-func (p *phys) peek3(r regi) {
-	p.ldr(ATeq, r, TMAIN)
 }
 func (p *phys) pop(r regi) {
 	p.ldr(ATpost, r, TSP, 8)
