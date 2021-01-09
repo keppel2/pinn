@@ -1073,6 +1073,7 @@ func (e *emitter) emitF() {
 	e.p.mov(TSP, SP)
 	e.p.sub(TSP, 0x100)
 	e.p.mov(TSS, TSP)
+	e.p.mov(TMAIN, TSP)
 	e.p.mov(TBP, TSS)
 	e.p.sub(TBP, 0xA0000)
 	e.p.str(ATeq, TR1, TBP)

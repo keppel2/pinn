@@ -102,7 +102,16 @@ func (p *phys) pnull() {
 }
 func (p *phys) pop(r regi) {
 	p.ldr(ATpost, r, TSP, 8)
+	p.cmp(TSP, TMAIN)
+	lab := p.ug.clab()
+	p.br(lab, "le")
+	p.mov(TR1, 3)
+	p.emitExit()
+
+	p.makeLabel(lab)
+
 }
+
 func (p *phys) peek(r regi) {
 	p.ldr(ATeq, r, TSP)
 }
