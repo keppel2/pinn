@@ -184,30 +184,14 @@ func (e *emitter) setIndex(index regi, m *mloc) {
 
 func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 	if m.mlt == mlVoid {
-		if L {
-			e.loadml(m, TR1)
-			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR1), makeReg(index)))
-		} else {
-			e.loadml(m, TR1)
-			e.p.lsl(index, 3)
-			e.p.str(ATeq, dest, TR1, index)
-		}
+		e.loadml(m, TR1)
+		e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR1), makeReg(index)))
 		return
 	}
 	if m.fc {
-		if L {
-			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)))
-		} else {
-			e.setIndex(index, m)
-			e.p.str(ATeq, dest, TSS, index)
-		}
+		e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)))
 	} else {
-		if L {
-			e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)))
-		} else {
-			e.setIndex(index, m)
-			e.p.str(ATeq, dest, TBP, index)
-		}
+		e.p.emit("mov", makeReg(dest), fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)))
 	}
 }
 
@@ -215,33 +199,18 @@ func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
 	if m.mlt == mlInt {
 		e.err("")
 	}
-	if m.mlt == mlVoid { //|| m.mlt == mlSlice {
-		if L {
-			e.loadml(m, TR1)
-			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR1), makeReg(index)), makeReg(dest))
-		} else {
-			e.loadml(m, TR1)
-			e.p.lsl(index, 3)
-			e.p.ldr(ATeq, dest, TR1, index)
-		}
+	if m.mlt == mlVoid {
+		e.loadml(m, TR1)
+		e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(TR1), makeReg(index)), makeReg(dest))
 		return
 	}
 	if m.fc {
-		if L {
-			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)), makeReg(dest))
-		} else {
-			e.setIndex(index, m)
-			e.p.ldr(ATeq, dest, TSS, index)
-		}
+		e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", -moffOff(m.i), makeReg(TSS), makeReg(index)), makeReg(dest))
 	} else {
-		if L {
-			e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)), makeReg(dest))
-		} else {
-			e.setIndex(index, m)
-			e.p.ldr(ATeq, dest, TBP, index)
-		}
+		e.p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", moffOff(m.i), makeReg(TBP), makeReg(index)), makeReg(dest))
 	}
 }
+
 func (e *emitter) dString() string {
 	return fmt.Sprint(e.st, reflect.TypeOf(e.st), e.rMap)
 }
@@ -275,9 +244,7 @@ func (e *emitter) rangeCheck(ml *mloc) {
 }
 
 func (e *emitter) init(f *File) {
-	if L {
-		RP = "%r"
-	}
+	RP = "%r"
 	rand.Seed(42)
 	e.p = new(phys)
 	e.p.init(e)
@@ -837,9 +804,6 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 
 	e.pushAll()
 	e.p.push(TSS)
-	if !L {
-		e.p.push(LR)
-	}
 	ssize := fun.PSize
 	_ = ssize
 
@@ -885,9 +849,6 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	e.p.fcall(ID)
 	if fun.K != nil {
 		e.p.pop(TR4)
-	}
-	if !L {
-		e.p.pop(LR)
 	}
 	e.p.pop(TSS)
 	e.popAll()
@@ -1098,29 +1059,17 @@ func (e *emitter) emitStmt(s Stmt) {
 }
 
 func (e *emitter) emitDefines() {
-	if L {
-		for r := TR1; r <= TSS; r++ {
-			e.p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
-		}
-	} else {
-		for r := TR1; r <= TSS; r++ {
-			e.p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, ars[r]) + "\n")
-		}
+	for r := TR1; r <= TSS; r++ {
+		e.p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
 	}
 }
 
 func (e *emitter) emitF() {
 	e.p.emitDefines()
-	if L {
-		e.p.padd(".global _main\n")
-		e.p.label("_main")
-		e.p.emitR("pop", TR1)
-		e.p.emitR("push", TR1)
-	} else {
-		e.p.padd(".global main\n")
-		e.p.label("main")
-		e.p.mov(TMAIN, LR)
-	}
+	e.p.padd(".global _main\n")
+	e.p.label("_main")
+	e.p.emitR("pop", TR1)
+	e.p.emitR("push", TR1)
 	e.p.mov(TSP, SP)
 	e.p.sub(TSP, 0x100)
 	e.p.mov(TSS, TSP)

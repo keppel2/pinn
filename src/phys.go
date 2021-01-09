@@ -46,11 +46,7 @@ func (p *phys) makeLabel(i branchi) {
 }
 
 func (p *phys) nativeOp(op string, a regi, b regOrConst) {
-	if L {
-		p.emitR(op, b, a)
-	} else {
-		p.emitR(op, a, a, b)
-	}
+	p.emitR(op, b, a)
 }
 func (p *phys) emitR(i string, ops ...regOrConst) {
 	sa := []string{}
@@ -62,11 +58,7 @@ func (p *phys) emitR(i string, ops ...regOrConst) {
 }
 
 func (p *phys) cmp(a regi, b regOrConst) {
-	if L {
-		p.emitR("cmpq", b, a)
-	} else {
-		p.emitR("cmp", a, b)
-	}
+	p.emitR("cmpq", b, a)
 }
 func (p *phys) push(r regi) {
 	p.str(ATpre, r, TSP, -8)
@@ -75,66 +67,33 @@ func (p *phys) str(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
 		switch t {
 		case ATeq:
-			if L {
-				p.emit("mov", makeReg(d), fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)))
-			} else {
-				p.emit("str", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
-			}
+			p.emit("mov", makeReg(d), fmt.Sprintf("%v(%v)", makeRC(offset[0], false), makeReg(base)))
 
 		case ATpre:
-			if L {
-				p.add(base, offset[0])
-				p.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
-			} else {
-				p.emit("str", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
-			}
+			p.add(base, offset[0])
+			p.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
 		case ATpost:
-			if L {
-				p.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
-				p.add(base, offset[0])
-			} else {
-				p.emit("str", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
-			}
+			p.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
+			p.add(base, offset[0])
 		}
 	} else {
-		if L {
-			p.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
-		} else {
-			p.emit("str", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
-		}
+		p.emit("mov", makeReg(d), fmt.Sprintf("(%v)", makeReg(base)))
 	}
 }
 func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
 		switch t {
 		case ATeq:
-			if L {
-				p.emit("mov", fmt.Sprintf("%v(%v)", makeConst(offset[0].(int), false), makeReg(base)), makeReg(d))
-				//p.emit("mov", fmt.Sprintf("%v(%v,%v,8)", 0, makeReg(base), makeRC(offset[0], false)), makeReg(d))
-			} else {
-				p.emit("ldr", makeReg(d), offSet(makeReg(base), makeRC(offset[0], true)))
-			}
+			p.emit("mov", fmt.Sprintf("%v(%v)", makeConst(offset[0].(int), false), makeReg(base)), makeReg(d))
 		case ATpre:
-			if L {
-				p.add(base, offset[0])
-				p.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
-			} else {
-				p.emit("ldr", makeReg(d), fmt.Sprintf("[%v%v%v]!", makeReg(base), OS, makeRC(offset[0], true)))
-			}
+			p.add(base, offset[0])
+			p.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
 		case ATpost:
-			if L {
-				p.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
-				p.add(base, offset[0])
-			} else {
-				p.emit("ldr", makeReg(d), fmt.Sprintf("[%v]%v%v", makeReg(base), OS, makeRC(offset[0], true)))
-			}
+			p.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
+			p.add(base, offset[0])
 		}
 	} else {
-		if L {
-			p.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
-		} else {
-			p.emit("ldr", makeReg(d), fmt.Sprintf("[%v]", makeReg(base)))
-		}
+		p.emit("mov", fmt.Sprintf("(%v)", makeReg(base)), makeReg(d))
 	}
 }
 
@@ -149,19 +108,12 @@ func (p *phys) peek(r regi) {
 }
 
 func (p *phys) br(b branchi, s ...string) {
-	if L {
-		br := "jmp"
-		if len(s) == 1 {
-			br = "j" + localCond(s[0])
-		}
-		p.emit(br, makeBranch(b.(branch)))
-		return
-	}
-	br := "b"
+	br := "jmp"
 	if len(s) == 1 {
-		br += "." + s[0]
+		br = "j" + localCond(s[0])
 	}
 	p.emit(br, makeBranch(b.(branch)))
+	return
 }
 
 func (p *phys) pushTen() {
@@ -331,11 +283,7 @@ func (p *phys) emitSprint(count int, source regOrConst) {
 
 func (p *phys) emitExit() {
 	p.ldr(ATeq, TR2, TBP)
-	if L {
-		p.emitR("push", TR2)
-	} else {
-		p.mov(LR, TR2)
-	}
+	p.emitR("push", TR2)
 	p.emitRet()
 }
 
@@ -346,19 +294,11 @@ func (p *phys) add(a regi, b regOrConst) {
 	p.nativeOp("add", a, b)
 }
 func (p *phys) mul(a regi, b regOrConst) {
-	if L {
-		p.nativeOp("imul", a, b)
-	} else {
-		p.nativeOp("mul", a, b)
-	}
+	p.nativeOp("imul", a, b)
 }
 
 func (p *phys) fcall(id string) {
-	if L {
-		p.emit("call", fmake(id))
-	} else {
-		p.emit("bl", fmake(id))
-	}
+	p.emit("call", fmake(id))
 }
 
 func (p *phys) emitRet() {
@@ -366,77 +306,45 @@ func (p *phys) emitRet() {
 }
 
 func (p *phys) syscall() {
-	if L {
-		p.emit("syscall")
-	} else {
-		p.emitR("svc", 0)
-	}
+	p.emit("syscall")
 }
 
 func (p *phys) rem(a regi, b regOrConst) {
-	if L {
-		p.push(TR1)
-		p.push(TR4)
-		p.mov(TR1, a)
-		p.mov(TR4, 0)
-		p.emitR("div", b)
-		p.mov(a, TR4)
-		p.pop(TR4)
-		p.pop(TR1)
+	p.push(TR1)
+	p.push(TR4)
+	p.mov(TR1, a)
+	p.mov(TR4, 0)
+	p.emitR("div", b)
+	p.mov(a, TR4)
+	p.pop(TR4)
+	p.pop(TR1)
 
-	} else {
-		p.mov(TR5, a)
-		p.emitR("udiv", a, TR5, b)
-		p.emitR("msub", a, a, b, TR5)
-	}
 }
 func (p *phys) div(a regi, b regOrConst) {
-	if L {
-		p.push(TR1)
-		p.push(TR4)
-		p.mov(TR1, a)
-		p.mov(TR4, 0)
-		p.emitR("div", b)
-		p.mov(a, TR1)
-		p.pop(TR4)
-		p.pop(TR1)
-	} else {
-		p.nativeOp("udiv", a, b)
-	}
+	p.push(TR1)
+	p.push(TR4)
+	p.mov(TR1, a)
+	p.mov(TR4, 0)
+	p.emitR("div", b)
+	p.mov(a, TR1)
+	p.pop(TR4)
+	p.pop(TR1)
 }
 func (p *phys) and(a regi, b regOrConst) {
 	p.nativeOp("and", a, b)
 }
 func (p *phys) lsl(a regi, b regOrConst) {
-	if L {
-		p.nativeOp("sal", a, b)
-	} else {
-		p.nativeOp("lsl", a, b)
-	}
+	p.nativeOp("sal", a, b)
 }
 func (p *phys) lsr(a regi, b regOrConst) {
-	if L {
-		p.nativeOp("shr", a, b)
-	} else {
-		p.nativeOp("lsr", a, b)
-	}
+	p.nativeOp("shr", a, b)
 }
 func (p *phys) mov(a regi, b regOrConst) {
-	if L {
-		p.emitR("mov", b, a)
-	} else {
-		p.emitR("mov", a, b)
-	}
+	p.emitR("mov", b, a)
 }
 
 func (p *phys) emitDefines() {
-	if L {
-		for r := TR1; r <= TSS; r++ {
-			p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
-		}
-	} else {
-		for r := TR1; r <= TSS; r++ {
-			p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, ars[r]) + "\n")
-		}
+	for r := TR1; r <= TSS; r++ {
+		p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
 	}
 }

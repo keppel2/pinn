@@ -6,7 +6,7 @@ import "os"
 
 var _ = os.Stderr
 
-var L = false
+//var L = true
 
 var RP = "x"
 
@@ -228,10 +228,7 @@ func makeReg(i regi) string {
 		return "lr"
 	}
 	if i == SP {
-		if L {
-			return RP + "sp"
-		}
-		return "sp"
+		return RP + "sp"
 	}
 	if i == XZR {
 		return "xzr"
@@ -249,14 +246,10 @@ func atoi(e errp, s string) int {
 }
 
 func makeConst(i int, pref bool) string {
-	if L {
-		if pref {
-			return "$" + fmt.Sprint(i)
-		}
-		return fmt.Sprint(i)
-	} else {
-		return fmt.Sprintf("#%v", i)
+	if pref {
+		return "$" + fmt.Sprint(i)
 	}
+	return fmt.Sprint(i)
 }
 
 func makeVar(e Expr) string {
@@ -284,16 +277,14 @@ const (
 
 func localCond(a string) string {
 	rt := a
-	if L {
-		switch a {
-		case "eq":
-			rt = "e"
-		case "gt":
-			rt = "g"
-		case "lt":
-			rt = "l"
+	switch a {
+	case "eq":
+		rt = "e"
+	case "gt":
+		rt = "g"
+	case "lt":
+		rt = "l"
 
-		}
 	}
 	return rt
 }
