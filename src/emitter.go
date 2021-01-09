@@ -67,10 +67,10 @@ func (e *emitter) newSlc() *mloc {
 		ml.i = e.moff
 		e.moff++
 		e.moff++
-		e.p.mov(TR6, 1)
-		e.iStore(TR5, TR6, ml)
-		e.p.mov(TR6, 2)
-		e.iStore(TR5, TR6, ml)
+		e.p.mov(TR2, 1)
+		e.iStore(TR5, TR2, ml)
+		e.p.mov(TR2, 2)
+		e.iStore(TR5, TR2, ml)
 	}
 	return ml
 }
