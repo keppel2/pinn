@@ -1118,13 +1118,14 @@ func (e *emitter) emitF() {
 	} else {
 		e.p.padd(".global main\n")
 		e.p.label("main")
-		e.p.mov(TR1, LR)
+		e.p.mov(TMAIN, LR)
 	}
 	e.p.mov(TSP, SP)
 	e.p.sub(TSP, 0x100)
 	e.p.mov(TSS, TSP)
 	e.p.mov(TBP, TSP)
 	e.p.sub(TBP, 0xA0000)
+	e.p.str(ATeq, TR1, TBP)
 	e.p.mov(THP, TBP)
 	e.p.sub(THP, 0x1000)
 	lab := e.clab()
@@ -1133,7 +1134,6 @@ func (e *emitter) emitF() {
 	for _, s := range e.file.SList {
 		e.emitStmt(s)
 	}
-	e.p.mov(TR1, 0)
 	e.p.makeLabel(lab)
 	e.p.cmp(TR9, TSP)
 	tc := e.clab()
@@ -1143,7 +1143,10 @@ func (e *emitter) emitF() {
 	e.p.emit2Print()
 	e.p.emitExit8()
 	e.p.makeLabel(tc)
+	e.p.ldr(ATeq, TR1, TBP)
+	e.p.push(TR1)
 
+	e.p.mov(TR1, 0)
 	e.p.emitRet()
 	e.checks()
 	e.fc = true
@@ -1156,7 +1159,6 @@ func (e *emitter) emitF() {
 		e.p.emitPrint(e)
 	}
 	e.p.makeLabel(e.fexit)
-	//e.p.mov(TR1, 7)
 	if len(e.lstack) != 0 {
 		e.err("Loop stack")
 	}

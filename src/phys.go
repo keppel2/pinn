@@ -330,11 +330,11 @@ func (p *phys) emitSprint(count int, source regOrConst) {
 }
 
 func (p *phys) emitExit() {
-	p.ldr(ATeq, TR3, TBP)
+	p.ldr(ATeq, TR2, TBP)
 	if L {
-		p.emitR("push", TR3)
+		p.emitR("push", TR2)
 	} else {
-		p.mov(LR, TR3)
+		p.mov(LR, TR2)
 	}
 	p.emitRet()
 }

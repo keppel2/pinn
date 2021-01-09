@@ -29,7 +29,6 @@ _ = sda;
 
 func fA() {}
 fA();
-
 func fB(p int) {}
 fB(42);
 
