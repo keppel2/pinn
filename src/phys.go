@@ -191,9 +191,9 @@ func (p *phys) popTen() {
 func (p *phys) emitPrint(ugly *emitter) {
 	p.flabel("printch")
 	p.pushTen()
-	p.push(TR8)
+	p.push(TR1)
 	p.emitSprint(1, TSP)
-	p.pop(TR8)
+	p.pop(TR1)
 	p.popTen()
 
 	p.emitRet()
@@ -240,12 +240,12 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.emitRet()
 
 	p.flabel("println")
-	p.mov(TR8, int('\n'))
+	p.mov(TR1, int('\n'))
 	p.fcall("printch")
 	p.emitRet()
 
 	p.flabel("print")
-	p.mov(TR8, int('('))
+	p.mov(TR1, int('('))
 	p.fcall("printch")
 	p.pop(TR8)
 	p.pushTen()
@@ -280,7 +280,7 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.str(ATeq, TR2, TR5)
 	p.emitSprint(16, TR5)
 	p.popTen()
-	p.mov(TR8, int('.'))
+	p.mov(TR1, int('.'))
 	p.fcall("printch")
 	p.emitRet()
 }
@@ -328,7 +328,7 @@ func (p *phys) emit2Print() {
 
 func (p *phys) emit2Prints(s string) {
 	for _, r := range s {
-		p.mov(TR8, int(r))
+		p.mov(TR1, int(r))
 		p.fcall("printch")
 	}
 }

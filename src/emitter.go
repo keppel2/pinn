@@ -1123,8 +1123,6 @@ func (e *emitter) emitF() {
 	e.p.str(ATeq, TR1, TBP)
 	e.p.mov(THP, TBP)
 	e.p.sub(THP, 0x1000)
-	e.p.mov(TMAIN, THP)
-	e.p.sub(TMAIN, 0x1000)
 	lab := e.clab()
 	e.ebranch = lab
 	e.p.mov(TR9, TSP)
