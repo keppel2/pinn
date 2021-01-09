@@ -902,11 +902,11 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.p.emit("//")
 	//		  e.p.emit2Prints(".")
 	//	  e.p.emit2Print()
-	//			  e.p.emit2Prints("<")
+	//				  e.p.emit2Prints("<")
 	//e.p.emitC("<")
-	//			  e.p.emitLC()
+	//				  e.p.emitLC()
 	//	e.p.emitC(">")
-	//		  e.p.emit2Prints(">")
+	//			  e.p.emit2Prints(">")
 	switch t := s.(type) {
 	case *ExprStmt:
 		e.assignToReg(t.Expr)

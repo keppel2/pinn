@@ -1,9 +1,7 @@
 //Parse and run
-
 0;
 10;
 1 + 2 + 3 + 4;
-
 var xa int;
 var xb [2]int;
 
