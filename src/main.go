@@ -40,9 +40,7 @@ func main() {
 
 	f := p.fileA()
 	if len(os.Args) > 2 {
-		if os.Args[2] == "x86_64" {
-			//			L = true
-		} else if os.Args[2] == "parse" {
+		if os.Args[2] == "parse" {
 			return
 		} else if os.Args[2] == "visit" {
 			visitFile(f)

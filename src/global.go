@@ -37,9 +37,6 @@ var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8
 
 var irs []string = []string{
 	"ax", "10", "cx", "dx", "si", "di", "11", "8", "9", "bx", "bp", "12", "13", "14", "15"}
-var ars []string = []string{
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "19", "20", "21", "22", "23", "24"}
-
 var fmap = make(map[string]func(*emitter, *CallExpr) *mloc)
 
 const (
@@ -63,10 +60,7 @@ const (
 )
 
 const (
-	LR reg = 30
-	SP reg = LR + 1 + iota
-	XZR
-	NR
+	SP reg = RMAX
 )
 
 const BP = ".br"
@@ -224,17 +218,10 @@ func makeReg(i regi) string {
 		return rs[i.(reg)]
 	}
 
-	if i == LR {
-		return "lr"
-	}
 	if i == SP {
 		return RP + "sp"
 	}
-	if i == XZR {
-		return "xzr"
-	}
-
-	return fmt.Sprintf("%v%v", RP, i)
+	return "bad"
 }
 
 func atoi(e errp, s string) int {
