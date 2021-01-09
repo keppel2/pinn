@@ -1093,9 +1093,6 @@ func (e *emitter) emitF() {
 	e.p.emit2Print()
 	e.p.emitExit8()
 	e.p.makeLabel(tc)
-	e.p.ldr(ATeq, TR1, TBP)
-	e.p.push(TR1)
-
 	e.p.mov(TR1, 0)
 	e.p.emitRet()
 	e.checks()

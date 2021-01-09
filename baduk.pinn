@@ -100,7 +100,7 @@ func cap (player int, x, y int) {
   }
   copy2bd();
 }
-var asd int;
+//var asd int;
 var cp [BSIZE] int;
 func copy2bd() {
   var x int;
@@ -243,10 +243,12 @@ print(np(sc));
 
 func minimax (player int, passed int) int
 {
+/*
   if _counter % 100 == 0 {
     printBoard(hsize - 1);
     println();
   }
+  */
   var da, db int;
   _counter++;
   var best int;
