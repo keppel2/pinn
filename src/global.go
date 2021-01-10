@@ -139,7 +139,7 @@ func init() {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
-		e.p.mov(TR4, TSP)
+		e.p.mov(TR2, TSP)
 		return newSent(rsInt)
 	}
 	fmap["assert"] = func(e *emitter, ce *CallExpr) *mloc {
@@ -173,6 +173,7 @@ func init() {
 		e.p.mov(TR4, THP)
 		e.p.lsl(TR2, 3)
 		e.p.add(THP, TR2)
+		e.p.mov(TR2, TR4)
 		return newSent(rsMloc)
 	}
 	fmap["bad"] = func(e *emitter, ce *CallExpr) *mloc {

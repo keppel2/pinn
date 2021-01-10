@@ -147,8 +147,15 @@ func ftran(fa int) int {
   return fa + 5;
 }
 
-
 assert(ftran(ftran(5)), 15);
+
+func f3(aa, bb, cc int) {
+  assert(aa, 3);
+  assert(bb, 23);
+  assert(cc, 187);
+}
+
+f3(3, 23, 187);
 
 fglob := 5;
 func fas(fa int) int {

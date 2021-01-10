@@ -1,5 +1,5 @@
 #define SIZER 1;
-#define SIZEC 4;
+#define SIZEC 2;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
 #define BTOT BSIZE HASHT *;
@@ -40,6 +40,7 @@ func hash() int {
       rt = rt * 3;
       da = dbg();
       hc = hrc(hsize - 1, r, c); 
+      print(hc);
       db = dbg();
       assert(da, db);
       rt = rt + bd[hc];
@@ -195,7 +196,8 @@ func rc (r, c int) int {
   return r * SIZEC  + c;
 }
 func hrc (h, r, c int) int {
-  return h * BSIZE + rc(r, c);
+print(h);
+  return  rc(r, c);// + rc(r, c);
 }
 
 func opposite (opx int) int { 
@@ -230,15 +232,17 @@ func printBoard (i index) {
 
 hsize := 1;
 
-bh[hash()] = 1;
+//bh[hash()] = 1;
 
 
 //hsize++;
 //bd[hrc(1, 0, 0)] = W;
 //bh[hash()] = 1;
 
-sc := minimax(B, FALSE);
-print(np(sc));
+print(hrc(0, 0, 1));
+
+//sc := minimax(B, FALSE);
+//print(np(sc));
 
 
 func minimax (player int, passed int) int
