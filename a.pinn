@@ -1,12 +1,12 @@
-func f() int, int {
- return 2, 4;
+func rc (rr int) int {
+print(7);
+  print(rr);
+  return rr;
 }
-func g() int, int, int {
-  return 3, 5, 7;
+func hrc (h, r int) int {
+  print(r);
+  return  rc(r);
 }
-var a, b int;
-a, b = f();
-print(a);print(b);
 
-x, y, z := g();
-print(x);print(y);print(z);
+rt := hrc(0, 0);
+print(rt);

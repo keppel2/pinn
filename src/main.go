@@ -8,8 +8,8 @@ import "fmt"
 import "os"
 
 func g() {
-	ts := TypeStmt{}
-	pnode(ts)
+	//	ts := TypeStmt{}
+	//	pnode(ts)
 }
 
 func f2() {
@@ -43,7 +43,10 @@ func main() {
 		if os.Args[2] == "parse" {
 			return
 		} else if os.Args[2] == "visit" {
-			visitFile(f)
+			v := new(visitor)
+			v.init()
+			v.visitFile(f)
+			fmt.Println(v.s)
 			return
 		}
 	}

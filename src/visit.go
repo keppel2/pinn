@@ -5,252 +5,258 @@ import "reflect"
 
 const indent = "  "
 
-var ilevel = 0
+type visitor struct {
+	ilevel int
+	s      string
+}
 
-func prn(s ...interface{}) {
-	for i := 0; i < ilevel; i++ {
-		fmt.Print(indent)
+func (v *visitor) prn(s ...interface{}) {
+	for i := 0; i < v.ilevel; i++ {
+		v.s += fmt.Sprint(indent)
 	}
-	fmt.Println(s)
+	v.s += fmt.Sprintln(s)
 }
 
-func iminus() {
-	ilevel--
+func (v *visitor) iminus() {
+	v.ilevel--
 }
 
-func pnode(n Node) {
-	prn(reflect.TypeOf(n), n.Gpos())
-	ilevel++
+func (v *visitor) init() {
 }
 
-func visitVarStmt(n *VarStmt) {
+func (v *visitor) pnode(n Node) {
+	v.prn(reflect.TypeOf(n), n.Gpos())
+	v.ilevel++
+}
+
+func (v *visitor) visitVarStmt(n *VarStmt) {
 	for _, vd := range n.List {
-		prn("var: ", vd.Value)
+		v.prn("var: ", vd.Value)
 	}
 
-	visitKind(n.Kind)
+	v.visitKind(n.Kind)
 }
 
-func visitField(n *Field) {
+func (v *visitor) visitField(n *Field) {
 	for _, vd := range n.List {
-		prn("fvar: ", vd.Value)
+		v.prn("fvar: ", vd.Value)
 	}
 
-	visitKind(n.Kind)
+	v.visitKind(n.Kind)
 }
 
-func visitTypeStmt(n *TypeStmt) {
-	prn("type: ", n.Wl.Value)
-	visitKind(n.Kind)
+func (v *visitor) visitTypeStmt(n *TypeStmt) {
+	v.prn("type: ", n.Wl.Value)
+	v.visitKind(n.Kind)
 }
-func visitForStmt(n *ForStmt) {
+func (v *visitor) visitForStmt(n *ForStmt) {
 	if n.Inits != nil {
-		prn("init")
-		visitStmt(n.Inits)
+		v.prn("init")
+		v.visitStmt(n.Inits)
 	}
 	if n.E != nil {
-		visitExpr(n.E)
+		v.visitExpr(n.E)
 	}
 	if n.Loop != nil {
-		prn("loop")
-		visitStmt(n.Loop)
+		v.prn("loop")
+		v.visitStmt(n.Loop)
 	}
-	visitBlockStmt(n.B)
+	v.visitBlockStmt(n.B)
 }
 
-func visitReturnStmt(n *ReturnStmt) {
-	for _, v := range n.EL {
-		visitExpr(v)
+func (v *visitor) visitReturnStmt(n *ReturnStmt) {
+	for _, va := range n.EL {
+		v.visitExpr(va)
 	}
 }
 
-func visitFuncDecl(n *FuncDecl) {
-	prn("fid: ", n.Wl.Value)
-	ilevel++
-	defer iminus()
+func (v *visitor) visitFuncDecl(n *FuncDecl) {
+	v.prn("fid: ", n.Wl.Value)
+	v.ilevel++
+	defer v.iminus()
 	for _, vd := range n.PList {
-		visitField(vd)
+		v.visitField(vd)
 	}
 	for _, k := range n.K {
-		visitKind(k)
+		v.visitKind(k)
 	}
 	if n.B != nil {
-		defer iminus()
-		pnode(n.B)
-		visitBlockStmt(n.B)
+		defer v.iminus()
+		v.pnode(n.B)
+		v.visitBlockStmt(n.B)
 	}
 }
 
-func visitKind(n Kind) {
-	pnode(n)
-	defer iminus()
+func (v *visitor) visitKind(n Kind) {
+	v.pnode(n)
+	defer v.iminus()
 	switch t := n.(type) {
 	case *MKind:
-		visitMKind(t)
+		v.visitMKind(t)
 	case *SlKind:
-		visitSlKind(t)
+		v.visitSlKind(t)
 	case *ArKind:
-		visitArKind(t)
+		v.visitArKind(t)
 	case *SKind:
-		visitSKind(t)
+		v.visitSKind(t)
 	}
 }
-func visitMKind(n *MKind) {
-	visitKind(n.K)
+func (v *visitor) visitMKind(n *MKind) {
+	v.visitKind(n.K)
 }
 
-func visitSlKind(n *SlKind) {
-	visitKind(n.K)
+func (v *visitor) visitSlKind(n *SlKind) {
+	v.visitKind(n.K)
 }
-func visitArKind(n *ArKind) {
-	visitExpr(n.Len)
-	visitKind(n.K)
+func (v *visitor) visitArKind(n *ArKind) {
+	v.visitExpr(n.Len)
+	v.visitKind(n.K)
 }
-func visitSKind(n *SKind) {
-	prn("Skind", n.Wl.Value)
-}
-
-func visitBinaryExpr(n *BinaryExpr) {
-	visitExpr(n.LHS)
-	prn("op", n.op, "end")
-	visitExpr(n.RHS)
-}
-func visitTrinaryExpr(n *TrinaryExpr) {
-	visitExpr(n.LHS)
-	visitExpr(n.MS)
-	visitExpr(n.RHS)
+func (v *visitor) visitSKind(n *SKind) {
+	v.prn("Skind", n.Wl.Value)
 }
 
-func visitCallExpr(n *CallExpr) {
-	visitExpr(n.ID)
-	for _, v := range n.Params {
-		visitExpr(v)
+func (v *visitor) visitBinaryExpr(n *BinaryExpr) {
+	v.visitExpr(n.LHS)
+	v.prn("op", n.op, "end")
+	v.visitExpr(n.RHS)
+}
+func (v *visitor) visitTrinaryExpr(n *TrinaryExpr) {
+	v.visitExpr(n.LHS)
+	v.visitExpr(n.MS)
+	v.visitExpr(n.RHS)
+}
+
+func (v *visitor) visitCallExpr(n *CallExpr) {
+	v.visitExpr(n.ID)
+	for _, va := range n.Params {
+		v.visitExpr(va)
 	}
 }
 
-func visitUnaryExpr(n *UnaryExpr) {
+func (v *visitor) visitUnaryExpr(n *UnaryExpr) {
 	if n.E != nil {
-		visitExpr(n.E)
+		v.visitExpr(n.E)
 	}
-	prn("op", n.op)
+	v.prn("op", n.op)
 }
 
-func visitIndexExpr(n *IndexExpr) {
-	visitExpr(n.X)
-	visitExpr(n.E)
+func (v *visitor) visitIndexExpr(n *IndexExpr) {
+	v.visitExpr(n.X)
+	v.visitExpr(n.E)
 	/*
 		if n.Start != nil {
-			visitExpr(n.Start)
+			v.visitExpr(n.Start)
 		}
-		prn("Inc", n.Inc)
+		v.prn("Inc", n.Inc)
 
 		if n.End != nil {
-			visitExpr(n.End)
+			v.visitExpr(n.End)
 		}
 	*/
 }
 
-func visitArrayExpr(n *ArrayExpr) {
+func (v *visitor) visitArrayExpr(n *ArrayExpr) {
 	for _, e := range n.EL {
-		visitExpr(e)
+		v.visitExpr(e)
 	}
 }
 
-func visitExpr(n Expr) {
-	pnode(n)
-	defer iminus()
+func (v *visitor) visitExpr(n Expr) {
+	v.pnode(n)
+	defer v.iminus()
 	switch t := n.(type) {
 	case *TrinaryExpr:
-		visitTrinaryExpr(t)
+		v.visitTrinaryExpr(t)
 	case *NumberExpr:
-		prn("Number", t.Il.Value)
+		v.prn("Number", t.Il.Value)
 	case *VarExpr:
-		prn("Var", t.Wl.Value)
+		v.prn("Var", t.Wl.Value)
 	case *IndexExpr:
-		visitIndexExpr(t)
+		v.visitIndexExpr(t)
 	case *BinaryExpr:
-		visitBinaryExpr(t)
+		v.visitBinaryExpr(t)
 	case *CallExpr:
-		visitCallExpr(t)
+		v.visitCallExpr(t)
 	case *UnaryExpr:
-		visitUnaryExpr(t)
+		v.visitUnaryExpr(t)
 	case *ArrayExpr:
-		visitArrayExpr(t)
+		v.visitArrayExpr(t)
 	}
 
 }
-func visitWhileStmt(n *WhileStmt) {
-	visitExpr(n.Cond)
-	visitBlockStmt(n.B)
+func (v *visitor) visitWhileStmt(n *WhileStmt) {
+	v.visitExpr(n.Cond)
+	v.visitBlockStmt(n.B)
 }
 
-func visitLoopStmt(n *LoopStmt) {
-	visitBlockStmt(n.B)
+func (v *visitor) visitLoopStmt(n *LoopStmt) {
+	v.visitBlockStmt(n.B)
 }
-func visitIfStmt(n *IfStmt) {
-	visitExpr(n.Cond)
+func (v *visitor) visitIfStmt(n *IfStmt) {
+	v.visitExpr(n.Cond)
 	if n.Then != nil {
-		visitStmt(n.Then)
+		v.visitStmt(n.Then)
 	}
 	if n.Else != nil {
-		visitStmt(n.Else)
+		v.visitStmt(n.Else)
 	}
 }
 
-func visitExprStmt(e *ExprStmt) {
-	visitExpr(e.Expr)
+func (v *visitor) visitExprStmt(e *ExprStmt) {
+	v.visitExpr(e.Expr)
 }
 
-func visitAssignStmt(a *AssignStmt) {
+func (v *visitor) visitAssignStmt(a *AssignStmt) {
 	for _, e := range a.LHSa {
-		visitExpr(e)
+		v.visitExpr(e)
 	}
-	prn("Op", a.Op)
+	v.prn("Op", a.Op)
 	for _, e := range a.RHSa {
-		visitExpr(e)
+		v.visitExpr(e)
 	}
 }
 
-func visitBlockStmt(t *BlockStmt) {
+func (v *visitor) visitBlockStmt(t *BlockStmt) {
 	for _, s := range t.SList {
-		visitStmt(s)
+		v.visitStmt(s)
 	}
 }
 
-func visitStmt(s Stmt) {
-	pnode(s)
-	defer iminus()
+func (v *visitor) visitStmt(s Stmt) {
+	v.pnode(s)
+	defer v.iminus()
 	switch t := s.(type) {
 	case *ForStmt:
-		visitForStmt(t)
+		v.visitForStmt(t)
 	case *BlockStmt:
-		visitBlockStmt(t)
+		v.visitBlockStmt(t)
 	case *VarStmt:
-		visitVarStmt(t)
+		v.visitVarStmt(t)
 	case *TypeStmt:
-		visitTypeStmt(t)
+		v.visitTypeStmt(t)
 	case *ExprStmt:
-		visitExprStmt(t)
+		v.visitExprStmt(t)
 	case *AssignStmt:
-		visitAssignStmt(t)
+		v.visitAssignStmt(t)
 	case *IfStmt:
-		visitIfStmt(t)
+		v.visitIfStmt(t)
 	case *WhileStmt:
-		visitWhileStmt(t)
+		v.visitWhileStmt(t)
 	case *LoopStmt:
-		visitLoopStmt(t)
+		v.visitLoopStmt(t)
 	case *ReturnStmt:
-		visitReturnStmt(t)
+		v.visitReturnStmt(t)
 	}
 }
 
-func visitFile(f *File) {
-	pnode(f)
-	defer iminus()
+func (v *visitor) visitFile(f *File) {
+	v.pnode(f)
+	defer v.iminus()
 	for _, d := range f.FList {
-		visitFuncDecl(d)
+		v.visitFuncDecl(d)
 	}
 	for _, s := range f.SList {
-		visitStmt(s)
+		v.visitStmt(s)
 	}
 }

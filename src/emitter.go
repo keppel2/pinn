@@ -812,6 +812,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	e.lst = e.st
 	e.st = ce
 	defer func() { e.st = e.lst }()
+	//e.p.emitC(e.st)
 	ID := makeVar(ce.ID)
 	if ff, ok := fmap[ID]; ok {
 		rt := ff(e, ce)
@@ -885,7 +886,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	e.p.cmp(TMAIN, 0x100)
 	labm := e.clab()
 	e.p.br(labm, "le")
-	e.p.mov(TR1, 4)
+	e.p.mov(TR1, 3)
 	e.p.emitExit()
 	e.p.makeLabel(labm)
 
@@ -908,6 +909,13 @@ func (e *emitter) emitStmt(s Stmt) {
 	e.lst = e.st
 	e.st = s
 	defer func() { e.st = e.lst }()
+	e.p.emit("/*")
+	if s != nil {
+		v := new(visitor)
+		v.visitStmt(s)
+		e.p.emit(v.s)
+	}
+	e.p.emit("*/")
 	e.p.emit("//")
 	//		  e.p.emit2Prints(".")
 	//	  e.p.emit2Print()
