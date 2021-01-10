@@ -1,4 +1,12 @@
 func f() int, int {
  return 2, 4;
 }
-f();
+func g() int, int, int {
+  return 3, 5, 7;
+}
+var a, b int;
+a, b = f();
+print(a);print(b);
+
+x, y, z := g();
+print(x);print(y);print(z);

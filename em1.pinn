@@ -178,6 +178,22 @@ assert(a, 101);
 a = g2();
 assert(a, 202);
 
+// Multi function
+func mf() int, int {
+  return 2, 5;
+}
+func mf3() int, int, int {
+  return 4, 6, 8;
+}
+mfa, mfb := mf();
+assert(mfa, 2);
+assert(mfb, 5);
+var mfc int;
+mfa, mfb, mfc = mf3();
+assert(mfa, 4);
+assert(mfb, 6);
+assert(mfc, 8);
+
 
 
 

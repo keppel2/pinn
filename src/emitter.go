@@ -158,9 +158,11 @@ func (e *emitter) pushAll() {
 	for i := TR9; i <= TR9; i++ {
 		e.p.push(i)
 	}
+	e.p.push(TSS)
 
 }
 func (e *emitter) popAll() {
+	e.p.pop(TSS)
 	for i := TR9; i >= TR9; i-- {
 		e.p.pop(i)
 	}
@@ -486,11 +488,16 @@ func (e *emitter) getType(ex Expr) *mloc {
 		mloc := e.newArml(len(t.EL))
 		return mloc
 	case *CallExpr:
-		if makeVar(t.ID) == "malloc" {
+		ID := makeVar(t.ID)
+		if ID == "malloc" {
 			rt := e.newIntml()
 			rt.mlt = mlVoid
 			return rt
 		}
+		if len(e.file.getFunc(ID).K) > 1 {
+			return newSent(rsMulti)
+		}
+
 	case *IndexExpr:
 		if v, ok := t.E.(*BinaryExpr); ok {
 			if v.op == ":" || v.op == "@" {
@@ -644,8 +651,14 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 			if e.rMap[id] != nil {
 				e.err(id)
 			}
-			ml := e.getType(as.RHSa[k])
-			e.rMap[id] = ml
+
+			if len(as.RHSa) == 1 && e.getType(as.RHSa[0]).rs == rsMulti {
+				ml := e.newIntml()
+				e.rMap[id] = ml
+			} else {
+				ml := e.getType(as.RHSa[k])
+				e.rMap[id] = ml
+			}
 		}
 	}
 
@@ -655,6 +668,11 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 			e.err(as.Op)
 		}
 		if mts[k].rs == rsMulti {
+			if len(as.RHSa) != 1 {
+				e.err("")
+			}
+			e.p.stackup(-2)
+			e.p.stackup(-mts[0].len)
 		} else {
 			e.p.push(TR2)
 		}
@@ -697,7 +715,12 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 				e.storeInt(id, TR3)
 				break
 			}
-			ml := mts[k]
+			var ml *mloc
+			if len(mts) == 1 && mts[0].rs == rsMulti {
+				ml = newSent(rsInt)
+			} else {
+				ml = mts[k]
+			}
 			if ml.mlt == mlInvalid && ml.rs == rsRange {
 				e.err(id)
 			} else if ml.rs == rsMloc {
@@ -775,7 +798,12 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 		}
 
 	}
-	e.p.stackup(len(as.RHSa))
+	if len(mts) == 1 && mts[0].rs == rsMulti {
+		e.p.stackup(2)
+		e.p.stackup(mts[0].len)
+	} else {
+		e.p.stackup(len(as.RHSa))
+	}
 	e.p.tspchk()
 
 }
@@ -811,7 +839,6 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	}
 
 	e.pushAll()
-	e.p.push(TSS)
 	ssize := fun.PSize
 	_ = ssize
 
@@ -866,10 +893,11 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 
 	e.p.sub(TMAIN, 1)
 
-	if len(fun.K) > 0 {
+	if len(fun.K) == 1 {
 		e.p.pop(TR2)
+	} else if len(fun.K) > 1 {
+		e.p.stackup(len(fun.K))
 	}
-	e.p.pop(TSS)
 	e.popAll()
 
 	return rt
