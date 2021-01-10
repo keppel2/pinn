@@ -195,10 +195,10 @@ func init() {
 			e.err(v)
 		} else if ml.mlt == mlSlice {
 			e.p.mov(TR5, 0)
-			e.iLoad(TR4, TR5, ml)
+			e.iLoad(TR2, TR5, ml)
 			return rt
 		}
-		e.p.mov(TR4, ml.len)
+		e.p.mov(TR2, ml.len)
 		return rt
 	}
 	fmap["exit"] = func(e *emitter, ce *CallExpr) *mloc {

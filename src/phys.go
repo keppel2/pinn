@@ -64,7 +64,8 @@ func (p *phys) stackup(i int) {
 	p.add(TSP, 8*i)
 }
 func (p *phys) push(r regi) {
-	p.str(ATpre, r, TSP, -8)
+	p.stackup(-1)
+	p.str(ATeq, r, TSP)
 }
 func (p *phys) str(t atype, d regi, base regi, offset ...regOrConst) {
 	if len(offset) == 1 {
@@ -113,7 +114,8 @@ func (p *phys) tspchk() {
 
 }
 func (p *phys) pop(r regi) {
-	p.ldr(ATpost, r, TSP, 8)
+	p.ldr(ATeq, r, TSP)
+	p.stackup(1)
 	p.tspchk()
 
 }

@@ -583,7 +583,6 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 
 	case *CallExpr:
 		rt = e.emitCall(t2)
-		e.p.mov(TR2, TR4)
 	case *IndexExpr:
 		v := t2.X.(*VarExpr).Wl.Value
 		if v == "_" {
@@ -868,7 +867,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	e.p.sub(TMAIN, 1)
 
 	if len(fun.K) > 0 {
-		e.p.pop(TR4)
+		e.p.pop(TR2)
 	}
 	e.p.pop(TSS)
 	e.popAll()

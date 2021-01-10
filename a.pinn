@@ -1,2 +1,4 @@
-func f() {}
+func f() int, int {
+ return 2, 4;
+}
 f();
