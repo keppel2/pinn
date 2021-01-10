@@ -655,14 +655,17 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 		if mts[k].rs == rsInvalid {
 			e.err(as.Op)
 		}
-		e.p.push(TR2)
+		if mts[k].rs == rsMulti {
+		} else {
+			e.p.push(TR2)
+		}
 	}
 	for k, v := range as.LHSa {
 		if len(mts) > 0 {
-			e.p.add(TSP, 8*(len(as.LHSa)-k-1))
+			e.p.stackup(len(as.LHSa) - k - 1)
 			e.p.tspchk()
 			e.p.peek(TR2)
-			e.p.sub(TSP, 8*(len(as.LHSa)-k-1))
+			e.p.stackup(-(len(as.LHSa) - k - 1))
 			e.p.tspchk()
 		}
 		switch lh2 := v.(type) {
@@ -773,7 +776,7 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 		}
 
 	}
-	e.p.add(TSP, 8*len(as.RHSa))
+	e.p.stackup(len(as.RHSa))
 	e.p.tspchk()
 
 }
@@ -795,13 +798,15 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if fun.PCount == -1 {
 		e.err("Internal function: " + ID)
 	}
-	if len(fun.K) != 0 {
+	if len(fun.K) == 0 {
+		rt = newSent(rsInvalid)
+	} else if len(fun.K) == 1 {
 		skind := fun.K[0].(*SKind).Wl.Value
 		rt = newSent(fromKind(skind))
 	} else {
-		rt = newSent(rsInvalid)
+		rt = newSent(rsMulti)
+		rt.len = len(fun.K)
 	}
-
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
 	}
@@ -862,7 +867,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 
 	e.p.sub(TMAIN, 1)
 
-	if fun.K != nil {
+	if len(fun.K) > 0 {
 		e.p.pop(TR4)
 	}
 	e.p.pop(TSS)
@@ -942,9 +947,6 @@ func (e *emitter) emitStmt(s Stmt) {
 		return
 
 	case *ReturnStmt:
-		if len(e.f.K) != len(t.EL) {
-			e.err("")
-		}
 		if len(t.EL) == 0 {
 			e.p.br(e.ebranch)
 			return
@@ -955,10 +957,15 @@ func (e *emitter) emitStmt(s Stmt) {
 			}
 			e.p.mov(TR1, TR2)
 			e.p.br(e.ebranch)
+			return
+		}
+		if len(e.f.K) != len(t.EL) {
+			e.err("")
 		}
 
 		e.p.mov(TSP, TSS)
 		for _, ex := range t.EL {
+			e.p.emitC("tEL")
 			e.assignToReg(ex)
 			e.p.push(TR2)
 		}
@@ -1033,9 +1040,7 @@ func (e *emitter) emitStmt(s Stmt) {
 					e.p.br(labExit)
 					e.p.makeLabel(lab2)
 					e.poploop()
-					e.p.pnull()
-					e.p.pnull()
-					e.p.pnull()
+					e.p.stackup(3)
 					e.p.sub(TR9, 3)
 					e.p.makeLabel(labExit)
 					return

@@ -16,6 +16,7 @@ const (
 	rsRange
 	rsMloc
 	rsString
+	rsMulti
 )
 
 type rstate int

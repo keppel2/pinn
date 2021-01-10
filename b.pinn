@@ -1,5 +1,4 @@
-func r() int { }
-r();
-r();
-r();
-r();
+func f7() int { return 7; }
+var a int;
+a = f7();
+print(a);

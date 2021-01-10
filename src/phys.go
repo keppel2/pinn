@@ -60,6 +60,9 @@ func (p *phys) emitR(i string, ops ...regOrConst) {
 func (p *phys) cmp(a regi, b regOrConst) {
 	p.emitR("cmpq", b, a)
 }
+func (p *phys) stackup(i int) {
+	p.add(TSP, 8*i)
+}
 func (p *phys) push(r regi) {
 	p.str(ATpre, r, TSP, -8)
 }
@@ -97,9 +100,6 @@ func (p *phys) ldr(t atype, d regi, base regi, offset ...regOrConst) {
 	}
 }
 
-func (p *phys) pnull() {
-	p.add(TSP, 8)
-}
 func (p *phys) tspchk() {
 	/*
 		p.cmp(TSP, TMAIN)

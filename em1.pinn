@@ -170,6 +170,8 @@ func g2() int {
 return f2();
 }
 
+a = 3;
+
 a = g1();
 assert(a, 101);
 
