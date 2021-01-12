@@ -185,6 +185,16 @@ assert(a, 101);
 a = g2();
 assert(a, 202);
 
+func rc (rr int) int {
+  return rr * 2;
+}
+func hrc (h, r int) int {
+  return  rc(h + r);
+}
+rt := hrc(1, 4);
+assert(rt, 10);
+
+
 // Multi function
 func mf() int, int {
   return 2, 5;

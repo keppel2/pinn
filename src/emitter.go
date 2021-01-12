@@ -1000,8 +1000,8 @@ func (e *emitter) emitStmt(s Stmt) {
 		}
 
 		if len(e.f.K) == 1 {
-			e.p.mov(TSP, TSS)
 			e.assignToReg(t.EL[0])
+			e.p.mov(TSP, TSS)
 			e.p.push(TR2)
 			e.p.br(e.ebranch2)
 			return

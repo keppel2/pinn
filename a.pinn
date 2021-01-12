@@ -1,8 +1,8 @@
 func rc (rr int) int {
-  print(rr);
-  return rr;
+  return rr * 2;
 }
 func hrc (h, r int) int {
-  return  rc(r);
+  return  rc(h + r);
 }
-rt := hrc(0, 0);
+rt := hrc(1, 4);
+assert(rt, 10);
