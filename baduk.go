@@ -1,21 +1,39 @@
-#define SIZER 1;
-#define SIZEC 5;
-#define BSIZE SIZER SIZEC *;
-#define HASHT 3 BSIZE ^;
-#define BTOT BSIZE HASHT * BSIZE +;
+package main
+import "fmt"
+const (
+ SIZER = 1;
+ SIZEC = 5;
+ BSIZE =  SIZER * SIZEC
 
-E := 0;
-B := 1;
-W := 2;
-N := 3;
-X := 4;
-I := 5;
-TRUE := 1;
-FALSE := 0;
-_counter := 0;
 
-var bd [BTOT]int;
-var bh [HASHT]int;
+E = 0;
+B = 1;
+W = 2;
+N = 3;
+X = 4;
+I = 5;
+TRUE = 1;
+FALSE = 0;
+
+)
+
+var HASHT =  pow(3, BSIZE)
+var  BTOT = HASHT * BSIZE + BSIZE
+
+func pow (a, b int) int {
+  rt := 1
+  for x := 0; x < b; x++ {
+    rt *= a
+  }
+  return rt
+}
+
+
+var _counter int;
+var bd = make([]int, BTOT);
+var bh = make([]int, HASHT);
+
+var gohash = make(map[int]bool)
 
 func move (player, r, c int) int {
   push();
@@ -31,7 +49,6 @@ func move (player, r, c int) int {
 func hash() int {
   rt := 0;
   var r, c, hc int;
-  var da, db int;
   for r = 0; r < SIZER; r++ {
     for c = 0; c < SIZEC; c++ {
       rt = rt * 3;
@@ -53,7 +70,6 @@ func sko() int {
 }
 
 func mark (player, r, c int) int {
-  var da int;
   var rt int;
   if r < 0 || r >= SIZER || c < 0 || c >= SIZEC || cp[rc(r, c)] == opposite(player) || cp[rc(r, c)] == I {
     return FALSE;
@@ -115,7 +131,7 @@ func push() {
 func copy2cp() {
   var r int;
   var c int;
-  var da, db, dd int;
+  var dd int;
   for r = 0; r < SIZER; r++ {
     for c = 0; c < SIZEC; c++ {
       dd = bd[hrc(hsize - 1, r, c)];
@@ -129,7 +145,6 @@ func score (h int) int {
     b := 0;
     w := 0;
     var cs int;
-    var da, db int;
     copy2cp();
     var r, c, p int;
     for r = 0; r < SIZER; r++ {
@@ -150,12 +165,12 @@ func score (h int) int {
 
 func mscore(player int) int {
   if player == B {
-    return score(hsize - 1);
+    return score(hsize -1 )
   }
-  return -score(hsize - 1);
+  return -score(hsize -1 )
 }
 
-func color (p, r, c, score int) int, int {
+func color (p, r, c, score int) (int, int) {
     if r < 0 || r >= SIZER || c < 0 || c >= SIZEC || cp[rc(r, c)] == I {
       return score, p;
     }
@@ -184,31 +199,25 @@ func hrc (h, r, c int) int {
 
 func opposite (opx int) int { 
   if opx == B {
-    return W;
+    return W
   }
-  return B;
+  return B
 }
 
-hsize := 1;
+var hsize = 1;
 
 func main() {
   bh[hash()] = 1;
   sc := minimax(B, FALSE);
-  print(np(sc));
-  println();
-  printdec(_counter);
-  println();
+  fmt.Println(sc);
+  fmt.Println(_counter);
 }
 
 
-func minimax (player int, passed int) int
-{
+func minimax (player int, passed int) int {
   if _counter % 0x100_000 == 0 {
-//    printBoard(hsize - 1);
-    printdec(_counter);
-    println();
+    fmt.Println(_counter)
   }
-  var da, db int;
   _counter++;
   var best int;
   if passed == TRUE {
@@ -242,28 +251,3 @@ func minimax (player int, passed int) int
   return best;
 }
 
-func np(a int) int {
-  if a < 0 { printchar("-"); return -a; }
-  return a;
-}
-
-func printBoard (i index) {
-  println();
-  printchar("^^^");
-  println();
-  var c int;
-  var r int;
-  for r = 0; r < SIZER; r++ {
-    for c = 0; c < SIZEC; c++ {
-        print (bd[hrc(i, r, c)]);
-    }
-        println();
-  }
-  println();
-  s := score(i);
-  print(np(s));
-  printchar("---");
-  println();
-}
-
-main();

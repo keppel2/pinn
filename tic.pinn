@@ -31,8 +31,8 @@ da = dbg();
   }
   x = 0;
   y = 0;
-  for x = range 0:SIZE {
-    for y = range 0:SIZE {
+  for x = 0; x < SIZE; x++ {
+    for y = 0; y < SIZE; y++ {
 
       if flob[xy(x, y)]  == EMPTY {
         flob[xy(x, y)] = player;
