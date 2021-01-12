@@ -1158,6 +1158,7 @@ func (e *emitter) emitF() {
 	for _, s := range e.file.SList {
 		e.emitStmt(s)
 	}
+	e.p.emitC("globs")
 	e.p.makeLabel(lab)
 	e.p.cmp(TR9, TSP)
 	tc := e.clab()

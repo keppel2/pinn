@@ -1,4 +1,4 @@
-#define SIZER 1;
+#define SIZER 3;
 #define SIZEC 2;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
@@ -25,8 +25,27 @@ func move (player, x, y int) int {
   cap(opposite(player), x, y + 1);
   cap(opposite(player), x, y - 1);
   cap(player, x, y);
-  if sko() == FALSE {
-    return FALSE;
+  return sko();
+}
+
+func cmp(a, b int) int {
+  var r, c int;
+  for r = range 0:SIZER {
+    for c = range 0:SIZEC {
+      if bd[hrc(a, r, c)] != bd[hrc(b, r, c)] {
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}
+
+func ok() int {
+  var x int;
+  for x = range 0:hsize - 1 {
+    if cmp(x, hsize - 1) == TRUE {
+      return FALSE;
+    }
   }
   return TRUE;
 }
@@ -40,7 +59,6 @@ func hash() int {
       rt = rt * 3;
       da = dbg();
       hc = hrc(hsize - 1, r, c); 
-      print(hc);
       db = dbg();
       assert(da, db);
       rt = rt + bd[hc];
@@ -49,11 +67,14 @@ func hash() int {
   return rt;
 
 }
-func sko () int {
+func sko() int {
   h := hash();
   if bh[h] == 1 {
+  //return ok();
+  //if ok() == FALSE { 
     hsize--;
     return FALSE;
+  //}
   }
   bh[h] = 1;
   return TRUE;
@@ -101,7 +122,6 @@ func cap (player int, x, y int) {
   }
   copy2bd();
 }
-//var asd int;
 var cp [BSIZE] int;
 func copy2bd() {
   var x int;
@@ -146,19 +166,19 @@ func score (h int) int {
     var cs int;
     var da, db int;
     copy2cp();
-    var x, y int;
+    var x, y, p int;
     for x = range 0:SIZER {
         for y = range 0:SIZEC {
             if bd[hrc(h, x, y)] == B {b++;} else
             if bd[hrc(h, x, y)] == W {w++;} else
             {
-              _player = N;
+              p = N;
                   da = dbg();
-                  cs = color(x, y, 0);
+                  cs, p = color(p, x, y, 0);
                   db = dbg();
                   assert(da, db);
-                  if _player == B b += cs;
-                  if _player == W w += cs;
+                  if p == B b += cs;
+                  if p == W w += cs;
             }
             
         }
@@ -170,34 +190,31 @@ func mscore(player int) int {
   return player == B ? score(hsize - 1) : -score(hsize - 1);
 }
 
-var _player int;
-func color (x, y, score int) int {
+func color (p, x, y, score int) int, int {
     if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == I {
-      return score;
+      return score, p;
     }
-    mscore := score;
     pin := cp[rc(x, y)];
     if pin == E {
       cp[rc(x,y)] = I;
-      mscore++;
-      mscore = color(x + 1, y, score);
-      mscore = color(x - 1, y, score);
-      mscore = color(x, y + 1, score);
-      mscore = color(x, y - 1, score);
-    } else if _player == N {
-      _player = pin;
-    } else if _player != pin {
-      _player = X;
+      score++;
+      score, p = color(p, x + 1, y, score);
+      score, p = color(p, x - 1, y, score);
+      score, p = color(p, x, y + 1, score);
+      score, p = color(p, x, y - 1, score);
+    } else if p == N {
+      p = pin;
+    } else if p != pin {
+      p = X;
     }
-    return mscore;
+    return score, p;
 }
 
 func rc (r, c int) int {
   return r * SIZEC  + c;
 }
 func hrc (h, r, c int) int {
-print(h);
-  return  rc(r, c);// + rc(r, c);
+  return  rc(r, c);
 }
 
 func opposite (opx int) int { 
@@ -226,33 +243,32 @@ func printBoard (i index) {
         println();
   }
   println();
+  s := score(i);
+  print(np(s));
   printchar("---");
   println();
 }
 
 hsize := 1;
 
-//bh[hash()] = 1;
+bh[hash()] = 1;
 
 
-//hsize++;
+hsize++;
+
 //bd[hrc(1, 0, 0)] = W;
 //bh[hash()] = 1;
 
-print(hrc(0, 0, 1));
-
-//sc := minimax(B, FALSE);
-//print(np(sc));
+sc := minimax(B, FALSE);
+print(np(sc));
 
 
 func minimax (player int, passed int) int
 {
-/*
   if _counter % 100 == 0 {
     printBoard(hsize - 1);
     println();
   }
-  */
   var da, db int;
   _counter++;
   var best int;
