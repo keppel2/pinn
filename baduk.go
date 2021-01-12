@@ -2,7 +2,7 @@ package main
 import "fmt"
 const (
  SIZER = 1;
- SIZEC = 5;
+ SIZEC = 4;
  BSIZE =  SIZER * SIZEC
 
 

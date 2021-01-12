@@ -1,5 +1,5 @@
 #define SIZER 1;
-#define SIZEC 5;
+#define SIZEC 4;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
 #define BTOT BSIZE HASHT * BSIZE +;
@@ -194,10 +194,8 @@ hsize := 1;
 func main() {
   bh[hash()] = 1;
   sc := minimax(B, FALSE);
-  print(np(sc));
-  println();
-  printdec(_counter);
-  println();
+  assert(sc, 4);
+  assert(_counter, 1670);
 }
 
 
@@ -205,8 +203,8 @@ func minimax (player int, passed int) int
 {
   if _counter % 0x100_000 == 0 {
 //    printBoard(hsize - 1);
-    printdec(_counter);
-    println();
+//    printdec(_counter);
+//    println();
   }
   var da, db int;
   _counter++;
