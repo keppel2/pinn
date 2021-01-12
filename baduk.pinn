@@ -1,5 +1,5 @@
-#define SIZER 3;
-#define SIZEC 2;
+#define SIZER 1;
+#define SIZEC 6;
 #define BSIZE SIZER SIZEC *;
 #define HASHT 3 BSIZE ^;
 #define BTOT BSIZE HASHT *;
@@ -17,50 +17,25 @@ _counter := 0;
 var bd [BTOT]int;
 var bh [HASHT]int;
 
-func move (player, x, y int) int {
+func move (player, r, c int) int {
   push();
-  bd[hrc(hsize - 1, x, y)] = player;
-  cap(opposite(player), x + 1, y);
-  cap(opposite(player), x - 1, y);
-  cap(opposite(player), x, y + 1);
-  cap(opposite(player), x, y - 1);
-  cap(player, x, y);
+  bd[hrc(hsize - 1, r, c)] = player;
+  cap(opposite(player), r + 1, c);
+  cap(opposite(player), r - 1, c);
+  cap(opposite(player), r, c + 1);
+  cap(opposite(player), r, c - 1);
+  cap(player, r, c);
   return sko();
-}
-
-func cmp(a, b int) int {
-  var r, c int;
-  for r = range 0:SIZER {
-    for c = range 0:SIZEC {
-      if bd[hrc(a, r, c)] != bd[hrc(b, r, c)] {
-        return FALSE;
-      }
-    }
-  }
-  return TRUE;
-}
-
-func ok() int {
-  var x int;
-  for x = range 0:hsize - 1 {
-    if cmp(x, hsize - 1) == TRUE {
-      return FALSE;
-    }
-  }
-  return TRUE;
 }
 
 func hash() int {
   rt := 0;
   var r, c, hc int;
   var da, db int;
-  for r = range 0:SIZER {
-    for c = range 0:SIZEC {
+  for r = 0; r < SIZER; r++ {
+    for c = 0; c < SIZEC; c++ {
       rt = rt * 3;
-      da = dbg();
       hc = hrc(hsize - 1, r, c); 
-      db = dbg();
-      assert(da, db);
       rt = rt + bd[hc];
     }
   }
@@ -70,53 +45,46 @@ func hash() int {
 func sko() int {
   h := hash();
   if bh[h] == 1 {
-  //return ok();
-  //if ok() == FALSE { 
     hsize--;
     return FALSE;
-  //}
   }
   bh[h] = 1;
   return TRUE;
 }
 
-func mark (player, x, y int) int {
+func mark (player, r, c int) int {
   var da int;
   var rt int;
-  //da = dbg();
-  if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == opposite(player) || cp[rc(x, y)] == I {
+  if r < 0 || r >= SIZER || c < 0 || c >= SIZEC || cp[rc(r, c)] == opposite(player) || cp[rc(r, c)] == I {
     return FALSE;
   }
-  if cp[rc(x, y)] == E {
+  if cp[rc(r, c)] == E {
     return TRUE;
   }
-  cp[rc(x, y)] = I;
+  cp[rc(r, c)] = I;
   rt = FALSE;
-  if mark(player, x + 1, y) == TRUE { rt = TRUE; }
-  if mark(player, x - 1, y) == TRUE { rt = TRUE; }
-  if mark(player, x, y + 1) == TRUE { rt = TRUE; }
-
-  if mark(player, x, y - 1) == TRUE { rt = TRUE; }
-  //_db = dbg();
-  //assert(da, _db);
+  if mark(player, r + 1, c) == TRUE { rt = TRUE; }
+  if mark(player, r - 1, c) == TRUE { rt = TRUE; }
+  if mark(player, r, c + 1) == TRUE { rt = TRUE; }
+  if mark(player, r, c - 1) == TRUE { rt = TRUE; }
   return rt;
 }
 
-func cap (player int, x, y int) {
+func cap (player, r, c int) {
 
-  if x < 0 || x >= SIZER || y < 0 || y >= SIZEC {
+  if r < 0 || r >= SIZER || c < 0 || c >= SIZEC {
     return;
   }
-  var r, c int;
+  var tr, tc int;
   copy2cp();
-  rt := mark(player, x, y);
+  rt := mark(player, r, c);
   if rt == TRUE {
     return;
   }
-  for r = range 0:SIZER {
-    for c = range 0:SIZEC {
-      if cp[rc(r, c)] == I {
-        cp[rc(r, c)] = E;
+  for tr = 0; tr < SIZER; tr++ {
+    for tc = 0; tc < SIZEC; tc++ {
+      if cp[rc(tr, tc)] == I {
+        cp[rc(tr, tc)] = E;
       }
     }
   }
@@ -124,37 +92,34 @@ func cap (player int, x, y int) {
 }
 var cp [BSIZE] int;
 func copy2bd() {
-  var x int;
-  var y int;
-  for x = range 0:SIZER {
-    for y = range 0:SIZEC {
-      bd[hrc(hsize - 1, x, y)] = cp[rc(x, y)];
+  var r int;
+  var c int;
+  for r = 0; r < SIZER; r++ {
+    for c = 0; c < SIZEC; c++ {
+      bd[hrc(hsize - 1, r, c)] = cp[rc(r, c)];
     }
   }
 }
 
 func push() {
   hsize++;
-  var x int;
-  var y int;
-  for x = range 0:SIZER {
-    for y = range 0:SIZEC {
-      bd[hrc(hsize - 1, x, y)] = bd[hrc(hsize - 2, x, y)];
+  var r int;
+  var c int;
+  for r = 0; r < SIZER; r++ {
+    for c = 0; c < SIZEC; c++ {
+      bd[hrc(hsize - 1, r, c)] = bd[hrc(hsize - 2, r, c)];
     }
   }
 }
 
 func copy2cp() {
-  var x int;
-  var y int;
+  var r int;
+  var c int;
   var da, db, dd int;
-  for x = range 0:SIZER {
-    for y = range 0:SIZEC {
-      da = dbg(); 
-      dd = bd[hrc(hsize - 1, x, y)];
-      db = dbg();
-      assert(da, db);
-      cp[rc(x, y)] = dd;
+  for r = 0; r < SIZER; r++ {
+    for c = 0; c < SIZEC; c++ {
+      dd = bd[hrc(hsize - 1, r, c)];
+      cp[rc(r, c)] = dd;
 
     }
   }
@@ -166,17 +131,14 @@ func score (h int) int {
     var cs int;
     var da, db int;
     copy2cp();
-    var x, y, p int;
-    for x = range 0:SIZER {
-        for y = range 0:SIZEC {
-            if bd[hrc(h, x, y)] == B {b++;} else
-            if bd[hrc(h, x, y)] == W {w++;} else
+    var r, c, p int;
+    for r = 0; r < SIZER; r++ {
+        for c = 0; c < SIZEC; c++ {
+            if bd[hrc(h, r, c)] == B {b++;} else
+            if bd[hrc(h, r, c)] == W {w++;} else
             {
               p = N;
-                  da = dbg();
-                  cs, p = color(p, x, y, 0);
-                  db = dbg();
-                  assert(da, db);
+                  cs, p = color(p, r, c, 0);
                   if p == B b += cs;
                   if p == W w += cs;
             }
@@ -190,18 +152,18 @@ func mscore(player int) int {
   return player == B ? score(hsize - 1) : -score(hsize - 1);
 }
 
-func color (p, x, y, score int) int, int {
-    if x < 0 || x >= SIZER || y < 0 || y >= SIZEC || cp[rc(x, y)] == I {
+func color (p, r, c, score int) int, int {
+    if r < 0 || r >= SIZER || c < 0 || c >= SIZEC || cp[rc(r, c)] == I {
       return score, p;
     }
-    pin := cp[rc(x, y)];
+    pin := cp[rc(r, c)];
     if pin == E {
-      cp[rc(x,y)] = I;
+      cp[rc(r,c)] = I;
       score++;
-      score, p = color(p, x + 1, y, score);
-      score, p = color(p, x - 1, y, score);
-      score, p = color(p, x, y + 1, score);
-      score, p = color(p, x, y - 1, score);
+      score, p = color(p, r + 1, c, score);
+      score, p = color(p, r - 1, c, score);
+      score, p = color(p, r, c + 1, score);
+      score, p = color(p, r, c - 1, score);
     } else if p == N {
       p = pin;
     } else if p != pin {
@@ -221,46 +183,13 @@ func opposite (opx int) int {
  return opx == B ? W : B;
 }
 
-func printAll() {
-  var x int;
-  for x = range 0:hsize {
-    println();
-    print(x);
-    printBoard(x);
-  }
-}
-
-func printBoard (i index) {
-  println();
-  printchar("^^^");
-  println();
-  var y int;
-  var x int;
-  for x = range 0:SIZER {
-    for y = range 0:SIZEC {
-        print (bd[hrc(i, x, y)]);
-    }
-        println();
-  }
-  println();
-  s := score(i);
-  print(np(s));
-  printchar("---");
-  println();
-}
-
 hsize := 1;
 
-bh[hash()] = 1;
-
-
-hsize++;
-
-//bd[hrc(1, 0, 0)] = W;
-//bh[hash()] = 1;
-
-sc := minimax(B, FALSE);
-print(np(sc));
+func main() {
+  bh[hash()] = 1;
+  sc := minimax(B, FALSE);
+  print(np(sc));
+}
 
 
 func minimax (player int, passed int) int
@@ -273,30 +202,21 @@ func minimax (player int, passed int) int
   _counter++;
   var best int;
   if passed == TRUE {
-          da = dbg();
     best = mscore(player);
-          db = dbg();
-          assert(da, db);
   } else {
-          da = dbg();
     best = -minimax(opposite(player), TRUE);
-          db = dbg();
-          assert(da, db);
   }
   if best == BSIZE {
     return best;
   }
 
   var s, r, c, b  int;
-  for r = range 0:SIZER {
-    for c = range 0:SIZEC {
+  for r = 0; r < SIZER; r++ {
+    for c = 0; c < SIZEC; c++ {
       if bd[hrc(hsize - 1, r, c)] == E {
         b = move(player, r, c);
         if b == TRUE {
-          da = dbg();
           s = -minimax(opposite(player), FALSE);
-          db = dbg();
-          assert(da, db);
           if s > best {
             best = s;
           }
@@ -317,3 +237,23 @@ func np(a int) int {
   return a;
 }
 
+func printBoard (i index) {
+  println();
+  printchar("^^^");
+  println();
+  var c int;
+  var r int;
+  for r = 0; r < SIZER; r++ {
+    for c = 0; c < SIZEC; c++ {
+        print (bd[hrc(i, r, c)]);
+    }
+        println();
+  }
+  println();
+  s := score(i);
+  print(np(s));
+  printchar("---");
+  println();
+}
+
+main();
