@@ -154,17 +154,13 @@ func (e *emitter) resetRegs() {
 }
 
 func (e *emitter) pushAll() {
-
-	for i := TR9; i <= TR9; i++ {
-		e.p.push(i)
+	for _, r := range ptr {
+		e.p.push(r)
 	}
-	e.p.push(TSS)
-
 }
 func (e *emitter) popAll() {
-	e.p.pop(TSS)
-	for i := TR9; i >= TR9; i-- {
-		e.p.pop(i)
+	for i := len(ptr) - 1; i >= 0; i-- {
+		e.p.pop(ptr[i])
 	}
 }
 
@@ -671,8 +667,8 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 			if len(as.RHSa) != 1 {
 				e.err("")
 			}
-			e.p.stackup(-2)
-			e.p.stackup(-mts[0].len)
+			//	e.p.stackup(-len(ptr))
+			//		e.p.stackup(-mts[0].len)
 		} else {
 			e.p.push(TR2)
 		}
@@ -799,8 +795,8 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 
 	}
 	if len(mts) == 1 && mts[0].rs == rsMulti {
-		e.p.stackup(2)
-		e.p.stackup(mts[0].len)
+		e.p.add(TSP, TR7)
+		e.p.stackup(len(ptr))
 	} else {
 		e.p.stackup(len(as.RHSa))
 	}
@@ -834,6 +830,7 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	} else {
 		rt = newSent(rsMulti)
 		rt.len = len(fun.K)
+		rt.i = fun.PSize
 	}
 	if len(ce.Params) != fun.PCount {
 		e.err(ID)
@@ -897,7 +894,11 @@ func (e *emitter) emitCall(ce *CallExpr) *mloc {
 	if len(fun.K) == 1 {
 		e.p.pop(TR2)
 	} else if len(fun.K) > 1 {
-		e.p.stackup(len(fun.K))
+		e.p.add(TSP, TR7)
+		e.popAll()
+		e.p.stackup(-len(ptr))
+		e.p.sub(TSP, TR7)
+		return rt
 	}
 	e.popAll()
 
@@ -998,12 +999,21 @@ func (e *emitter) emitStmt(s Stmt) {
 			e.err("")
 		}
 
-		e.p.mov(TSP, TSS)
+		if len(e.f.K) == 1 {
+			e.p.mov(TSP, TSS)
+			e.assignToReg(t.EL[0])
+			e.p.push(TR2)
+			e.p.br(e.ebranch2)
+			return
+		}
 		for _, ex := range t.EL {
 			e.p.emitC("tEL")
 			e.assignToReg(ex)
 			e.p.push(TR2)
+			e.p.add(TR9, 1)
 		}
+		e.p.mov(TR7, TR9)
+		e.p.lsl(TR7, 3)
 		e.p.br(e.ebranch2)
 
 		return

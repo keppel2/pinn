@@ -1,12 +1,8 @@
 func rc (rr int) int {
-print(7);
   print(rr);
   return rr;
 }
 func hrc (h, r int) int {
-  print(r);
   return  rc(r);
 }
-
 rt := hrc(0, 0);
-print(rt);

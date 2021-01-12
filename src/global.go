@@ -59,6 +59,8 @@ const (
 	RMAX
 )
 
+var ptr = []reg{TR9, TSS}
+
 const (
 	SP reg = RMAX
 )
