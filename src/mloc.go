@@ -17,6 +17,7 @@ const (
 	rsMloc
 	rsString
 	rsMulti
+	rsBool
 )
 
 type rstate int

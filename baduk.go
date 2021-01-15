@@ -2,7 +2,7 @@ package main
 import "fmt"
 const (
  SIZER = 1;
- SIZEC = 4;
+ SIZEC = 5;
  BSIZE =  SIZER * SIZEC
 
 
@@ -208,15 +208,20 @@ var hsize = 1;
 
 func main() {
   bh[hash()] = 1;
-  sc := minimax(B, FALSE);
+  hsize++
+  bh[hrc(hsize - 1, 0, 2)] = B
+  bh[hash()] = 1
+  hsize++
+  sc := minimax(W, FALSE);
   fmt.Println(sc);
   fmt.Println(_counter);
 }
 
 
 func minimax (player int, passed int) int {
-  if _counter % 0x100_000 == 0 {
-    fmt.Println(_counter)
+  if _counter % 0x10_000_000 == 0 {
+    fmt.Print(_counter)
+    fmt.Print(",")
   }
   _counter++;
   var best int;
