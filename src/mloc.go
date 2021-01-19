@@ -39,6 +39,8 @@ func fromKind(k string) rstate {
 		return rsString
 	case "ptr":
 		return rsMloc
+	case "bool":
+		return rsBool
 	}
 	return rsInvalid
 }
@@ -58,9 +60,30 @@ func (ml *mloc) String() string {
 	if ml.mlt == mlArray {
 		ap = fmt.Sprintf("[%v]", ml.len)
 	}
-	rt = fmt.Sprintf("%v%v%v%v", rt, ml.i, ap, ml.mlt)
+	rt = fmt.Sprintf("%v%v%v%v%v", rt, ml.i, ap, ml.mlt, ml.rs)
 	return rt
 
+}
+
+func (r rstate) String() string {
+	switch r {
+	case rsInvalid:
+		return "X"
+	case rsInt:
+		return "I"
+	case rsRange:
+		return "R"
+	case rsMloc:
+		return "M"
+	case rsString:
+		return "S"
+	case rsMulti:
+		return "U"
+	case rsBool:
+		return "B"
+	default:
+		panic("")
+	}
 }
 
 func (m mltt) String() string {
@@ -86,13 +109,20 @@ func (m *mloc) typeOk(a *mloc) bool {
 	if m.mlt != a.mlt {
 		return false
 	}
+	if m.rs != a.rs {
+		return false
+	}
 	if m.mlt == mlArray {
 		return m.len == a.len
 	}
 	return true
 }
+
 func (m *mloc) check() bool {
 	if m.mlt == mlInvalid {
+		return false
+	}
+	if m.rs == rsInvalid {
 		return false
 	}
 	if m.mlt == mlInt && m.len != -1 {

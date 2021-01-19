@@ -5,7 +5,9 @@ import "fmt"
 import "reflect"
 import "math/rand"
 
-//import "os"
+import "os"
+
+var _ = os.Stderr
 
 type emitter struct {
 	rMap     map[string]*mloc
@@ -27,8 +29,9 @@ type emitter struct {
 
 func (e *emitter) checks() {
 	for k, v := range e.rMap {
+		_ = k
 		if !v.check() {
-			e.err(k)
+			//e.err(k)
 		}
 	}
 }
@@ -43,7 +46,8 @@ func (e *emitter) clearL() {
 func (e *emitter) emitArrayExpr(ae *ArrayExpr) *mloc {
 	ml := e.newArml(len(ae.EL))
 	for key, expr := range ae.EL {
-		e.assignToReg(expr)
+		rt := e.assignToReg(expr)
+		ml.rs = rt.rs
 		e.p.mov(TR3, key)
 		e.iStore(TR2, TR3, ml)
 	}
@@ -137,9 +141,11 @@ func (e *emitter) newVar(s string, k Kind) {
 
 	case *ArKind:
 		ml := e.newArml(atoi(e, t.Len.(*NumberExpr).Il.Value))
+		ml.rs = fromKind(t.K.(*SKind).Wl.Value)
 		e.rMap[s] = ml
 	case *SlKind:
 		ml := e.newSlc()
+		ml.rs = fromKind(t.K.(*SKind).Wl.Value)
 		e.rMap[s] = ml
 	default:
 		e.err(s)
@@ -482,6 +488,8 @@ func (e *emitter) getType(ex Expr) *mloc {
 	switch t := ex.(type) {
 	case *ArrayExpr:
 		mloc := e.newArml(len(t.EL))
+		mloc.rs = e.getType(t.EL[0]).rs
+		e.p.emitC(fmt.Sprint(mloc))
 		return mloc
 	case *CallExpr:
 		ID := makeVar(t.ID)
@@ -1184,4 +1192,5 @@ func (e *emitter) emitF() {
 	if len(e.lstack) != 0 {
 		e.err("Loop stack")
 	}
+	e.p.emitC("end")
 }
