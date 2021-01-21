@@ -81,6 +81,7 @@ func (e *emitter) newSlc() *mloc {
 }
 
 func (e *emitter) newIntml() *mloc {
+	e.p.emitC("nim")
 	ml := new(mloc)
 	ml.init(e.fc, mlInt)
 	ml.rs = rsInt
@@ -484,6 +485,35 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 	e.clearL()
 }
 
+func (e *emitter) getRs(ex Expr) rstate {
+	switch t := ex.(type) {
+	case *ArrayExpr:
+		rs := e.getRs(t.EL[0])
+		return rs
+	case *CallExpr:
+		ID := makeVar(t.ID)
+		if ID == "malloc" {
+			return rsMloc
+		}
+		if len(e.file.getFunc(ID).K) > 1 {
+			return rsMulti
+		}
+		ks := e.file.getFunc(ID).K[0].(*SKind).Wl.Value
+		return fromKind(ks)
+	case *IndexExpr:
+		if v, ok := t.E.(*BinaryExpr); ok {
+			if v.op == ":" || v.op == "@" {
+				return rsInt
+			}
+		}
+		return rsInt
+
+	default:
+		return rsInt
+	}
+
+}
+
 func (e *emitter) getType(ex Expr) *mloc {
 	switch t := ex.(type) {
 	case *ArrayExpr:
@@ -634,6 +664,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 
 func (e *emitter) emitAssign(as *AssignStmt) {
 	mts := make([]*mloc, len(as.RHSa))
+	e.p.emitC("ea")
 
 	if as.Op == "+=" || as.Op == "-=" || as.Op == "/=" || as.Op == "*=" || as.Op == "%=" {
 		if len(as.RHSa) != 1 || len(as.LHSa) != 1 {
@@ -647,21 +678,46 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 	}
 
 	if as.Op == ":=" {
-		for k, v := range as.LHSa {
-			id := makeVar(v)
-			if id == "_" {
-				e.err(id)
-			}
-			if e.rMap[id] != nil {
-				e.err(id)
-			}
-
-			if len(as.RHSa) == 1 && e.getType(as.RHSa[0]).rs == rsMulti {
+		if e.getRs(as.RHSa[0]) == rsMulti {
+			for _, v := range as.LHSa {
+				id := makeVar(v)
+				if id == "_" {
+					e.err(id)
+				}
+				if e.rMap[id] != nil {
+					e.err(id)
+				}
 				ml := e.newIntml()
 				e.rMap[id] = ml
-			} else {
+			}
+		} else {
+			for k, v := range as.LHSa {
+
+				id := makeVar(v)
+				if id == "_" {
+					e.err(id)
+				}
+				if e.rMap[id] != nil {
+					e.err(id)
+				}
+				e.p.emitC("eaea")
 				ml := e.getType(as.RHSa[k])
-				e.rMap[id] = ml
+				if ml.rs == rsMulti {
+					if len(as.RHSa) != 1 {
+						e.err("")
+					}
+				}
+
+				if len(as.RHSa) == 1 && e.getType(as.RHSa[0]).rs == rsMulti {
+					ml := e.newIntml()
+					e.rMap[id] = ml
+				} else {
+					e.p.emitC("gd")
+					ml := e.getType(as.RHSa[k])
+					e.p.emitC("gd")
+					e.rMap[id] = ml
+					e.p.emitC("dg")
+				}
 			}
 		}
 	}
