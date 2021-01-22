@@ -25,6 +25,7 @@ type emitter struct {
 	st       Node
 	file     *File
 	p        *phys
+	ds       string
 }
 
 func (e *emitter) checks() {
@@ -282,6 +283,7 @@ func (e *emitter) peekloop() [2]branch {
 }
 
 func (e *emitter) err(msg string) {
+	e.ds = e.dString()
 	panic(msg)
 }
 
@@ -700,24 +702,8 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 				if e.rMap[id] != nil {
 					e.err(id)
 				}
-				e.p.emitC("eaea")
 				ml := e.getType(as.RHSa[k])
-				if ml.rs == rsMulti {
-					if len(as.RHSa) != 1 {
-						e.err("")
-					}
-				}
-
-				if len(as.RHSa) == 1 && e.getType(as.RHSa[0]).rs == rsMulti {
-					ml := e.newIntml()
-					e.rMap[id] = ml
-				} else {
-					e.p.emitC("gd")
-					ml := e.getType(as.RHSa[k])
-					e.p.emitC("gd")
-					e.rMap[id] = ml
-					e.p.emitC("dg")
-				}
+				e.rMap[id] = ml
 			}
 		}
 	}

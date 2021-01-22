@@ -57,7 +57,7 @@ func main() {
 		err := recover()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, e.p.sb.String(), "STK", string(debug.Stack()))
-			fmt.Fprintln(os.Stderr, "MSG", err, "EDS", e.dString())
+			fmt.Fprintln(os.Stderr, "MSG", err, "EDS", e.ds)
 			os.Exit(1)
 		}
 	}()
