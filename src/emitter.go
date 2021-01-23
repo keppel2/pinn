@@ -1,4 +1,3 @@
-//OutARM
 package main
 
 import "fmt"
@@ -502,6 +501,12 @@ func (e *emitter) getRs(ex Expr) rstate {
 		}
 		ks := e.file.getFunc(ID).K[0].(*SKind).Wl.Value
 		return fromKind(ks)
+	case *BinaryExpr:
+		return e.getRs(t.LHS)
+	case *UnaryExpr:
+		return e.getRs(t.E)
+	case *TrinaryExpr:
+		return e.getRs(t.MS)
 	case *IndexExpr:
 		if v, ok := t.E.(*BinaryExpr); ok {
 			if v.op == ":" || v.op == "@" {
@@ -510,7 +515,14 @@ func (e *emitter) getRs(ex Expr) rstate {
 		}
 		return rsInt
 
+	case *VarExpr:
+		return e.rMap[makeVar(t)].rs
+	case *NumberExpr:
+		return rsInt
+	case *StringExpr:
+		return rsString
 	default:
+		e.err("")
 		return rsInt
 	}
 
