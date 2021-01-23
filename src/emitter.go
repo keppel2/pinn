@@ -508,13 +508,7 @@ func (e *emitter) getRs(ex Expr) rstate {
 	case *TrinaryExpr:
 		return e.getRs(t.MS)
 	case *IndexExpr:
-		if v, ok := t.E.(*BinaryExpr); ok {
-			if v.op == ":" || v.op == "@" {
-				return rsInt
-			}
-		}
 		return rsInt
-
 	case *VarExpr:
 		return e.rMap[makeVar(t)].rs
 	case *NumberExpr:
@@ -529,22 +523,19 @@ func (e *emitter) getRs(ex Expr) rstate {
 }
 
 func (e *emitter) getType(ex Expr) *mloc {
+	rs := e.getRs(ex)
 	switch t := ex.(type) {
 	case *ArrayExpr:
 		mloc := e.newArml(len(t.EL))
-		mloc.rs = e.getType(t.EL[0]).rs
-		e.p.emitC(fmt.Sprint(mloc))
+		mloc.rs = rs
 		return mloc
 	case *CallExpr:
-		ID := makeVar(t.ID)
-		if ID == "malloc" {
-			rt := e.newIntml()
-			rt.mlt = mlVoid
-			return rt
-		}
-		if len(e.file.getFunc(ID).K) > 1 {
+		if rs == rsMulti {
 			return newSent(rsMulti)
 		}
+		rt := e.newIntml()
+		rt.rs = rs
+		return rt
 
 	case *IndexExpr:
 		if v, ok := t.E.(*BinaryExpr); ok {
@@ -553,9 +544,10 @@ func (e *emitter) getType(ex Expr) *mloc {
 				return rt
 			}
 		}
-
 	}
-	return e.newIntml()
+	rt := e.newIntml()
+	rt.rs = rs
+	return rt
 }
 
 func (e *emitter) assignToReg(ex Expr) *mloc {
