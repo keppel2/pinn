@@ -122,7 +122,6 @@ var sce []int;
 var sar [6]int;
 sar = [3,5,7,9,8,6];
 sce = sar[1@3];
-sce[0];
 
 
 assert(sce[0], 5);

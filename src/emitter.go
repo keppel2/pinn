@@ -83,7 +83,7 @@ func (e *emitter) newSlc() *mloc {
 func (e *emitter) newIntml() *mloc {
 	e.p.emitC("nim")
 	ml := new(mloc)
-	ml.init(e.fc, mlInt)
+	ml.init(e.fc, mlScalar)
 	ml.rs = rsInt
 	e.p.mov(TR5, 0)
 	if ml.fc {
@@ -201,7 +201,7 @@ func (e *emitter) iStore(dest regi, index regi, m *mloc) {
 }
 
 func (e *emitter) iLoad(dest regi, index regi, m *mloc) {
-	if m.mlt == mlInt {
+	if m.mlt == mlScalar {
 		e.err("")
 	}
 	if m.mlt == mlVoid {
@@ -459,7 +459,7 @@ func (e *emitter) emitFunc(f *FuncDecl) {
 			e.rMap[nt.N.Value] = ml
 		} else {
 			ml := new(mloc)
-			ml.init(e.fc, mlInt)
+			ml.init(e.fc, mlScalar)
 			ml.rs = rsInt
 			e.pushSoff(1)
 			ml.i = e.soff
@@ -508,6 +508,8 @@ func (e *emitter) getRs(ex Expr) rstate {
 	case *TrinaryExpr:
 		return e.getRs(t.MS)
 	case *IndexExpr:
+		return e.getRs(t.X)
+
 		return rsInt
 	case *VarExpr:
 		return e.rMap[makeVar(t)].rs

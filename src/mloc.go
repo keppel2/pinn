@@ -6,7 +6,7 @@ const (
 	mlInvalid mltt = iota
 	mlVoid
 	mlArray
-	mlInt
+	mlScalar
 	mlSlice
 )
 
@@ -94,7 +94,7 @@ func (m mltt) String() string {
 		return "V"
 	case mlArray:
 		return "A"
-	case mlInt:
+	case mlScalar:
 		return "I"
 	case mlSlice:
 		return "S"
@@ -125,7 +125,7 @@ func (m *mloc) check() bool {
 	if m.rs == rsInvalid {
 		return false
 	}
-	if m.mlt == mlInt && m.len != -1 {
+	if m.mlt == mlScalar && m.len != -1 {
 		return false
 	}
 	return true
