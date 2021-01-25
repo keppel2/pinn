@@ -231,9 +231,9 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.br(lab, "ne")
 	p.str(ATeq, TR2, TR5)
 	p.emitSprint(16, TR5)
-	p.popTen()
 	p.mov(TR1, int('.'))
 	p.fcall("printch")
+	p.popTen()
 	p.emitRet()
 }
 

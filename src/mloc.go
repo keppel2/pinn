@@ -14,6 +14,7 @@ const (
 	rsInvalid rstate = iota
 	rsInt
 	rsRange
+
 	rsMloc
 	rsString
 	rsMulti
@@ -24,11 +25,12 @@ type rstate int
 type mltt int
 
 type mloc struct {
-	fc  bool
-	i   int
-	len int
-	mlt mltt
-	rs  rstate
+	fc     bool
+	i      int
+	len    int
+	mlt    mltt
+	rs     rstate
+	ranged bool
 }
 
 func fromKind(k string) rstate {
@@ -103,8 +105,13 @@ func (m mltt) String() string {
 }
 
 func (m *mloc) typeOk(a *mloc) bool {
-	if m.fc != a.fc {
-		return false
+	/*
+		if m.fc != a.fc {
+			return false
+		}
+	*/
+	if m.mlt == mlSlice {
+		return a.mlt == mlArray && m.rs == a.rs
 	}
 	if m.mlt != a.mlt {
 		return false

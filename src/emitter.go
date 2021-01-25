@@ -647,7 +647,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 				e.err(v)
 			}
 			rt = ml
-			rt.rs = rsRange
+			rt.ranged = true
 			break
 		}
 		if ml.mlt == mlSlice {
@@ -781,11 +781,13 @@ func (e *emitter) emitAssign(as *AssignStmt) {
 				}
 				e.storeId(id, TR2)
 				break
-			} else if ml.mlt == mlArray && ml.rs == rsRange {
+			} else if ml.mlt == mlArray && ml.ranged {
 				mls := e.rMap[id]
 				if mls == nil {
 					mls = e.newSlc()
 					e.rMap[id] = mls
+				} else if !mls.typeOk(ml) {
+					e.err(id)
 				}
 				if mls.mlt != mlSlice {
 					e.err(id)
