@@ -366,7 +366,8 @@ func (e *emitter) doOp(dest, b regi, op string) {
 }
 func (e *emitter) condExpr(dest branch, ex Expr) {
 	switch be := ex.(type) {
-	case *VarExpr:
+	//case *VarExpr:
+	default:
 		e.assignToReg(be)
 		e.p.cmp(TR2, 2)
 		e.p.br(branch(dest), "eq")
@@ -423,6 +424,8 @@ func (e *emitter) condExpr(dest branch, ex Expr) {
 		} else {
 			e.err(be.op)
 		}
+		//  default:
+		//   e.err("")
 	}
 
 }

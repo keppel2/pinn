@@ -1,7 +1,3 @@
-var b bool;
-if false {
-  print(7);
-}
-if b {
+if true {
   print(4);
 }

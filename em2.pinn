@@ -25,6 +25,16 @@ if b {
 }
 assert(bsent, 3);
 
+// bool composite
+
+var bc [3]bool;
+bc[2] = true;
+bsent = 1;
+if bc[2] {
+  bsent = 2;
+}
+assert(bsent, 2);
+
 
 func fact(fa int) int {
   if fa == 1 {
