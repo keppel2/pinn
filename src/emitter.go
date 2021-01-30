@@ -136,9 +136,7 @@ func (e *emitter) newVar(s string, k Kind) {
 	case *SKind:
 		ml := e.newIntml()
 		e.rMap[s] = ml
-		if t.Wl.Value == "void" {
-			e.rMap[s].mlt = mlVoid
-		}
+		ml.rs = fromKind(t.Wl.Value)
 
 	case *ArKind:
 		ml := e.newArml(atoi(e, t.Len.(*NumberExpr).Il.Value))
@@ -569,6 +567,19 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 	case *VarExpr:
 		if t2.Wl.Value == "_" {
 			e.err(t2.Wl.Value)
+		}
+		if t2.Wl.Value == "false" {
+			rt = newSent(rsBool)
+			rt.mlt = mlScalar
+			rt.b = false
+			return rt
+		}
+
+		if t2.Wl.Value == "true" {
+			rt = newSent(rsBool)
+			rt.mlt = mlScalar
+			rt.b = true
+			return rt
 		}
 		rt = e.rMap[t2.Wl.Value]
 		if rt.mlt != mlArray && rt.mlt != mlSlice {

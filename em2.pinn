@@ -1,3 +1,11 @@
+// bool
+
+true;
+false;
+var b bool;
+b = true;
+b = false;
+
 func fact(fa int) int {
   if fa == 1 {
     return 1;

@@ -31,6 +31,7 @@ type mloc struct {
 	mlt    mltt
 	rs     rstate
 	ranged bool
+	b      bool
 }
 
 func fromKind(k string) rstate {
