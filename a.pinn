@@ -1,2 +1,7 @@
 var b bool;
-b = true;
+if false {
+  print(7);
+}
+if b {
+  print(4);
+}

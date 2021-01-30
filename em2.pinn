@@ -6,6 +6,26 @@ var b bool;
 b = true;
 b = false;
 
+if false {
+  bad();
+}
+if b {
+  bad();
+}
+
+bsent := 1;
+if true {
+  bsent = 2;
+}
+assert(bsent, 2);
+b = false;
+b = true;
+if b {
+  bsent = 3;
+}
+assert(bsent, 3);
+
+
 func fact(fa int) int {
   if fa == 1 {
     return 1;
