@@ -170,6 +170,8 @@ func (v *visitor) visitExpr(n Expr) {
 		v.visitTrinaryExpr(t)
 	case *NumberExpr:
 		v.prn("Number", t.Il.Value)
+	case *StringExpr:
+		v.prn("String", t.W.Value)
 	case *VarExpr:
 		v.prn("Var", t.Wl.Value)
 	case *IndexExpr:

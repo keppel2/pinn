@@ -36,6 +36,9 @@ if bc[2] {
 assert(bsent, 2);
 
 
+
+// XX
+
 func fact(fa int) int {
   if fa == 1 {
     return 1;

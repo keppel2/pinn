@@ -366,3 +366,6 @@ func (p *phys) emitDefines() {
 		p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
 	}
 }
+
+func (p *phys) storeString(s string) {
+}
