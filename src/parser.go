@@ -159,7 +159,7 @@ func (p *parser) fileA() *File {
 		p.next()
 		p.dm[str] = rpn(ss)
 	}
-	f.FList = append(f.FList, p.pseudoF("printdec", 1), p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("printchar", 1), p.pseudoF("printch", -1))
+	f.FList = append(f.FList, p.pseudoF("printdec", 1), p.pseudoF("print", 1), p.pseudoF("println", 0), p.pseudoF("printchar", 1), p.pseudoF("printch", -1), p.pseudoF("prints", 1))
 
 	for p.s.ct().tok != "EOF" {
 		if p.s.ct().tok == "func" {

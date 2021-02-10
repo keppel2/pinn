@@ -235,6 +235,24 @@ func (p *phys) emitPrint(ugly *emitter) {
 	p.fcall("printch")
 	p.popTen()
 	p.emitRet()
+
+	p.flabel("prints")
+	p.pop(TR3)
+	p.ldr(ATeq, TR2, TR3)
+
+	labps := p.ug.clab()
+	labps2 := p.ug.clab()
+	p.makeLabel(labps2)
+	p.cmp(TR2, 0)
+	p.br(labps, "eq")
+	p.add(TR3, moffOff(1))
+	p.ldr(ATeq, TR1, TR3)
+	p.fcall("printch")
+	p.sub(TR2, 1)
+	p.br(labps2)
+	p.makeLabel(labps)
+	p.emitRet()
+
 }
 
 func (p *phys) dbgExit() {
@@ -368,4 +386,13 @@ func (p *phys) emitDefines() {
 }
 
 func (p *phys) storeString(s string) {
+	p.mov(TR2, THP)
+	p.mov(TR5, len(s))
+	p.str(ATeq, TR5, THP)
+	p.add(THP, moffOff(1))
+	for _, r := range s {
+		p.mov(TR5, int(r))
+		p.str(ATeq, TR5, THP)
+		p.add(THP, moffOff(1))
+	}
 }

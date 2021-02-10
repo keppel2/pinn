@@ -584,7 +584,7 @@ func (e *emitter) assignToReg(ex Expr) *mloc {
 		e.p.mov(TR2, atoi(e, t2.Il.Value))
 		return newSent(rsInt)
 	case *StringExpr:
-		//e.p.storeString(
+		e.p.storeString(t2.W.Value)
 		return newSent(rsString)
 	case *VarExpr:
 		if t2.Wl.Value == "_" {
