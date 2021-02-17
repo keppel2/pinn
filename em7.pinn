@@ -1,5 +1,7 @@
 #define SIZE 3;
 #define SQSIZE SIZE SIZE *;
+
+//TIC TAC TOE as unit test
 EMPTY := 0;
 FALSE := 0;
 TRUE := 1;
@@ -7,7 +9,6 @@ TIE := 3;
 PLAYER_A := 1;
 PLAYER_B := 2;
 count := 0;
-
 
 func minimax (player int, depth int, flob [SQSIZE]int) int
 {

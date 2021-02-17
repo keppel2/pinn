@@ -4,6 +4,7 @@
 #define HASHT 3 BSIZE ^;
 #define BTOT BSIZE HASHT * BSIZE +;
 
+//Baduk as unit test.
 E := 0;
 B := 1;
 W := 2;
