@@ -3,7 +3,7 @@
 Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventually binaries).
 
 ## Pinn
-* Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn.
+* Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn. Further development in this repo.
 
 ## Motivations
 
