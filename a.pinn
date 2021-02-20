@@ -1,4 +1,2 @@
-//var s string;
-s := "strnnng";
-prints("alt");
-
+x := 5;
+print(x);

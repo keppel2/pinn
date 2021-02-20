@@ -1,11 +1,19 @@
 package main
 
 //a
-import "runtime/debug"
-import "io/ioutil"
-import "strings"
-import "fmt"
-import "os"
+import (
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime/debug"
+	"strings"
+)
+
+var fnFlag = flag.String("f", "a", "Filename")
+var sFlag = flag.Bool("s", false, "Run scanner")
+var pFlag = flag.Bool("p", false, "Parse")
+var vFlag = flag.Bool("v", false, "Run visitor")
 
 func g() {
 	//	ts := TypeStmt{}
@@ -19,16 +27,17 @@ func f2() {
 }
 
 func main() {
+	flag.Parse()
 	if len(os.Args) <= 1 {
 		os.Exit(1)
 	}
 
-	src, err := ioutil.ReadFile(os.Args[1] + ".pinn")
+	src, err := ioutil.ReadFile(*fnFlag + ".pinn")
 	if err != nil {
 		panic(err)
 	}
 	ssrc := string(src)
-	if len(os.Args) == 3 && os.Args[2] == "scan" {
+	if *sFlag {
 		s := new(scan)
 		s.init(strings.NewReader(ssrc))
 		fmt.Println(s.tokenize())
@@ -39,17 +48,17 @@ func main() {
 	p.init(strings.NewReader(ssrc))
 
 	f := p.fileA()
-	if len(os.Args) > 2 {
-		if os.Args[2] == "parse" {
-			return
-		} else if os.Args[2] == "visit" {
-			v := new(visitor)
-			v.init()
-			v.visitFile(f)
-			fmt.Println(v.s)
-			return
-		}
+	if *pFlag {
+		return
 	}
+	if *vFlag {
+		v := new(visitor)
+		v.init()
+		v.visitFile(f)
+		fmt.Println(v.s)
+		return
+	}
+
 	e := emitter{}
 	e.init(f)
 	_ = debug.Stack
