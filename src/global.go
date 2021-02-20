@@ -1,8 +1,10 @@
 package main
 
-import "fmt"
-import "strconv"
-import "os"
+import (
+	"fmt"
+	"os"
+	"strconv"
+)
 
 var _ = os.Stderr
 
@@ -141,6 +143,7 @@ func init() {
 		if len(ce.Params) != 0 {
 			e.err("")
 		}
+		e.p.emitExit8()
 		e.p.mov(TR2, TSP)
 		return newSent(rsInt)
 	}

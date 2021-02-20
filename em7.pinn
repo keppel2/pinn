@@ -18,10 +18,8 @@ func minimax (player int, depth int, flob [SQSIZE]int) int
  i := 0;
  result := 0;
  var best int;
-da = dbg();
   best = opposite(player);
   result = winner(flob);
-        db = dbg();
         assert(da, db);
 
   if result != TIE {
