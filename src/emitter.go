@@ -1,10 +1,11 @@
 package main
 
-import "fmt"
-import "reflect"
-import "math/rand"
-
-import "os"
+import (
+	"fmt"
+	"math/rand"
+	"os"
+	"reflect"
+)
 
 var _ = os.Stderr
 
@@ -1084,8 +1085,9 @@ func (e *emitter) emitStmt(s Stmt) {
 			if len(t.EL) != 1 {
 				e.err("")
 			}
+			e.assignToReg(t.EL[0])
 			e.p.mov(TR1, TR2)
-			e.p.br(e.ebranch)
+			e.p.emitExit()
 			return
 		}
 		if len(e.f.K) != len(t.EL) {
