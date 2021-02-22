@@ -61,6 +61,7 @@ type Segment struct {
 	LoadBytes
 	SegmentHeader
 	Flat Segment64
+	FlatSections []Section64
 
 	// Embed ReaderAt for ReadAt method.
 	// Do not embed SectionReader directly
@@ -428,6 +429,7 @@ func NewFile(r io.ReaderAt) (*File, error) {
 				if err := binary.Read(b, bo, &sh64); err != nil {
 					return nil, err
 				}
+				s.FlatSections = append(s.FlatSections, sh64)
 				sh := new(Section)
 				sh.Flat = sh64
 

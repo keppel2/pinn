@@ -35,8 +35,10 @@ func main() {
 	if *pFlag {
 		return
 	}
+	baUW, _ := os.ReadFile("si.unwind")
+	baLE, _ := os.ReadFile("si.linkedit")
 	ret5 := []byte{0x48, 0xc7, 0xc0, 0x05, 0, 0, 0, 0xc3}
-	_ = ret5
+	_, _ = ret5, baLE
 	// f.FileHeader.Ncmd = 1
 	// f.FileHeader.Cmdsz = uint32(len(f.Loads[0].Raw()))
 	mb := new(bytes.Buffer)
@@ -61,9 +63,21 @@ func main() {
 	for k, v := range f.Loads {
     if k == 1 {
       ms := v.(*macho.Segment)
+	  ms.Flat.Addr = 0x10000_8000
+	  ms.Flat.Offset = 0x8000
+	  
       binary.Write(mb, binary.LittleEndian, ms.Flat)
-	  for _, v2 := range f.Sections {
-		  binary.Write(mb, binary.LittleEndian, v2.Flat)
+	  for k, v2 := range ms.FlatSections {
+		  if k == 0 { // Code
+			  v2.Addr = 0x10000_9000
+			  v2.Size = 8//0x3000
+			  v2.Offset = 0x9000
+		  } else if k == 1 {
+			v2.Addr = 0x10000_8000
+			v2.Size = uint64(len(baUW))
+			v2.Offset = 0x8000
+		  }
+		  binary.Write(mb, binary.LittleEndian, v2)
 	  }
 	  continue
     }
@@ -71,12 +85,33 @@ func main() {
 	}
 	offset := mb.Len()
 _ = offset
-	// for offset != 0x1000 {
-	// 	mb.WriteByte(0)
-	// 	offset = mb.Len()
-	// }
-	// mb.Write(ret5)
+	for offset != 16384 {
+		mb.WriteByte(0)
+		offset = mb.Len()
+	}
+	mb.Write(baLE)
 
-	// mb.Write(f.Loads[0].Raw())
+	offset = mb.Len()
+	for offset != 0x8000 {
+		mb.WriteByte(0)
+		offset = mb.Len()
+	}
+	mb.Write(baUW)
+
+
+	offset = mb.Len()
+	for offset != 0x9000 {
+		mb.WriteByte(0)
+		offset = mb.Len()
+	}
+
+	mb.Write(ret5)
+
+	offset = mb.Len()
+	for offset != 0xC000 {
+		mb.WriteByte(0)
+		offset = mb.Len()
+	}
+
 	os.WriteFile(*oFlag, mb.Bytes(), 0777)
 }
