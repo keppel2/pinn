@@ -91,19 +91,28 @@ func main() {
 		ms.Flat.Offset = 0x8000
 		binary.Write(mb, binary.LittleEndian, ms.Flat)
 		continue
-		} else if k == 4 {
+	} else if k == 3 {
+		x := v.Raw()
+		x[41] = 0x80
+		// x[0x11] = 0x80
+		mb.Write(x)
+		continue
+
+	} else if k == 4 {
 			x := v.Raw()
 			x[9] = 0x80
-			x[0x11] = 0x10000_8000
+			x[0x11] = 0x80
 			mb.Write(x)
 			continue
 
-		}else if k == 10 {
+	} else if k == 10 {
 		x := v.Raw()
 		x[8] = 0
 		x[9] = 0x20
 		mb.Write(x)
 		continue
+	}
+	mb.Write(v.Raw())
 	}
 
 	offset := mb.Len()
