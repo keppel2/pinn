@@ -29,6 +29,9 @@ func main() {
 	for _, v := range f.Loads {
 		fmt.Printf("%#v\n", v)
 	}
+	for _, v := range f.Sections {
+		fmt.Printf("%#v\n", v)
+	}
 	if *pFlag {
 		return
 	}
@@ -39,9 +42,17 @@ func main() {
 	mb := new(bytes.Buffer)
 	ncmd := 0
 	cmdsz := 0
-	for _, v := range f.Loads {
+	for k, v := range f.Loads {
 		ncmd++
 		cmdsz += len(v.Raw())
+		if k == 1 {
+			ms := v.(*macho.Segment)
+			ms.SegmentHeader.Offset = 0x8000
+			ms.SegmentHeader.Memsz = 0x80000
+			ms.SegmentHeader.Filesz = 0x8000
+
+		}
+
 	}
 	f.FileHeader.Cmdsz = uint32(cmdsz)
 	f.FileHeader.Ncmd = uint32(ncmd)
@@ -52,10 +63,11 @@ func main() {
 	}
 	offset := mb.Len()
 
-	for offset != 0x3fb0 {
+	for offset != 0x1000 {
 		mb.WriteByte(0)
 		offset = mb.Len()
 	}
+	mb.Write(ret5)
 
 	// mb.Write(f.Loads[0].Raw())
 	os.WriteFile(*oFlag, mb.Bytes(), 0777)
