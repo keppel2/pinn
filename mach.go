@@ -61,20 +61,21 @@ func main() {
 	for k, v := range f.Loads {
     if k == 1 {
       ms := v.(*macho.Segment)
-			_ = ms
-      var seg64 macho.Segment64
-			_ = seg64
-//      mb.Write(mb, binary.LittleEndian, v.(*macho.Segment).)
+      binary.Write(mb, binary.LittleEndian, ms.Flat)
+	  for _, v2 := range f.Sections {
+		  binary.Write(mb, binary.LittleEndian, v2.Flat)
+	  }
+	  continue
     }
 		mb.Write(v.Raw())
 	}
 	offset := mb.Len()
-
-	for offset != 0x1000 {
-		mb.WriteByte(0)
-		offset = mb.Len()
-	}
-	mb.Write(ret5)
+_ = offset
+	// for offset != 0x1000 {
+	// 	mb.WriteByte(0)
+	// 	offset = mb.Len()
+	// }
+	// mb.Write(ret5)
 
 	// mb.Write(f.Loads[0].Raw())
 	os.WriteFile(*oFlag, mb.Bytes(), 0777)
