@@ -10,10 +10,11 @@ import (
 	"strings"
 )
 
-var fnFlag = flag.String("f", "a", "Filename")
+var fFlag = flag.String("f", "a", "Filename")
 var sFlag = flag.Bool("s", false, "Run scanner")
 var pFlag = flag.Bool("p", false, "Parse")
 var vFlag = flag.Bool("v", false, "Run visitor")
+var oFlag = flag.String("o", "a.S", "Output")
 
 func g() {
 	//	ts := TypeStmt{}
@@ -32,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	src, err := ioutil.ReadFile(*fnFlag + ".pinn")
+	src, err := ioutil.ReadFile(*fFlag + ".pinn")
 	if err != nil {
 		panic(err)
 	}
@@ -71,6 +72,9 @@ func main() {
 		}
 	}()
 	e.emitF()
-	fmt.Println(e.p.sb.String())
+
+	os.WriteFile(*oFlag, []byte(e.p.sb.String()), 0666)
+
+	//fmt.Println(e.p.sb.String())
 	return
 }
