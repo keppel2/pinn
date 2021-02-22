@@ -1,3 +1,3 @@
-module src
+module amn
 
 go 1.16

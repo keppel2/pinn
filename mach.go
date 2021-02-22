@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"./macho"
+	"amn/macho"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -61,8 +61,9 @@ func main() {
 	for k, v := range f.Loads {
     if k == 1 {
       ms := v.(*macho.Segment)
+			_ = ms
       var seg64 macho.Segment64
-      seg64.
+			_ = seg64
 //      mb.Write(mb, binary.LittleEndian, v.(*macho.Segment).)
     }
 		mb.Write(v.Raw())
