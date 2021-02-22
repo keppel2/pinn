@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"debug/macho"
+	"./macho"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -46,10 +46,10 @@ func main() {
 		ncmd++
 		cmdsz += len(v.Raw())
 		if k == 1 {
-			ms := v.(*macho.Segment)
-			ms.SegmentHeader.Offset = 0x8000
-			ms.SegmentHeader.Memsz = 0x80000
-			ms.SegmentHeader.Filesz = 0x8000
+			// ms := v.(*macho.Segment)
+			// ms.SegmentHeader.Offset = 0x8000
+			// ms.SegmentHeader.Memsz = 0x80000
+			// ms.SegmentHeader.Filesz = 0x8000
 
 		}
 
@@ -58,7 +58,13 @@ func main() {
 	f.FileHeader.Ncmd = uint32(ncmd)
 	binary.Write(mb, binary.LittleEndian, f.FileHeader)
 	mb.Write([]byte{0, 0, 0, 0})
-	for _, v := range f.Loads {
+	for k, v := range f.Loads {
+    if k == 1 {
+      ms := v.(*macho.Segment)
+      var seg64 macho.Segment64
+      seg64.
+//      mb.Write(mb, binary.LittleEndian, v.(*macho.Segment).)
+    }
 		mb.Write(v.Raw())
 	}
 	offset := mb.Len()
