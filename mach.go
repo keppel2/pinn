@@ -44,6 +44,10 @@ func main() {
 	mb := new(bytes.Buffer)
 	ncmd := 0
 	cmdsz := 0
+
+
+
+
 	for k, v := range f.Loads {
 		ncmd++
 		cmdsz += len(v.Raw())
@@ -63,36 +67,47 @@ func main() {
 	for k, v := range f.Loads {
     if k == 1 {
       ms := v.(*macho.Segment)
-	  ms.Flat.Addr = 0x10000_8000
-	  ms.Flat.Offset = 0x8000
-	  
+	//   ms.Flat.Addr = 0x10000_8000
+	//   ms.Flat.Offset = 0x8000
+	  ms.Flat.Memsz = 0x8000
+	  ms.Flat.Filesz = 0x8000
       binary.Write(mb, binary.LittleEndian, ms.Flat)
 	  for k, v2 := range ms.FlatSections {
 		  if k == 0 { // Code
-			  v2.Addr = 0x10000_9000
+			  v2.Addr = 0x10000_2000
 			  v2.Size = 8//0x3000
-			  v2.Offset = 0x9000
+			  v2.Offset = 0x2000
 		  } else if k == 1 {
-			v2.Addr = 0x10000_8000
+			v2.Addr = 0x10000_1000
 			v2.Size = uint64(len(baUW))
-			v2.Offset = 0x8000
+			v2.Offset = 0x1000
 		  }
 		  binary.Write(mb, binary.LittleEndian, v2)
 	  }
 	  continue
-    }
-		mb.Write(v.Raw())
-	}
-	offset := mb.Len()
-_ = offset
-	for offset != 16384 {
-		mb.WriteByte(0)
-		offset = mb.Len()
-	}
-	mb.Write(baLE)
+    } else if k == 2 {
+		ms := v.(*macho.Segment)
+		ms.Flat.Addr = 0x10000_8000
+		ms.Flat.Offset = 0x8000
+		binary.Write(mb, binary.LittleEndian, ms.Flat)
+		continue
+		} else if k == 4 {
+			x := v.Raw()
+			x[9] = 0x80
+			x[0x11] = 0x10000_8000
+			mb.Write(x)
+			continue
 
-	offset = mb.Len()
-	for offset != 0x8000 {
+		}else if k == 10 {
+		x := v.Raw()
+		x[8] = 0
+		x[9] = 0x20
+		mb.Write(x)
+		continue
+	}
+
+	offset := mb.Len()
+	for offset != 0x1000 {
 		mb.WriteByte(0)
 		offset = mb.Len()
 	}
@@ -100,18 +115,31 @@ _ = offset
 
 
 	offset = mb.Len()
-	for offset != 0x9000 {
+	for offset != 0x2000 {
 		mb.WriteByte(0)
 		offset = mb.Len()
 	}
 
 	mb.Write(ret5)
 
+
+
+
+
 	offset = mb.Len()
-	for offset != 0xC000 {
+_ = offset
+	for offset != 0x8000 {
 		mb.WriteByte(0)
 		offset = mb.Len()
 	}
+	mb.Write(baLE)
+
+
+	// offset = mb.Len()
+	// for offset != 0xC000 {
+	// 	mb.WriteByte(0)
+	// 	offset = mb.Len()
+	// }
 
 	os.WriteFile(*oFlag, mb.Bytes(), 0777)
 }
