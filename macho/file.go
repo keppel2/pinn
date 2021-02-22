@@ -60,6 +60,7 @@ type SegmentHeader struct {
 type Segment struct {
 	LoadBytes
 	SegmentHeader
+	Flat Segment64
 
 	// Embed ReaderAt for ReadAt method.
 	// Do not embed SectionReader directly
@@ -112,6 +113,7 @@ type Reloc struct {
 
 type Section struct {
 	SectionHeader
+	Flat Section64
 	Relocs []Reloc
 
 	// Embed ReaderAt for ReadAt method.
@@ -407,6 +409,7 @@ func NewFile(r io.ReaderAt) (*File, error) {
 				return nil, err
 			}
 			s = new(Segment)
+			s.Flat = seg64
 			s.LoadBytes = cmddat
 			s.Cmd = cmd
 			s.Len = siz
@@ -426,6 +429,8 @@ func NewFile(r io.ReaderAt) (*File, error) {
 					return nil, err
 				}
 				sh := new(Section)
+				sh.Flat = sh64
+
 				sh.Name = cstring(sh64.Name[0:])
 				sh.Seg = cstring(sh64.Seg[0:])
 				sh.Addr = sh64.Addr
