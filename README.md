@@ -7,16 +7,16 @@ Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventual
 
 ## Motivations
 
-- Repeatedly saw interpreted languages (Ruby, Python), slower by orders of magnitude than Go.
 - ANTLR works well, but a clean hand written implementation should be faster. Also could not be there for a self-hosting eventual solution.
-- ARM64 is set to appear on Macs. Owns phone space. Windows 10 now runs on it. It's fairly clean (especially compared to x64).
+- LLVM was looked at. Go had an initial implementation in LLVM, but benefited from a complete self-hosted toolchain.
+- ARM64 is set to appear on Macs. Owns phone space. Windows 10 now runs on it. It's fairly clean (especially compared to x64). `x64` is still dominant. 32-bit versions are not prevalent anywhere, and would complicated things--especially x32.
 
 ## Steps
 
 - Lexer. `text/scanner` mostly works because of similarity to Go.
 - Parser. LL(1). Small hack to lower precedence of range `:` operator in ternary `? :` expressions.
-- Generate x64/ARM64 assembly. ARM64 is lapsed. Mac and Linux are supported but latest is Mac/x64.
-  - Output binaries for Mac/Linux eventually.
+- Generate x64/ARM64 assembly code. ARM64 is lapsed. Mac and Linux are supported but latest is Mac/x64.
+  - Output binaries for Mac/Linux eventually in ARM64 and x64.
 
 ## Tic-tac-toe solver as a unit test.
 
