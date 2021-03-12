@@ -4,7 +4,7 @@ Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventual
 
 ## Pinn
 - Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn. Further development in this repo.
-
+- `./mt.sh tic` to run a perfect game of Tic-Tac-Toe.
 ## Motivations
 
 - ANTLR works well, but a clean hand written implementation should be faster. Also could not be there for a self-hosting eventual solution.
