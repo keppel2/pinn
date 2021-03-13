@@ -381,7 +381,7 @@ func (p *phys) mov(a regi, b regOrConst) {
 
 func (p *phys) emitDefines() {
 	for r := TR1; r <= TSS; r++ {
-		p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
+		p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, rss[p.ug.a][r]) + "\n")
 	}
 }
 

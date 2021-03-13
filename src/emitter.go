@@ -9,7 +9,17 @@ import (
 
 var _ = os.Stderr
 
+const (
+	acInvalid arch = iota
+	acArm
+	acx
+)
+
+type arch int
+
 type emitter struct {
+	a arch
+
 	rMap     map[string]*mloc
 	cbranch  branch
 	ebranch  branch
@@ -254,6 +264,7 @@ func (e *emitter) rangeCheck(ml *mloc) {
 func (e *emitter) init(f *File) {
 	RP = "%r"
 	rand.Seed(42)
+	e.a = acx
 	e.p = new(phys)
 	e.p.init(e)
 	e.moff = 1
@@ -1223,12 +1234,6 @@ func (e *emitter) emitStmt(s Stmt) {
 
 	}
 
-}
-
-func (e *emitter) emitDefines() {
-	for r := TR1; r <= TSS; r++ {
-		e.p.padd("#define " + rs[r] + " " + fmt.Sprintf("%v%v", RP, irs[r]) + "\n")
-	}
 }
 
 func (e *emitter) emitF() {

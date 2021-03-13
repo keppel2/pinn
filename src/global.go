@@ -35,10 +35,11 @@ func ff(a reg) {}
 
 func (r reg) aReg() {}
 
-var rs []string = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "THP", "TMAIN", "TBP", "TSP", "TSS"}
+var rs = []string{"TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TR10", "THP", "TMAIN", "TBP", "TSP", "TSS"}
 
-var irs []string = []string{
-	"ax", "10", "cx", "dx", "si", "di", "11", "8", "9", "bx", "bp", "12", "13", "14", "15"}
+var rss = map[arch][]string{acArm: {"0", "1", "2", "3", "4", "5", "6", "7", "8", "19", "20", "21", "22", "23", "24"},
+	acx: {"ax", "10", "cx", "dx", "si", "di", "11", "8", "9", "bx", "bp", "12", "13", "14", "15"}}
+
 var fmap = make(map[string]func(*emitter, *CallExpr) *mloc)
 
 const (
