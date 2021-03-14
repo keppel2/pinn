@@ -15,6 +15,7 @@ var sFlag = flag.Bool("s", false, "Run scanner")
 var pFlag = flag.Bool("p", false, "Parse")
 var vFlag = flag.Bool("v", false, "Run visitor")
 var oFlag = flag.String("o", "a.S", "Output")
+var aFlag = flag.String("a", "x64", "x64 or arm64")
 
 func g() {
 	//	ts := TypeStmt{}
@@ -62,6 +63,13 @@ func main() {
 
 	e := emitter{}
 	e.init(f)
+	if *aFlag == "x64" {
+		e.a = acx
+	} else if *aFlag == "arm64" {
+		e.a = acArm
+	} else {
+		e.err("")
+	}
 	_ = debug.Stack
 	defer func() {
 		err := recover()
@@ -73,7 +81,7 @@ func main() {
 	}()
 	e.emitF()
 
-	os.WriteFile(*oFlag, []byte(e.p.sb.String()), 0666)
+	ioutil.WriteFile(*oFlag, []byte(e.p.sb.String()), 0666)
 
 	//fmt.Println(e.p.sb.String())
 	return
