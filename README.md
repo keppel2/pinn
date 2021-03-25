@@ -16,7 +16,7 @@ Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventual
 - Lexer. `text/scanner` mostly works because of similarity to Go.
 - Parser. LL(1). Small hack to lower precedence of range `:` operator in ternary `? :` expressions.
 - Generate x64/ARM64 assembly code. ARM64 is lapsed. Mac and Linux are supported but latest is Mac/x64.
-  - Output binaries for Mac/Linux eventually in ARM64 and x64.
+  - Output binaries for Mac/Linux eventually in ARM64 and x64. LLVM is a strong candidate for final target.
 
 ## Tic-tac-toe solver as a unit test.
 
