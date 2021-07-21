@@ -1,4 +1,4 @@
-# Pinn.
+# Pinn. It lets you be correct.
 
 Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventually binaries). Heavily inspired by Golang, with a few tweaks to make it less brittle. A ternary expression is allowed. Use it with care.
 
