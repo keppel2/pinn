@@ -1,6 +1,6 @@
 # Pinn. It lets you be correct.
 
-Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventually binaries). Heavily inspired by Golang, with a few tweaks to make it less brittle. A ternary expression is allowed. Use it with care.
+Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventually binaries). Heavily inspired by Golang, with a few tweaks to make it less brittle. The biggst tweak is not naming the language after a common verb. A ternary expression is allowed. Use it with care.
 
 ## Pinn
 - Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn-swift. Further development in this repo.
@@ -15,8 +15,8 @@ Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventual
 
 - Lexer. `text/scanner` mostly works because of similarity to Go.
 - Parser. LL(1). Small hack to lower precedence of range `:` operator in ternary `? :` expressions.
-- Generate x64/ARM64 assembly code. ARM64 is lapsed. Mac and Linux are supported but latest is Mac/x64.
-  - Output binaries for Mac/Linux eventually in ARM64 and x64. LLVM is a strong candidate for final target.
+- Generate x64/ARM64 assembly code. ARM64 is lapsed. Main platform is Mac/x64.
+  - Output binaries for Mac/Linux eventually in ARM64 and x64. LLVM has been rejected along with assemblers. This aligns with Golang.
 
 ## Tic-tac-toe solver as a unit test.
 
