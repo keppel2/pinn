@@ -1,6 +1,6 @@
 # Pinn. It lets you be correct.
 
-Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventually binaries). Heavily inspired by Golang, with a few tweaks to make it less brittle. The biggst tweak is not naming the language after a common verb. A ternary expression is allowed. Use it with care.
+Implement Pinn entirely in golang (remove ANTLR) in x64/ARM64 assembly (eventually binaries). Heavily inspired by Golang, with a few tweaks to make it less brittle. The biggest tweak is not naming the language after a common verb. A ternary expression is allowed. Use it with care.
 
 ## Pinn
 - Initial implementation in Go/ANTLR, https://github.com/keppel2/pinn-go. Further development in Swift/ANTLR, https://github.com/keppel2/pinn-swift. Further development in this repo.
