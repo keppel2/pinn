@@ -16,6 +16,7 @@ var pFlag = flag.Bool("p", false, "Parse")
 var vFlag = flag.Bool("v", false, "Run visitor")
 var oFlag = flag.String("o", "a.S", "Output")
 var aFlag = flag.String("a", "x64", "x64 or arm64")
+var eFlag = flag.String("e", "darwin", "darwin or linux")
 
 func g() {
 	//	ts := TypeStmt{}
@@ -70,6 +71,14 @@ func main() {
 	} else {
 		e.err("")
 	}
+	if *eFlag == "darwin" {
+		e.e = enDarwin
+	} else if *aFlag == "linux" {
+		e.e = enLinux
+	} else {
+		e.err("")
+	}
+
 	_ = debug.Stack
 	defer func() {
 		err := recover()

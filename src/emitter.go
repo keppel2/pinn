@@ -17,8 +17,18 @@ const (
 
 type arch int
 
+const (
+	enInvalid env = iota
+	enDarwin
+	enLinux
+)
+
+type env int
+
+
 type emitter struct {
 	a arch
+	e env
 
 	rMap     map[string]*mloc
 	cbranch  branch
@@ -1238,8 +1248,13 @@ func (e *emitter) emitStmt(s Stmt) {
 
 func (e *emitter) emitF() {
 	e.p.emitDefines()
+	if e.e == enDarwin {
 	e.p.padd(".global _main\n")
 	e.p.label("_main")
+	} else {
+	e.p.padd(".global main\n")
+	e.p.label("main")
+	}
 	e.p.emitR("pop", TR1)
 	e.p.emitR("push", TR1)
 	e.p.mov(TSP, SP)
